@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: requiriments.txt
+
+      - name: Install dependencies
+        run: pip install -r requiriments.txt
+
+      - name: Check that the code compiles (syntax check)
+        run: python -m compileall -q src tests test_setup.py
+
+      - name: Verify environment setup (TF/PyTorch/NumPy import cleanly)
+        run: python test_setup.py
+
+      - name: Run test suite
+        run: pytest
