@@ -21,28 +21,41 @@ root=100, 7-rule arsenal, same seeds:
                             adapted to the FULL 7-rule arsenal (the paper's
                             own arsenal is only 3 rules — widened here per
                             validity condition 2 of the plan doc)
-  AdaAggRL                -> continuous-weight TD3-family agent — NO
-                            external paper; a from-spec instantiation of the
-                            plan doc's one-line description (see
-                            `src/defense/adaaggrl_agent.py`'s docstring)
+  AdaAggRL                -> RL-based Adaptive Aggregation (Wang, Zhang,
+                            Wen, Qiu & Guo, AAAI 2025) — gradient-inversion
+                            distribution learning + MMD-based "environmental
+                            cues" + TD3 over a continuous [0,1]^5 action,
+                            with a persistent exponential penalty for
+                            repeatedly-flagged clients (see
+                            `src/defense/adaaggrl_agent.py`'s docstring for
+                            the full reproduction and its documented
+                            deviations/instantiation choices). CORRECTED
+                            from an earlier from-scratch guess once the
+                            paper was identified — see that module's
+                            CORRECTION NOTE.
 
-Two detection variants (plan doc condition 4 — run BOTH, (b) first):
-  (b) shared detection  -> FedStrategist/AdaAggRL are driven by GRADF's OWN
-                            detection layer (ModalityRecorder + the same
-                            pretrained RLAttackClassifier), not their own
-                            diagnostics. Isolates the SELECTION POLICY as the
-                            only remaining variable. If everyone ties here,
+Two detection variants (plan doc condition 4) apply ONLY to FedStrategist —
+run BOTH, (b) first:
+  (b) shared detection  -> FedStrategist is driven by GRADF's OWN detection
+                            layer (ModalityRecorder + the same pretrained
+                            RLAttackClassifier), not its own diagnostics.
+                            Isolates the SELECTION POLICY as the only
+                            remaining variable. If it ties Random here,
                             policy isn't the bottleneck.
-  (a) own detection     -> each system uses its own original diagnostics
-                            (FedStrategist: 3-dim update-geometry vector;
-                            AdaAggRL: a 4th, distinct metric added — see
-                            `_own_diagnostic_state_adaaggrl`). A win here
-                            that disappears in (b) means the advantage came
-                            from the DETECTOR, not the selector.
+  (a) own detection     -> FedStrategist uses its own original 3-dim
+                            update-geometry diagnostic. A win here that
+                            disappears in (b) means the advantage came from
+                            the DETECTOR, not the selector.
+
+AdaAggRL has NO variant (b): unlike FedStrategist's swappable diagnostic
+front-end, AdaAggRL's gradient-inversion + MMD cues ARE its detection
+mechanism by construction (the paper's own algorithm) — there is no slot to
+plug in someone else's classifier output without turning it into a
+different algorithm. It always runs in its one, real mode.
 
 Random/Oracle don't consume a detection signal by construction (Random
 ignores it; Oracle uses the round's TRUE attack type directly), so they are
-computed once and reused across both variants' tables.
+computed once and reused across the FedStrategist-variant tables.
 
 `results/tables/exp9_dominance_grid_10seeds_ALL_root100_summary.csv` (already
 on disk, seeds 42-51, same 21-cell grid, root=100) is reused as the "best
@@ -63,10 +76,18 @@ import numpy as np
 import pandas as pd
 
 import src.defense.aggregation_methods  # noqa: F401  registers median/trimmed_mean/krum/etc.
-from src.defense.adaaggrl_agent import AdaAggRLAgent
+from src.defense.adaaggrl_agent import (
+    AdaAggRLAgent,
+    RandomCNNFeatureExtractor,
+    compute_weights_and_penalty,
+    cue_similarity,
+    mmd_rbf,
+    reconstruct_client_distribution,
+)
 from src.defense.aggregation_methods import KrumStrategy
 from src.defense.fedstrategist_selector import DiagnosticStateVector, LinUCBAgent
 from src.defense.rl_selector import RLDefenseSelector
+from src.defense.tars_selector import cross_entropy_loss
 from src.detection.modality_recorder import ModalityRecorder
 from src.experiments.exp1_baseline import (
     GroundTruthClassifierStub,
@@ -77,12 +98,18 @@ from src.experiments.exp1_baseline import (
     train_gradf_models,
 )
 from src.experiments.exp9_dominance_grid import BLIND_ATTACKS, INFORMED_ATTACKS, _split_name
-from src.fl.attacked_learner import AttackedFederatedLearner
+from src.fl.attacked_learner import AttackedFederatedLearner, compute_param_updates_auto
 from src.fl.federated_learner import RoundResult, _STRATEGIES
 from src.fl.gradf_learner import GRADFFederatedLearner
 from src.utils.data_loader import generate_selector_experiences, load_dataset_participants
 from src.utils.logger import get_logger
 from src.utils.stats import paired_significance, run_over_seeds, summarize
+
+# Input shape per dataset — needed by AdaAggRL's RandomCNNFeatureExtractor
+# (gradient inversion reconstructs flat feature vectors; the extractor
+# needs the original image shape to reshape them back for its Conv2D
+# layers).
+DATASET_INPUT_SHAPE = {"mnist": (28, 28, 1), "cifar10": (32, 32, 3)}
 
 logger = get_logger(__name__)
 
@@ -106,21 +133,6 @@ ARSENAL_COST = {
 
 def _make_arsenal_strategy(name: str, n_byzantine: int):
     return KrumStrategy(n_byzantine=n_byzantine) if name == "krum" else _STRATEGIES[name]()
-
-
-def _own_diagnostic_state_adaaggrl(updates: List[np.ndarray]) -> np.ndarray:
-    """AdaAggRL's own ~4-metric diagnostic (variant a): FedStrategist's
-    3-dim vector (variance of norms, avg pairwise cosine, mean norm) plus a
-    4th, distinct signal — the fraction of clients whose update norm is a
-    magnitude outlier (|z-score| > 2) this round — giving AdaAggRL genuinely
-    different information from FedStrategist's own-detection variant, not
-    just a subset/superset relationship."""
-    var_norms, avg_cos, mean_norm = DiagnosticStateVector.compute(updates)
-    stacked = np.stack(updates, axis=0)
-    norms = np.linalg.norm(stacked, axis=1)
-    z = (norms - norms.mean()) / (norms.std() + 1e-8)
-    frac_flagged = float(np.mean(np.abs(z) > 2.0))
-    return np.array([var_norms, avg_cos, mean_norm, frac_flagged])
 
 
 def _shared_detection_state(
@@ -187,7 +199,11 @@ class FedStrategistGridLearner(AttackedFederatedLearner):
 
     def _run_round(self, round_num, participants, root_data):
         active = self._is_active(round_num)
-        param_updates, _is_byz_list = self._compute_param_updates(participants, active)
+        # compute_param_updates_auto: dispatches to the informed-attacker path
+        # for INFORMED_ATTACK_TYPES instead of silently degrading them — see
+        # src/fl/attacked_learner.py's docstring and the bug note in
+        # references/resultado_experimento_seletores_adaptativos.md.
+        param_updates, _is_byz_list = compute_param_updates_auto(self, participants, active, root_data)
         n_feat = participants[0].n_features
 
         eval_data = root_data or {"X": participants[0].X_test, "y": participants[0].y_test}
@@ -234,76 +250,117 @@ class FedStrategistGridLearner(AttackedFederatedLearner):
 
 
 class AdaAggRLGridLearner(AttackedFederatedLearner):
-    """AdaAggRL over the same 7-rule arsenal: blends every candidate rule's
-    own aggregated delta by the agent's continuous weight vector, instead of
-    picking one winner. Same pluggable detection source as
-    `FedStrategistGridLearner`."""
+    """AdaAggRL (Wang, Zhang, Wen, Qiu & Guo, AAAI 2025) — see
+    `src/defense/adaaggrl_agent.py` for the full reproduction (gradient-
+    inversion distribution learning + MMD-based environmental cues + TD3
+    over a [0,1]^5 action + exponential malicious-behavior penalty) and its
+    documented deviations/instantiation choices.
+
+    Mechanically different from every other learner in this file:
+    aggregates clients' FULL PARAMETERS (theta_k^{t+1} = global_params +
+    update_k) directly, weighted by the agent's decision — not a delta
+    blended from other registered aggregation strategies, and not gated by
+    the 7-rule `FULL_ARSENAL` at all (AdaAggRL has no notion of candidate
+    rules; its "action" only ever weights clients, never picks/blends
+    aggregation FUNCTIONS). No `variant` parameter: see the module
+    docstring for why a "shared GRADF detection" mode doesn't apply here.
+    Only supports `model_type='logistic'` (needs `_LogisticModel`'s flat
+    W/b packing for gradient inversion) — every call site in this
+    experiment already uses that default.
+    """
 
     def __init__(
-        self, *args, variant: str = "a", shared_classifier=None,
-        n_labels: int = 2, seed: int = 42, **kwargs,
+        self, *args, input_shape: tuple, seed: int = 42,
+        num_images: int = 16, max_iters: int = 30, feature_dim: int = 16,
+        lam: float = 2.0, **kwargs,
     ):
-        kwargs.setdefault("aggregation", FULL_ARSENAL[0])
+        kwargs.setdefault("aggregation", "fedavg")  # placeholder to satisfy FederatedLearner's validation; unused
         kwargs.setdefault("seed", seed)
         super().__init__(*args, **kwargs)
-        self.variant = variant
-        self.n_labels = n_labels
-        self.agent = AdaAggRLAgent(FULL_ARSENAL, state_dim=4, seed=seed)
-        if variant == "b":
-            if shared_classifier is None:
-                raise ValueError("variant='b' requires shared_classifier")
-            self.shared_classifier = shared_classifier
-            self.recorder = ModalityRecorder()
+        if self.model_type != "logistic":
+            raise ValueError("AdaAggRLGridLearner only supports model_type='logistic'")
+        self.input_shape = input_shape
+        self.num_images = num_images
+        self.max_iters = max_iters
+        self.lam = lam
+        self.agent = AdaAggRLAgent(state_dim=4, seed=seed)
+        self.feature_extractor = RandomCNNFeatureExtractor(input_shape, feature_dim=feature_dim, seed=seed)
+        self._v_history: Dict[str, np.ndarray] = {}
+        self._h: Optional[np.ndarray] = None
 
     def _run_round(self, round_num, participants, root_data):
         active = self._is_active(round_num)
-        param_updates, _is_byz_list = self._compute_param_updates(participants, active)
+        # compute_param_updates_auto: dispatches to the informed-attacker path
+        # for INFORMED_ATTACK_TYPES instead of silently degrading them — see
+        # src/fl/attacked_learner.py's docstring and the bug note in
+        # references/resultado_experimento_seletores_adaptativos.md.
+        param_updates, _is_byz_list = compute_param_updates_auto(self, participants, active, root_data)
         n_feat = participants[0].n_features
+        K = 1 if self.n_classes == 2 else self.n_classes
 
-        eval_data = root_data or {"X": participants[0].X_test, "y": participants[0].y_test}
         old_model = self._make_model(n_feat)
         old_model.set_params(self._global_params)  # type: ignore[arg-type]
-        old_acc = old_model.accuracy(eval_data["X"], eval_data["y"])
+        eval_data = root_data or {"X": participants[0].X_test, "y": participants[0].y_test}
+        old_loss = cross_entropy_loss(old_model, eval_data["X"], eval_data["y"])
 
-        if self.variant == "a":
-            state = _own_diagnostic_state_adaaggrl(param_updates)
-        else:
-            new_accs = []
-            for u in param_updates:
-                cand = self._make_model(n_feat)
-                cand.set_params(self._global_params + u)  # type: ignore[operator]
-                new_accs.append(cand.accuracy(eval_data["X"], eval_data["y"]))
-            hospital_ids = [p.id for p in participants]
-            state = _shared_detection_state(
-                self.recorder, self.shared_classifier, hospital_ids,
-                param_updates, old_acc, new_accs, self.n_labels,
+        theta_list = [self._global_params + u for u in param_updates]  # type: ignore[operator]  # theta_k^{t+1}
+
+        v_current: Dict[str, np.ndarray] = {}
+        s_r_list = []
+        for p, theta_k, u in zip(participants, theta_list, param_updates):
+            W = theta_k[: n_feat * K].reshape(n_feat, K).astype(np.float32)
+            b = theta_k[n_feat * K:].astype(np.float32)
+            D_rec, S_R = reconstruct_client_distribution(
+                W, b, u, self.local_lr, n_feat, K,
+                num_images=self.num_images, max_iters=self.max_iters, seed=round_num,
             )
+            v_current[p.id] = self.feature_extractor.extract(D_rec)  # (num_images, feature_dim)
+            s_r_list.append(S_R)
 
-        weights = self.agent.select_weights(state)
+        v_g = np.concatenate(list(v_current.values()), axis=0)  # pooled global distribution, see docstring
 
-        server_root = root_data or self._carve_root(participants[0])
-        server_update = self._make_model(n_feat).fit(server_root["X"], server_root["y"])
-        sample_sizes = [p.n_train for p in participants]
+        if self._h is None:
+            self._h = np.zeros(len(participants))
 
-        n_byz = sum(1 for b in _is_byz_list if b)
-        deltas = []
-        for name in FULL_ARSENAL:
-            strategy = _make_arsenal_strategy(name, n_byz)
-            d, _ = strategy.aggregate(param_updates, sample_sizes=sample_sizes, server_update=server_update)
-            deltas.append(d)
-        blended = sum(w * d for w, d in zip(weights, deltas))
-        self._global_params = self._global_params + blended  # type: ignore[operator]
+        state_rows = []
+        for p, S_R in zip(participants, s_r_list):
+            v_cur = v_current[p.id]
+            v_hist = self._v_history.get(p.id, v_cur)  # bootstrap: no history yet on round 1
+            S_cl = cue_similarity(mmd_rbf(v_cur, v_hist))
+            S_cg = cue_similarity(mmd_rbf(v_cur, v_g))
+            S_lg = cue_similarity(mmd_rbf(v_hist, v_g))
+            state_rows.append([S_R, S_cl, S_cg, S_lg])
+        state_matrix = np.array(state_rows)
+
+        mean_state = state_matrix.mean(axis=0)  # fixed-size input to the policy (see module docstring, point 3b)
+        action = self.agent.select_action(mean_state)
+
+        weights, new_h, _delta = compute_weights_and_penalty(state_matrix, action, self._h, lam=self.lam)
+        self._h = new_h
+
+        total_w = float(weights.sum())
+        if total_w < 1e-8:
+            norm_weights = np.ones(len(participants)) / len(participants)  # degenerate: every client flagged
+        else:
+            norm_weights = weights / total_w  # documented renormalization, see adaaggrl_agent.py docstring
+
+        self._global_params = sum(w * theta for w, theta in zip(norm_weights, theta_list))
+
+        for p in participants:
+            self._v_history[p.id] = v_current[p.id]
 
         new_model = self._make_model(n_feat)
         new_model.set_params(self._global_params)
-        new_acc = new_model.accuracy(eval_data["X"], eval_data["y"])
-
-        reward = new_acc - old_acc
-        self.agent.train_step(state, weights, reward, state)  # single-step episode
+        new_loss = cross_entropy_loss(new_model, eval_data["X"], eval_data["y"])
+        reward = old_loss - new_loss  # paper's r = f(theta^t) - f(theta^{t+1})
+        self.agent.train_step(mean_state, action, reward, mean_state)  # single-step episode
 
         per_acc = {p.id: self._make_model(p.n_features).accuracy(p.X_test, p.y_test) for p in participants}
         global_acc = float(np.mean(list(per_acc.values())))
-        return RoundResult(round_num, global_acc, per_acc, trust_scores=None, n_accepted=None)
+        return RoundResult(
+            round_num, global_acc, per_acc, trust_scores=None,
+            n_accepted=int((weights > 0).sum()),
+        )
 
 
 def run_selector_comparison_grid(
@@ -328,7 +385,7 @@ def run_selector_comparison_grid(
     byzantine_ids = list(range(max(1, int(n_clients * byzantine_fraction))))
 
     needs_pretrain = bool({"gradf", "oracle"} & set(systems)) or (
-        variant == "b" and bool({"fedstrategist", "adaaggrl"} & set(systems))
+        variant == "b" and "fedstrategist" in systems
     )
 
     rows = []
@@ -393,11 +450,11 @@ def run_selector_comparison_grid(
             if "adaaggrl" in systems:
                 learner = AdaAggRLGridLearner(
                     n_rounds=n_rounds, n_classes=n_classes, attack_type=attack_type,
-                    byzantine_ids=byzantine_ids, seed=seed, variant=variant,
-                    shared_classifier=classifier, n_labels=len(attack_labels),
+                    byzantine_ids=byzantine_ids, seed=seed,
+                    input_shape=DATASET_INPUT_SHAPE[dataset],
                 )
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
-                _add("AdaAggRL", variant, acc)
+                _add("AdaAggRL", "own (gradient-inversion)", acc)
 
             logger.info("seed=%d alpha=%s attack=%s variant=%s done", seed, alpha, attack_type, variant)
 

@@ -32,7 +32,7 @@ from src.defense.hardening import HardeningPipeline
 from src.defense.rl_selector import RLDefenseSelector
 from src.detection.combiner_nn import DetectionCombiner
 from src.detection.modality_recorder import ATTACK_LABELS, ModalityRecorder
-from src.fl.attacked_learner import AttackedFederatedLearner
+from src.fl.attacked_learner import AttackedFederatedLearner, compute_param_updates_auto
 from src.fl.federated_learner import ParticipantData, RoundResult
 from src.utils.metrics import fairness_std, online_selector_reward
 from src.xai.explanation_generator import XAIExplainer
@@ -84,7 +84,7 @@ class GRADFFederatedLearner(AttackedFederatedLearner):
     ) -> RoundResult:
         round_start = time.perf_counter()
         active = self._is_active(round_num)
-        param_updates, _is_byz_list = self._compute_param_updates(participants, active)
+        param_updates, _is_byz_list = compute_param_updates_auto(self, participants, active, root_data)
 
         eval_data = root_data or {"X": participants[0].X_test, "y": participants[0].y_test}
         old_acc = self._make_model(participants[0].n_features).accuracy(

@@ -197,6 +197,62 @@ class InformedAttackedFederatedLearner(AttackedFederatedLearner):
         return RoundResult(round_num, global_acc, per_acc, trust_scores, n_accepted)
 
 
+def compute_param_updates_auto(
+    learner: "AttackedFederatedLearner",
+    participants: List[ParticipantData],
+    active: bool,
+    root_data: Optional[Dict],
+) -> Tuple[List[np.ndarray], List[bool]]:
+    """Dispatches to the blind (`AttackedFederatedLearner._compute_param_updates`)
+    or informed (inlined below, mirroring `InformedAttackedFederatedLearner._run_round`)
+    update computation depending on whether `learner.attack_type` is one of
+    `AttackSimulator.INFORMED_ATTACK_TYPES`.
+
+    Exists because `InformedAttackedFederatedLearner` only overrides
+    `_run_round` wholesale — fine for a learner dedicated to informed
+    attacks, but callers that need to support BOTH families through a
+    single learner class (any subclass whose `attack_type` varies per call,
+    e.g. `src/fl/gradf_learner.py::GRADFFederatedLearner` and
+    `src/experiments/exp10_selector_comparison.py`'s custom learners)
+    previously had no way to get the informed path without duplicating that
+    class's logic — they called the plain blind `_compute_param_updates`
+    unconditionally, which silently degrades informed attack types to their
+    blind fallback (e.g. `AttackSimulator._fltrust_aligned` without
+    `reference` falls back to a plain sign-flip, indistinguishable from
+    `sign_flipping` — a real bug found and fixed via this helper; see
+    `references/resultado_experimento_seletores_adaptativos.md`).
+    """
+    from src.classification.attack_simulator import AttackSimulator
+
+    if learner.attack_type not in AttackSimulator.INFORMED_ATTACK_TYPES:
+        return learner._compute_param_updates(participants, active)
+
+    root = root_data or learner._carve_root(participants[0])
+    server_delta = learner._make_model(participants[0].n_features).fit(root["X"], root["y"])
+
+    honest_updates: List[np.ndarray] = []
+    for p in participants:
+        model = learner._make_model(p.n_features)
+        honest_updates.append(model.fit(p.X_train, p.y_train))
+
+    param_updates: List[np.ndarray] = []
+    is_byz_list: List[bool] = []
+    for i, p in enumerate(participants):
+        is_byz = (i in learner.byzantine_ids) and active
+        if is_byz:
+            peers = [u for j, u in enumerate(honest_updates) if j != i]
+            delta = learner._sim.poison_update(
+                honest_updates[i], learner.attack_type,
+                reference=server_delta, peer_updates=peers,
+            )
+        else:
+            delta = honest_updates[i]
+        param_updates.append(delta)
+        is_byz_list.append(is_byz)
+
+    return param_updates, is_byz_list
+
+
 def attack_for_round(sequence: List[str], round_num: int) -> str:
     """Cycle through `sequence` by round (1-indexed). Factored out here (from
     `src/experiments/exp4_adaptive.py`) so it can be reused by
