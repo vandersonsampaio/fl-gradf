@@ -78,6 +78,7 @@ import pandas as pd
 import src.defense.aggregation_methods  # noqa: F401  registers median/trimmed_mean/krum/etc.
 from src.defense.adaaggrl_agent import (
     AdaAggRLAgent,
+    PretrainedCNNFeatureExtractor,
     RandomCNNFeatureExtractor,
     compute_weights_and_penalty,
     cue_similarity,
@@ -267,12 +268,21 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
     Only supports `model_type='logistic'` (needs `_LogisticModel`'s flat
     W/b packing for gradient inversion) — every call site in this
     experiment already uses that default.
+
+    `feature_extractor`: 'random' (default, reproduces the original floor
+    result — `RandomCNNFeatureExtractor`, frozen random weights) or
+    'pretrained' (`PretrainedCNNFeatureExtractor`, a real trained-then-
+    frozen CNN — Passo Zero, `references/1_roadmap_frentes_futuras.md`).
+    `feature_dim` defaults differ between the two (16 vs. 32) to match each
+    extractor's own natural width; pass explicitly to override.
     """
 
     def __init__(
         self, *args, input_shape: tuple, seed: int = 42,
-        num_images: int = 16, max_iters: int = 30, feature_dim: int = 16,
-        lam: float = 2.0, **kwargs,
+        num_images: int = 16, max_iters: int = 30, feature_dim: Optional[int] = None,
+        lam: float = 2.0, feature_extractor: str = "random",
+        feature_extractor_path: Optional[str] = None, dataset: str = "mnist",
+        **kwargs,
     ):
         kwargs.setdefault("aggregation", "fedavg")  # placeholder to satisfy FederatedLearner's validation; unused
         kwargs.setdefault("seed", seed)
@@ -284,7 +294,17 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
         self.max_iters = max_iters
         self.lam = lam
         self.agent = AdaAggRLAgent(state_dim=4, seed=seed)
-        self.feature_extractor = RandomCNNFeatureExtractor(input_shape, feature_dim=feature_dim, seed=seed)
+        if feature_extractor == "random":
+            self.feature_extractor = RandomCNNFeatureExtractor(
+                input_shape, feature_dim=feature_dim or 16, seed=seed,
+            )
+        elif feature_extractor == "pretrained":
+            self.feature_extractor = PretrainedCNNFeatureExtractor(
+                input_shape, feature_dim=feature_dim or 32,
+                weights_path=feature_extractor_path, dataset=dataset,
+            )
+        else:
+            raise ValueError(f"Unknown feature_extractor '{feature_extractor}'; expected 'random' or 'pretrained'")
         self._v_history: Dict[str, np.ndarray] = {}
         self._h: Optional[np.ndarray] = None
 
@@ -375,10 +395,15 @@ def run_selector_comparison_grid(
     root_size: int = 100,
     systems: Optional[List[str]] = None,
     variant: str = "b",
+    adaaggrl_feature_extractor: str = "random",
 ) -> pd.DataFrame:
     """`root_size=100` by default — validity condition 1 of the plan doc
     (the canonical FLTrust paper's root size, not the 3000-sample pool used
-    elsewhere in this repo)."""
+    elsewhere in this repo).
+
+    `adaaggrl_feature_extractor`: 'random' (default, original floor) or
+    'pretrained' (Passo Zero real extractor) — see
+    `AdaAggRLGridLearner`'s docstring."""
     alphas = alphas or [0.5, 0.1, 0.05]
     attack_types = attack_types or (INFORMED_ATTACKS + BLIND_ATTACKS)
     systems = systems or ["random", "oracle", "gradf", "fedstrategist", "adaaggrl"]
@@ -452,9 +477,10 @@ def run_selector_comparison_grid(
                     n_rounds=n_rounds, n_classes=n_classes, attack_type=attack_type,
                     byzantine_ids=byzantine_ids, seed=seed,
                     input_shape=DATASET_INPUT_SHAPE[dataset],
+                    feature_extractor=adaaggrl_feature_extractor, dataset=dataset,
                 )
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
-                _add("AdaAggRL", "own (gradient-inversion)", acc)
+                _add("AdaAggRL", f"own (gradient-inversion, {adaaggrl_feature_extractor} extractor)", acc)
 
             logger.info("seed=%d alpha=%s attack=%s variant=%s done", seed, alpha, attack_type, variant)
 
@@ -493,6 +519,11 @@ if __name__ == "__main__":
         choices=["random", "oracle", "gradf", "fedstrategist", "adaaggrl"],
     )
     parser.add_argument("--variant", default="b", choices=["a", "b"])
+    parser.add_argument(
+        "--adaaggrl_feature_extractor", default="random", choices=["random", "pretrained"],
+        help="'random' reproduces the original floor result; 'pretrained' uses the Passo Zero "
+             "real extractor (needs `python scripts/pretrain_adaaggrl_extractor.py` run first).",
+    )
     parser.add_argument("--tag", default="", help="Optional suffix for output filenames.")
     args = parser.parse_args()
 
@@ -502,6 +533,7 @@ if __name__ == "__main__":
         n_clients=args.n_clients, n_rounds=args.n_rounds,
         byzantine_fraction=args.byzantine_fraction, n_classes=args.n_classes,
         root_size=args.root_size, systems=args.systems, variant=args.variant,
+        adaaggrl_feature_extractor=args.adaaggrl_feature_extractor,
     )
 
     suffix = f"_variant{args.variant}" + (f"_{args.tag}" if args.tag else "")

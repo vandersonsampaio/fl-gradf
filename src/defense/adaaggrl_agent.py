@@ -53,14 +53,40 @@ The real algorithm (very different from the earlier guess) has THREE parts:
    own "~4 metrics", now the REAL 4, replacing the earlier guess (variance
    of update norms / avg cosine / mean norm / outlier fraction).
 
-2b. DOCUMENTED SUBSTITUTION: the paper's feature extractor is a
-   "pre-trained CNN" (unspecified architecture/checkpoint). No suitable
-   pretrained checkpoint for MNIST/CIFAR-shaped inputs exists in this repo,
-   and downloading one is out of scope here — `RandomCNNFeatureExtractor`
-   uses a FROZEN, RANDOMLY-INITIALIZED small CNN instead (random-projection
-   features are a known, if weaker, substitute for a pretrained encoder;
-   still a deterministic, fixed, non-trivial feature map). Flagged
-   explicitly as a real deviation from the paper, not silently substituted.
+2b. DOCUMENTED SUBSTITUTION (superseded by 2c below, kept for history): the
+   paper's feature extractor is a "pre-trained CNN" (unspecified
+   architecture/checkpoint). No suitable pretrained checkpoint for
+   MNIST/CIFAR-shaped inputs exists in this repo, and downloading one was
+   out of scope initially — `RandomCNNFeatureExtractor` uses a FROZEN,
+   RANDOMLY-INITIALIZED small CNN instead (random-projection features are a
+   known, if weaker, substitute for a pretrained encoder; still a
+   deterministic, fixed, non-trivial feature map). Flagged explicitly as a
+   real deviation from the paper, not silently substituted. Every number
+   produced with this extractor is a documented FLOOR, not the AdaAggRL
+   paper's real performance (see `references/1_roadmap_frentes_futuras.md`,
+   "Passo Zero").
+
+2c. PASSO ZERO (`references/1_roadmap_frentes_futuras.md`): `RandomCNNFeatureExtractor`
+   is now complemented by `PretrainedCNNFeatureExtractor` below, a REAL
+   trained-then-frozen CNN, closing the gap flagged in 2b. It reuses the
+   exact architecture already used for CNN-scale FL in this repo
+   (`src/fl/federated_learner.py::_CNNModel`: Conv2D(8)->MaxPool->Conv2D(16)
+   ->MaxPool->Flatten->Dense(32,relu)->Dense(n_classes,softmax)), trained
+   centrally as an ordinary image classifier on `data/raw/{dataset}/X_test.npy`
+   /`y_test.npy` — the RAW MNIST/CIFAR-10 TEST split, which is disjoint from
+   both the FL clients' data and the `server_val` root (both carved from the
+   TRAIN pool by `data/download_datasets.py`), so pretraining introduces no
+   leakage into anything `exp10_selector_comparison.py` measures. The frozen
+   Dense(32, relu) activations (not the final softmax layer) are the feature
+   vector, feature_dim=32 — a different, larger dimensionality than
+   `RandomCNNFeatureExtractor`'s default 16; the two are independent
+   configurations and were never required to match. Trained once via
+   `scripts/pretrain_adaaggrl_extractor.py`, saved to
+   `results/models/adaaggrl_pretrained_extractor_{dataset}.weights.h5`, and
+   loaded (never retrained) by `PretrainedCNNFeatureExtractor`.
+   `RandomCNNFeatureExtractor` is kept, unmodified, so the original floor
+   result stays reproducible for the piso-vs-real comparison — callers pick
+   one via `AdaAggRLGridLearner(feature_extractor=...)`.
 
 3. Actions Learning (paper's "Actions Learning" section + Algorithm 1/2):
    a TD3 policy maps the round's environmental state to an action
@@ -132,6 +158,7 @@ participating clients" that keeps every one of the three MMD calls
 set-vs-set comparison instead of mixing set-vs-point cases.
 """
 
+import os
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -193,6 +220,58 @@ class RandomCNNFeatureExtractor:
         ])
         for layer in self._model.layers:
             layer.trainable = False
+
+    def extract(self, images_flat: np.ndarray) -> np.ndarray:
+        """`images_flat`: (n_images, prod(input_shape)) -> (n_images, feature_dim)."""
+        imgs = images_flat.reshape((-1,) + self.input_shape).astype("float32")
+        return self._model.predict(imgs, verbose=0)
+
+
+class PretrainedCNNFeatureExtractor:
+    """REAL trained-then-frozen CNN feature extractor (see module docstring,
+    point 2c / Passo Zero) — replaces `RandomCNNFeatureExtractor`'s random
+    projection with actual learned image features, closing the documented
+    gap between this reproduction and the AdaAggRL paper's "pre-trained
+    CNN". Weights must already exist on disk (produced once by
+    `scripts/pretrain_adaaggrl_extractor.py`); this class only loads and
+    freezes them, it never trains."""
+
+    def __init__(
+        self,
+        input_shape: Tuple[int, int, int],
+        n_classes: int = 10,
+        feature_dim: int = 32,
+        weights_path: Optional[str] = None,
+        dataset: str = "mnist",
+    ):
+        from tensorflow import keras
+
+        self.input_shape = input_shape
+        self.feature_dim = feature_dim
+        if weights_path is None:
+            weights_path = f"results/models/adaaggrl_pretrained_extractor_{dataset}.weights.h5"
+        if not os.path.exists(weights_path):
+            raise FileNotFoundError(
+                f"Pretrained AdaAggRL feature extractor weights not found at '{weights_path}'. "
+                "Run `python -m scripts.pretrain_adaaggrl_extractor "
+                f"--dataset {dataset}` first (Passo Zero, "
+                "references/1_roadmap_frentes_futuras.md)."
+            )
+
+        classifier = keras.Sequential([
+            keras.layers.Input(shape=input_shape),
+            keras.layers.Conv2D(8, 3, activation="relu", padding="same"),
+            keras.layers.MaxPooling2D(2),
+            keras.layers.Conv2D(16, 3, activation="relu", padding="same"),
+            keras.layers.MaxPooling2D(2),
+            keras.layers.Flatten(),
+            keras.layers.Dense(feature_dim, activation="relu", name="features"),
+            keras.layers.Dense(n_classes, activation="softmax"),
+        ])
+        classifier.load_weights(weights_path)
+        for layer in classifier.layers:
+            layer.trainable = False
+        self._model = keras.Model(inputs=classifier.inputs, outputs=classifier.get_layer("features").output)
 
     def extract(self, images_flat: np.ndarray) -> np.ndarray:
         """`images_flat`: (n_images, prod(input_shape)) -> (n_images, feature_dim)."""
