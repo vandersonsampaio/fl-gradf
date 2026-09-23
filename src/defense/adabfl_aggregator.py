@@ -1,57 +1,60 @@
 """
-AdaBFLAggregator: reproduction of AdaBFL ("Multi-Layer Defensive Adaptive
-Aggregation for Byzantine-Robust Federated Learning", Tang, Liu & Huang,
-2026 — see
-`references/citations/AdaBFL: Multi-Layer Defensive Adaptive Aggregation for
-Bzantine-Robust Federated Learning.pdf`), used as a COMPETING BASELINE in
-Gate 1 (`src/experiments/exp4_adaptive.py`), alongside TARS
-(`src/defense/tars_selector.py`). Not part of the GRADF pipeline, and not
-imported by `src/fl/gradf_learner.py`.
+AdaBFLAggregator: reproduction of AdaBFL, proposed in:
 
-The paper's PDF was checked in full (24 pages, including References and
-Appendix) for a linked code repository — none exists (unlike FedStrategist,
-see `src/defense/fedstrategist_selector.py`), so this is a good-faith
-reproduction of the paper's Algorithm 1 ("AdaBFL Algorithm") + Algorithm 2
-("Weight Update Algorithm"), series/"AdaBFL-1" configuration (the one used
-for the paper's headline Table 1 results): Filter malicious clients (Eq. 2)
--> Parameter clipping via Trimmed-mean (Eq. 3-4) -> Derivative model (Eq.
-5-8), fused by adaptively-updated weights beta1/beta2/beta3 (Eq. 9-12).
+    Tang, Liu & Huang,
+    "Multi-Layer Defensive Adaptive Aggregation for Byzantine-Robust
+    Federated Learning", 2026.
 
-Three things the paper leaves unspecified as closed-form values/formulas,
-requiring our own instantiation (documented here, same spirit as the two
-caveats in `tars_selector.py`'s module docstring):
+Used as a competing baseline in Gate 1
+(``src/experiments/exp4_adaptive.py``), alongside TARS
+(``src/defense/tars_selector.py``).
 
-  1. gamma/kappa_filter (Eq. 2's filter threshold and decay rate) and
-     lambda(t): the paper states gamma>0, kappa>0 as free parameters and
-     gives two example forms for lambda(t) (1/t or log_b(t)) without fixing
-     numeric defaults. We use lambda(t)=1/t (the simpler of the two given
-     forms) with gamma=1.5, kappa_filter=1.0 as defaults.
-  2. p2_t's definition: the body text under Eq. 11 describes it as
-     "the discrepancy between the fused model theta_bar and the mean of
-     benign client models mean(theta_i)" but the rendered formula
-     (p_t^2 <- ||(1/|A|) sum_i (theta_t^i, theta_bar_t)||) is not itself a
-     well-formed norm expression (a comma where an operator is expected) —
-     almost certainly a typesetting error for a difference. We implement it
-     structurally analogous to p1_t (Eq. 4): p2_t = (1/d)*||mean(benign) -
-     theta_bar||.
-  3. Algorithm 2's weighting-update BRANCH CONDITION for beta3 contradicts
-     the paper's own body text: Algorithm 2 (page 7) uses
-     "else if p2_t < rho2" while the body text under Eq. 11 (page 8) says
-     "If p2_t >= rho2, then update beta3, beta2". We follow Algorithm 2's
-     pseudocode literally, since that is the one actually executed by
-     Algorithm 1's line 23 ("The server executes Weight Update Algorithm
-     2") — the body text appears to be the inconsistent one.
+AdaBFL is not part of the GRADF pipeline and is not imported by
+``src/fl/gradf_learner.py``.
 
-rho1/rho2/delta_high/delta_low/beta*_min/beta2_max/beta1_base/kappa_weight
-(Algorithm 2's thresholds) are also free parameters; Table 2 of the paper
-sweeps several combinations and reports AdaBFL is stable across all of
-them, so any single reasonable choice is defensible — we use values near
-the middle of that swept range.
+This implementation follows the paper's Algorithm 1 (AdaBFL Algorithm)
+and Algorithm 2 (Weight Update Algorithm), using the AdaBFL-1
+configuration reported for the main Table 1 results.
 
-Algorithm 4 ("AdaBFL with Momentum", Appendix 8.2) is offered here as
-`use_momentum=True`: an EMA of rho1/rho2 against p1_t/p2_t before running
-Algorithm 2, exactly as specified. Not the default (the paper's headline
-Table 1 numbers are Algorithm 1 + Algorithm 2 without momentum).
+Main pipeline:
+
+1. Malicious-client filtering (Eq. 2)
+2. Parameter clipping using Trimmed-Mean (Eq. 3-4)
+3. Derivative model computation (Eq. 5-8)
+4. Adaptive fusion of the three components using beta1, beta2 and beta3
+   (Eq. 9-12)
+
+The paper does not fully specify several parameters and implementation
+details. The following choices are therefore explicit instantiations:
+
+- ``lambda(t) = 1/t`` is used for the filter decay, with
+  ``gamma = 1.5`` and ``kappa_filter = 1.0``.
+
+- ``p2_t`` is implemented as the normalized distance between the mean
+  benign-client model and the fused model:
+
+      p2_t = (1/d) * ||mean(theta_i) - theta_bar||
+
+  The paper's rendered equation contains an apparent typesetting error.
+
+- The beta3 update follows Algorithm 2's pseudocode, which uses the
+  condition ``p2_t < rho2``. This is preferred over the contradictory
+  condition stated in the surrounding text.
+
+- Thresholds and weight constraints in Algorithm 2
+  (``rho1``, ``rho2``, ``delta_high``, ``delta_low``,
+  ``beta*_min``, ``beta2_max``, ``beta1_base`` and ``kappa_weight``)
+  are instantiated with values within the ranges explored in the
+  paper's parameter study.
+
+- ``use_momentum=True`` enables the momentum variant described in
+  Algorithm 4, applying EMA smoothing to ``rho1`` and ``rho2`` before
+  the weight-update procedure. It is disabled by default because the
+  main results in Table 1 use Algorithms 1 and 2 without momentum.
+
+The implementation is therefore a good-faith reproduction of the
+paper's specified AdaBFL mechanism, with the unspecified or internally
+inconsistent details made explicit rather than left implicit.
 """
 
 from typing import Dict, List, Optional, Tuple
@@ -102,8 +105,6 @@ class AdaBFLAggregator:
         self.use_momentum = use_momentum
         self.momentum_alpha = momentum_alpha
 
-        # beta1,beta2,beta3 start uniform (paper doesn't specify an init
-        # other than satisfying beta1+beta2+beta3=1).
         self.beta1, self.beta2, self.beta3 = 1.0 / 3, 1.0 / 3, 1.0 / 3
 
     # -- Filter malicious clients (Algorithm 1, lines 15-16; Eq. 2) --------
@@ -196,8 +197,6 @@ class AdaBFLAggregator:
 
         benign_idx = self._filter_malicious(client_params, round_num)
         if not benign_idx:
-            # Degenerate case (every client flagged): fall back to trusting
-            # all of them rather than dividing by zero downstream.
             benign_idx = list(range(len(client_params)))
         benign_params = [client_params[i] for i in benign_idx]
 

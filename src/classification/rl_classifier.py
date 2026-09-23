@@ -86,16 +86,11 @@ class RLAttackClassifier:
         self.model.save_weights(path)
 
     def load(self, path="results/models/rl_classifier.weights.h5", n_modalities=4):
-        # A real forward pass ensures the Dense sub-layers build their weights
-        # with the correct shape before load_weights (see src/detection/combiner_nn.py).
         self.model(np.zeros((1, n_modalities), dtype=np.float32))
         self.model.load_weights(path)
 
 
 if __name__ == '__main__':
-    # Smoke test with synthetic, learnable data (the real dataset comes from
-    # src.utils.data_loader.generate_detection_dataset — see the integration
-    # tests in src/classification/tests/test_classifier.py).
     rng = np.random.default_rng(0)
     n_attacks = 4
     X_train = rng.standard_normal((400, 4)).astype(np.float32)

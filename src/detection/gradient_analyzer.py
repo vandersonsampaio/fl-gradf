@@ -6,12 +6,6 @@ class GradientAnalyzer:
     def __init__(self, window_size=5):
         self.window_size = window_size
         self.gradient_history = {}
-        # Holds the last raw gradient vector per hospital, separate from
-        # `gradient_history` (which only holds scalar magnitudes, used by the
-        # z-score). The JS-divergence term below must diff against this raw
-        # vector, not a magnitude scalar — `np.histogram()` of a scalar is a
-        # degenerate distribution (all mass in one bin) and does not represent
-        # the actual previous gradient.
         self.last_gradient = {}
 
     def analyze(self, hospital_id, gradient):

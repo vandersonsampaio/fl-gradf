@@ -1,135 +1,80 @@
 """
-AdaAggRLAgent: reproduction of AdaAggRL ("Defending Against Sophisticated
-Poisoning Attacks with RL-based Aggregation in Federated Learning", Wang,
-Zhang, Wen, Qiu & Guo, AAAI 2025 — see
-`references/citations/Defending Against Sophisticated Poisoning Attacks
-with RL-based Aggregation in Federated Learning.pdf`), used as a competing
-baseline (the "continuous weighting" family) in
-`src/experiments/exp10_selector_comparison.py`, per
-`references/experimento_seletores_adaptativos.md`.
+AdaAggRLAgent: reproduction of AdaAggRL, proposed in:
 
-CORRECTION NOTE: an earlier version of this module was a from-scratch
-instantiation of the plan doc's one-line family description ("RL/TD3 que
-aprende pesos contínuos de agregação a partir de ~4 métricas"), written
-before this paper had been identified as AdaAggRL's actual source. The
-paper's PDF's Supplementary Information links a public repo
-(`https://github.com/yjEugenia/AdaAggRL`), but — same treatment as
-FedStrategist's repo (`src/defense/fedstrategist_selector.py`) — it was not
-fetched/ported; this module is a from-spec reproduction of the paper's own
-Algorithm 1/2 and equations, built independently in this codebase's
-architecture.
+    Wang, Zhang, Wen, Qiu & Guo,
+    "Defending Against Sophisticated Poisoning Attacks with RL-based
+    Aggregation in Federated Learning", AAAI 2025.
 
-The real algorithm (very different from the earlier guess) has THREE parts:
+Used as a competing baseline representing the continuous-weighting family
+in ``src/experiments/exp10_selector_comparison.py``.
 
-1. Distribution learning via GRADIENT INVERSION (paper's "Distribution
-   Learning" section, adapting Geiping et al. 2020's IG method): from each
-   client's uploaded parameter delta, the server recovers a target gradient
-   g_bar_k = update_k / local_lr, then optimizes a small batch of DUMMY
-   inputs (initialized to zero, Adam, lr=0.05, `max_iters` steps) so that
-   the gradient the dummy batch would produce on this client's model
-   matches g_bar_k in cosine similarity (plus a small total-variation
-   smoothness penalty, weight `tv_weight=1e-4`, matching the paper's beta).
-   The achieved cosine similarity IS `S_{k,R}` (`reconstruction similarity`,
-   one of the 4 environmental cues below). Implemented here as a NESTED
-   `tf.GradientTape` (the standard "double backprop through a gradient"
-   pattern for gradient-inversion/DLG-style attacks): an inner tape
-   computes the dummy batch's loss gradient w.r.t. the (frozen, constant)
-   model weights, and an outer tape differentiates the cosine-similarity
-   objective w.r.t. the dummy inputs through that inner gradient. Verified
-   to converge (cosine similarity 0.20 -> 0.99 over 30 steps on a synthetic
-   check) before being wired into the rest of this module.
+This implementation follows the paper's Algorithm 1/2 and equations and
+is implemented independently in this codebase.
 
-2. Environmental cues (paper's "Environmental Cues" section, Eq. 1): the
-   `num_images` reconstructed dummy images are passed through a feature
-   extractor (`RandomCNNFeatureExtractor` below) to get this round's
-   feature vector V_k^current; a per-client rolling V_k^history (last
-   round's V_current) and this round's V_g (mean of V_current across all
-   participating clients) are then compared via a Gaussian/RBF-kernel MMD
-   estimator (`mmd_rbf`) and squashed into similarities in (0,1) by
-   `2*cos(tanh(mmd/2)) - 1` (paper's Eq. 1, `cue_similarity` below,
-   implemented literally even though the composition cos(tanh(.)) is an
-   unusual squashing choice — not ours to second-guess). Per-client state:
-   s_k = (S_{k,R}, S_{k,cl}, S_{k,cg}, S_{k,lg}) in (0,1)^4 — the paper's
-   own "~4 metrics", now the REAL 4, replacing the earlier guess (variance
-   of update norms / avg cosine / mean norm / outlier fraction).
+Main components:
 
-2b. DOCUMENTED SUBSTITUTION: the paper's feature extractor is a
-   "pre-trained CNN" (unspecified architecture/checkpoint). No suitable
-   pretrained checkpoint for MNIST/CIFAR-shaped inputs exists in this repo,
-   and downloading one is out of scope here — `RandomCNNFeatureExtractor`
-   uses a FROZEN, RANDOMLY-INITIALIZED small CNN instead (random-projection
-   features are a known, if weaker, substitute for a pretrained encoder;
-   still a deterministic, fixed, non-trivial feature map). Flagged
-   explicitly as a real deviation from the paper, not silently substituted.
+1. Distribution learning
+   Recovers an approximate client gradient from the uploaded parameter
+   update and reconstructs dummy inputs through gradient inversion.
+   The reconstruction similarity is used as the cue ``S_{k,R}``.
 
-3. Actions Learning (paper's "Actions Learning" section + Algorithm 1/2):
-   a TD3 policy maps the round's environmental state to an action
-   A^t=(a^t,b^t) in [0,1]^5 — a^t in [0,1]^4 weights the 4 cues, b^t in
-   [0,1] is a threshold fraction. Per client: ŵ_k = s_k · a^t (weighted
-   score); w̃ = g(ŵ) normalizes scores to [0,1] (min-max here — the paper
-   only says "maps ŵ to [0,1] and normalizes it" without fixing g's exact
-   form, our documented instantiation); δ = max(w̃)·b^t; clients with
-   w̃_k <= δ get zero weight (`f_δ`, Eq. 2) AND have their persistent
-   malicious-behavior counter h_k incremented (else decremented toward 0);
-   final aggregation weight is w_k / lambda^{h_k^{t+1}} (Eq. 3) — repeatedly
-   flagged clients are penalized exponentially harder each additional
-   consecutive round they're flagged. Reward: r = f(theta^t) - f(theta^{t+1})
-   (paper's own definition — the round's LOSS decrease; implemented here as
-   `old_loss - new_loss` on the caller's held-out evaluation set).
+2. Environmental cues
+   Extracts features from reconstructed images and computes distribution
+   similarities using RBF-kernel MMD. Each client is represented by four
+   cues:
 
-   TD3 mechanics: same lightweight, linear-function-approximator
-   instantiation already used in this codebase's prior AdaAggRL attempt and
-   documented there as a deliberate simplification (mirrors
-   `TARSSelector`'s tabular Q-learning instead of a DQN, for the same
-   reason — tiny state/training-signal budget per FL round). Still
-   implements TD3's three defining mechanisms (twin critics taking the min,
-   delayed policy updates, clipped target-policy-smoothing noise); only the
-   function class (linear vs. MLP) and the action's squashing (sigmoid,
-   since the paper's action space is the BOX [0,1]^5, not a probability
-   simplex — an actual, not just cosmetic, difference from the earlier
-   version's softmax-over-7-strategies action) changed from the prior draft.
+       (S_{k,R}, S_{k,cl}, S_{k,cg}, S_{k,lg})
 
-3b. State aggregation across a variable number of clients: the network
-   needs a FIXED-size input, but |C^t| (participating clients this round)
-   varies. The paper's Algorithm 1 writes `A^t = Actions(s^t)` with s^t
-   stacking every participating client's 4-vector, without specifying how a
-   variable-length stack becomes one policy input (an implementation detail
-   presumably resolved in the paper's own repo, not fetched here — see the
-   correction note above). This module uses the MEAN of the per-client
-   4-vectors across the round as a permutation-invariant, fixed-size
-   summary fed to the actor — our own documented instantiation, exactly the
-   same kind of unavoidable interpretation Eq. 2/3's `g(·)` above already
-   required.
+3. Actions learning
+   A TD3 policy produces:
 
-Aggregation (Eq. 3) operates on clients' FULL PARAMETER VECTORS
-(theta_k^{t+1} = global_params + update_k), not on deltas blended from
-other aggregation rules like the earlier version did — a substantive
-mechanism difference, not just a relabeling.
+       A^t = (a^t, b^t)
 
-NORMALIZATION NOTE on Eq. 3: taken completely literally, `sum_k w_k /
-lambda^{h_k}` is not guaranteed to sum to 1 (some clients are zeroed by the
-threshold, and the rest are further shrunk by `lambda^{h_k} >= 1`), which
-would make the aggregated theta's overall scale drift across rounds when
-applied to CLIENT PARAMETERS instead of deltas. This is either a genuine
-gap in the paper's equation or an implementation detail resolved in its own
-repo. `compute_weights_and_penalty` below returns the coefficients exactly
-as Eq. 3 defines them (unnormalized); the caller
-(`src/experiments/exp10_selector_comparison.py::AdaAggRLGridLearner`)
-renormalizes them to sum to 1 before the weighted combination, as a
-documented stabilizing choice — kept as a caller-side decision rather than
-baked into this function, so Eq. 3's literal output stays inspectable.
+   where ``a^t`` contains four cue weights and ``b^t`` is the threshold
+   fraction. Client scores are computed from the weighted cues, normalized,
+   thresholded, and combined with the persistent malicious-behavior
+   counter ``h_k`` to obtain the final aggregation weights.
 
-V_k^current / V_k^history / V_g (paper's "Environmental Cues" section):
-kept as the FULL set of `num_images` reconstructed-image feature vectors
-per client/round (matching the paper's own phrase "a collection of feature
-vectors"), not collapsed to a single mean vector — this keeps MMD a
-genuine distribution-vs-distribution comparison throughout. V_g ("obtained
-by averaging feature vectors from all participating clients") is
-instantiated here as the POOLED union of every participating client's
-V_current set this round, our documented reading of "averaging... from all
-participating clients" that keeps every one of the three MMD calls
-(current-vs-history, current-vs-global, history-vs-global) a consistent
-set-vs-set comparison instead of mixing set-vs-point cases.
+4. Reward
+   The reward follows the paper's definition:
+
+       r = f(theta^t) - f(theta^{t+1})
+
+   and is implemented as the decrease in held-out evaluation loss.
+
+Implementation choices and documented deviations:
+
+- ``RandomCNNFeatureExtractor`` is used instead of the paper's unspecified
+  pretrained CNN. It is frozen and randomly initialized, providing a fixed
+  feature mapping without requiring an external checkpoint.
+
+- The TD3 implementation uses lightweight linear function approximators
+  rather than MLPs. It retains the defining TD3 mechanisms: twin critics,
+  delayed policy updates, and clipped target-policy-smoothing noise.
+
+- Because the number of participating clients varies by round, the policy
+  receives the mean of the clients' four-dimensional cue vectors as a
+  fixed-size, permutation-invariant state representation.
+
+- Client aggregation operates on full client parameter vectors:
+
+      theta_k^{t+1} = global_params + update_k
+
+  rather than directly blending client deltas from other aggregation rules.
+
+- ``compute_weights_and_penalty`` returns the coefficients defined by
+  Equation 3 without normalization. The caller normalizes them before
+  aggregation to prevent scale drift when client parameter vectors are
+  combined.
+
+- ``V_k^current`` and ``V_k^history`` retain all reconstructed-image feature
+  vectors. ``V_g`` is represented as the pooled set of feature vectors from
+  all participating clients, keeping the MMD computations as
+  distribution-to-distribution comparisons.
+
+The implementation therefore reproduces the paper's continuous-weighting
+mechanism while making the necessary architectural choices explicit where
+the paper does not fully specify an implementation detail.
 """
 
 from typing import Dict, List, Optional, Tuple
@@ -222,11 +167,6 @@ def reconstruct_client_distribution(
     update, via `max_iters` steps of Adam over the dummy inputs (nested
     `tf.GradientTape`, see module docstring). Returns
     (D_rec (num_images, n_features), S_R (final cosine similarity)).
-
-    `W`, `b`: this client's post-update weights (theta_k^{t+1}), packed the
-    same way `_LogisticModel` does ((n_features, n_classes) / (n_classes,)).
-    Assumes n_classes >= 3 (softmax) — every dataset used in this
-    repo's experiments (MNIST/CIFAR-10) has n_classes=10.
     """
     import tensorflow as tf
 
@@ -432,10 +372,10 @@ def compute_weights_and_penalty(
     the per-client coefficient used in Eq. 3 (w_k / lambda^{h_k}).
     Returns (final_weights, new_h, delta)."""
     a, b = action[:4], action[4]
-    w_hat = state_matrix @ a  # (n_clients,)
+    w_hat = state_matrix @ a
 
     lo, hi = w_hat.min(), w_hat.max()
-    w_tilde = (w_hat - lo) / (hi - lo + 1e-8)  # g(.): min-max normalization to [0,1] (our instantiation)
+    w_tilde = (w_hat - lo) / (hi - lo + 1e-8)
 
     delta = float(w_tilde.max() * b)
     flagged = w_tilde <= delta

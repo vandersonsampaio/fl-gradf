@@ -142,7 +142,7 @@ def generate_detection_dataset(
 
 
 def _selector_reward(attack_type: str, new_acc: float, baseline_acc: float, tol: float = 0.02) -> float:
-    """Simplified reward from Definition 7 (FORMALISMO_MATEMATICO_E_INEDITISMO.md):
+    """Simplified reward from Definition 7:
     the dominant term is accuracy retention against the clean baseline; the
     latency and fairness terms are left to experiments with full pipeline
     visibility (multiple hospitals, timing measurement)."""
@@ -167,18 +167,6 @@ def generate_selector_experiences(
     """Runs real FL episodes (attack type x aggregation strategy) and returns
     experiences (state, action_idx, reward, next_state) to train
     `RLDefenseSelector.train_step()`.
-
-    state = `RLDefenseSelector.build_state(attack_idx, confidence=1.0,
-    prev_accuracy, prev_fairness_std, prev_latency)` — the last 3 come from
-    the baseline episode (clean FedAvg, no attack), measured once and shared
-    as the "starting point" for every (attack, action) combination in this
-    batch. `next_state` uses the SAME `attack_idx`/confidence (the
-    classification doesn't change within this episode) but the REAL
-    accuracy/fairness/latency of the (attack, action) episode — `next_state`
-    must reflect the real post-episode outcome, not a copy of `state`,
-    otherwise the Bellman target is degenerate; confidence is fixed at 1.0
-    (assumes correct classification) — the classifier's real uncertainty is
-    modeled separately by `RLAttackClassifier`'s training.
     """
     attack_types = attack_types or (["none"] + list(AttackSimulator.ALL_ATTACK_TYPES))
     attack_to_idx = {a: i for i, a in enumerate(attack_types)}
@@ -230,24 +218,7 @@ def generate_rotating_selector_experiences(
 ) -> List[Tuple[np.ndarray, int, float, np.ndarray]]:
     """Like `generate_selector_experiences`, but each episode exposes the
     candidate action to a ROTATION of attacks (`attack_sequence`, via
-    `RotatingAttackedFederatedLearner`), not a single fixed attack.
-
-    Motivation (train/deploy mismatch identified after Gate 1 — see
-    `references/plano_gradf_iclr2027.md`): `generate_selector_experiences`
-    only trains the selector against STATIC attack episodes, but
-    `exp4_adaptive.py` tests the trained policy against a ROTATION of
-    attacks it never saw in that form during pretraining. This generator
-    produces experiences under the SAME rotation condition Gate 1 uses
-    (`attack_sequence`, cycled by `attack_for_round`).
-
-    One experience per `(rotation phase, action)`: for each phase (each
-    distinct attack in `attack_sequence`), runs a full `n_rounds` episode
-    with that action fixed and the whole rotation active, and assigns the
-    experience to the index of the attack active in the LAST round of the
-    episode (approximation: it describes "the policy was under rotation and
-    last saw this phase", not a round-by-round pass through the rotation —
-    that is left to an extension that trains online, see
-    `HardeningPipeline.full_pipeline`)."""
+    `RotatingAttackedFederatedLearner`), not a single fixed attack."""
     attack_labels = ["none"] + list(dict.fromkeys(attack_sequence))  # preserve order, drop duplicates
     attack_to_idx = {a: i for i, a in enumerate(attack_labels)}
 
@@ -299,16 +270,7 @@ def load_dataset_participants(
     """Loads real participants from `data/processed/{dataset}/{split}/client_i`
     and the server validation set, produced by `data/download_datasets.py`
     (used by the experiments — src/experiments/ — and by the notebooks).
-
-    `root_size`: if given, subsamples `server_val` (loaded from disk, ~3000
-    samples on MNIST / ~2500 on CIFAR-10) down to exactly `root_size`
-    elements, drawn without replacement with seed `root_seed` — used to
-    measure FLTrust's sensitivity to root-dataset size (the original FLTrust
-    paper uses ~100 samples on MNIST; see the discussion on
-    representativeness vs. size and the LGPD risk of a large root for real
-    clinical data, `references/decisao_root_dataset_lgpd.md`). Does not alter
-    the data saved on disk or the participants; `None` (default) preserves
-    the previous behavior (uses the full `server_val`)."""
+    """
     base = os.path.join(data_root, dataset, split)
     participants = [
         ParticipantData.from_npy(os.path.join(base, f"client_{i}"))

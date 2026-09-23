@@ -1,47 +1,67 @@
 """
-FedStrategist: reproduction of the meta-learning framework from "FedStrategist:
-A Meta-Learning Framework for Adaptive and Robust Aggregation in Federated
-Learning" (Haque, Kamal & Hossain, 2025 — see
-`references/citations/FedStrategist: A Meta-Learning Framework for Adaptive
-and Robust Aggregation in Federated Learning.pdf`), used as a COMPETING
-BASELINE in Gate 1 (`src/experiments/exp4_adaptive.py`), alongside TARS
-(`src/defense/tars_selector.py`) and AdaBFL
-(`src/defense/adabfl_aggregator.py`). Not part of the GRADF pipeline, and
-not imported by `src/fl/gradf_learner.py`.
+FedStrategist: reproduction of the meta-learning framework proposed in:
 
-Unlike AdaBFL, this paper's Supporting Information links a public repo
-(`https://github.com/rafidhaque/FedStrategist`, archived on Zenodo,
-DOI 10.5281/zenodo.16068113) — however it targets a standalone PyTorch/
-CIFAR-10 simulation harness (its own `fl_core.py`/`aggregation.py`/
-`bandit.py`) built around a different model representation than this
-repo's flat-numpy-vector `_LogisticModel`/`_CNNModel` (see
-`src/fl/federated_learner.py`), so porting it wholesale would not compose
-with `AttackedFederatedLearner`/`_STRATEGIES`. The paper's algorithm
-(Section 4, "Materials and Methods") is fully specified in closed form —
-LinUCB with a documented state vector, reward, and hyperparameters (S1
-Appendix) — so this is a from-spec reproduction inside this repo's own
-architecture, not a port of that external code.
+    Haque, Kamal & Hossain,
+    "FedStrategist: A Meta-Learning Framework for Adaptive and Robust
+    Aggregation in Federated Learning", 2025.
 
-Reproduces the paper's 3 components (Section 4.4/4.5):
-  1. Diagnostic state vector S_t in R^3: variance of update L2 norms,
-     average pairwise cosine similarity, L2 norm of the mean update.
-  2. LinUCB contextual bandit over the Defense Arsenal (paper Section 4.2:
-     FedAvg, Coordinate-wise Median, Krum — mapped onto this repo's
-     'fedavg'/'median'/'krum' entries in `src.fl.federated_learner._STRATEGIES`
-     / `src.defense.aggregation_methods`).
-  3. Reward R_t = (Acc_t - Acc_{t-1}) - lambda_cost * C_j, with the exact
-     heuristic costs from the paper's S1 Appendix: C_fedavg=0.1,
-     C_median=0.4, C_krum=0.8. lambda_cost defaults to the paper's
-     "balanced" value (0.5) from Table S2/S4.
+Used as a competing baseline in Gate 1
+(``src/experiments/exp4_adaptive.py``), alongside TARS
+(``src/defense/tars_selector.py``) and AdaBFL
+(``src/defense/adabfl_aggregator.py``).
 
-One detail the paper leaves as an implementation choice ("a standard
-implementation of the LinUCB algorithm using NumPy and Scikit-learn's Ridge
-regression for stable linear modeling", Section 5.3) rather than a closed
-formula: we implement the standard disjoint-LinUCB update directly
-(A_a += x x^T, b_a += r*x, theta_a = A_a^-1 b_a) — algebraically the same
-fixed point Ridge regression with alpha=1 regularization converges to, so
-this is a faithful reproduction of the described method, not a
-reinterpretation of it.
+FedStrategist is not part of the GRADF pipeline and is not imported by
+``src/fl/gradf_learner.py``.
+
+The implementation reproduces the paper's Section 4 formulation using
+the architecture of this repository rather than the authors' external
+simulation framework. This adaptation is necessary because the external
+implementation uses a PyTorch/CIFAR-10 stack, whereas this repository
+represents models as flat NumPy parameter vectors.
+
+Main components:
+
+1. Diagnostic state vector ``S_t ∈ R^3``:
+
+   - variance of client-update L2 norms;
+   - average pairwise cosine similarity;
+   - L2 norm of the mean client update.
+
+2. Disjoint LinUCB contextual bandit over the Defense Arsenal:
+
+   - FedAvg → ``fedavg``;
+   - Coordinate-wise Median → ``median``;
+   - Krum → ``krum``.
+
+3. Reward:
+
+      R_t = (Acc_t - Acc_{t-1}) - lambda_cost * C_j
+
+   with the paper's heuristic defense costs:
+
+      C_fedavg = 0.1
+      C_median = 0.4
+      C_krum  = 0.8
+
+   ``lambda_cost`` defaults to ``0.5``, corresponding to the paper's
+   balanced configuration.
+
+The paper specifies the LinUCB framework but leaves the numerical
+implementation as a standard NumPy/Scikit-learn formulation. This
+implementation uses the standard disjoint-LinUCB updates:
+
+      A_a <- A_a + x x^T
+      b_a <- b_a + r x
+      theta_a <- A_a^{-1} b_a
+
+This is algebraically consistent with the corresponding regularized
+linear regression formulation and preserves the method described in
+the paper without introducing a different adaptation mechanism.
+
+The implementation therefore constitutes a from-spec reproduction of
+FedStrategist within this repository's federated-learning architecture,
+with the model representation and execution framework adapted to the
+existing ``_LogisticModel``/``_CNNModel`` and ``_STRATEGIES`` interfaces.
 """
 
 from typing import Dict, List, Tuple
@@ -50,7 +70,7 @@ import numpy as np
 
 
 class DiagnosticStateVector:
-    """Computes S_t in R^3 from the round's client updates (paper Section 4.4)."""
+    """Computes S_t in R^3 from the round's client updates."""
 
     @staticmethod
     def compute(updates: List[np.ndarray]) -> Tuple[float, float, float]:
@@ -73,7 +93,7 @@ class DiagnosticStateVector:
 
 
 class LinUCBAgent:
-    """Disjoint LinUCB (paper Section 4.5): per-action linear reward model,
+    """Disjoint LinUCB: per-action linear reward model,
     action = argmax_a (x^T theta_a + alpha*sqrt(x^T A_a^-1 x)). Context x is
     the 3-dim state vector plus a bias term (d=4)."""
 

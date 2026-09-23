@@ -1,71 +1,72 @@
 """
-Experiment 10 — competing ADAPTIVE SELECTORS vs. GRADF, root=100
-(`references/experimento_seletores_adaptativos.md`).
+Experiment 10: competing adaptive selectors versus GRADF.
 
-Goal (see the plan doc for full context): turn "our DQN selector doesn't
-capture the headroom" into either "no adaptive selector in this space
-captures it" (generalizes the negative result) or, if a competitor wins,
-isolate whether the win comes from its DETECTION layer or its SELECTION
-POLICY — either reading strengthens Paper 1's C2/C3.
+Evaluates adaptive aggregation mechanisms on the same dominance grid
+with ``root=100``, a seven-rule aggregation arsenal, and identical
+random seeds.
 
-Systems compared, all on the SAME dominance grid (alpha x attack_type),
-root=100, 7-rule arsenal, same seeds:
+The experiment tests whether the performance gap between adaptive
+selection and the best fixed aggregation rule is specific to GRADF's
+DQN selector or persists across alternative adaptive mechanisms.
 
-  Random-selector       -> floor: picks 1 of 7 rules uniformly at random
-                            each round (reuses `exp1_baseline.RandomSelector`)
-  Oracle-selector        -> ceiling: best FIXED rule for the round's TRUE
-  (decoupled)               attack type, decoupled from real detection
-                            (reuses `exp1_baseline.GroundTruthOracleLearner`)
-  GRADF (DQN)             -> our corrected 5-dim-state selector
-  FedStrategist           -> LinUCB contextual bandit (Haque et al., 2025),
-                            adapted to the FULL 7-rule arsenal (the paper's
-                            own arsenal is only 3 rules — widened here per
-                            validity condition 2 of the plan doc)
-  AdaAggRL                -> RL-based Adaptive Aggregation (Wang, Zhang,
-                            Wen, Qiu & Guo, AAAI 2025) — gradient-inversion
-                            distribution learning + MMD-based "environmental
-                            cues" + TD3 over a continuous [0,1]^5 action,
-                            with a persistent exponential penalty for
-                            repeatedly-flagged clients (see
-                            `src/defense/adaaggrl_agent.py`'s docstring for
-                            the full reproduction and its documented
-                            deviations/instantiation choices). CORRECTED
-                            from an earlier from-scratch guess once the
-                            paper was identified — see that module's
-                            CORRECTION NOTE.
+Compared systems:
 
-Two detection variants (plan doc condition 4) apply ONLY to FedStrategist —
-run BOTH, (b) first:
-  (b) shared detection  -> FedStrategist is driven by GRADF's OWN detection
-                            layer (ModalityRecorder + the same pretrained
-                            RLAttackClassifier), not its own diagnostics.
-                            Isolates the SELECTION POLICY as the only
-                            remaining variable. If it ties Random here,
-                            policy isn't the bottleneck.
-  (a) own detection     -> FedStrategist uses its own original 3-dim
-                            update-geometry diagnostic. A win here that
-                            disappears in (b) means the advantage came from
-                            the DETECTOR, not the selector.
+- Random selector:
+  selects one of the seven aggregation rules uniformly at random in
+  each round. Reuses ``exp1_baseline.RandomSelector``.
 
-AdaAggRL has NO variant (b): unlike FedStrategist's swappable diagnostic
-front-end, AdaAggRL's gradient-inversion + MMD cues ARE its detection
-mechanism by construction (the paper's own algorithm) — there is no slot to
-plug in someone else's classifier output without turning it into a
-different algorithm. It always runs in its one, real mode.
+- Oracle selector:
+  selects the best fixed rule for the true attack type of each round,
+  without using an attack detector. Reuses
+  ``exp1_baseline.GroundTruthOracleLearner`` and serves as a
+  detection-decoupled upper reference.
 
-Random/Oracle don't consume a detection signal by construction (Random
-ignores it; Oracle uses the round's TRUE attack type directly), so they are
-computed once and reused across the FedStrategist-variant tables.
+- GRADF:
+  uses the corrected five-dimensional DQN selector.
 
-`results/tables/exp9_dominance_grid_10seeds_ALL_root100_summary.csv` (already
-on disk, seeds 42-51, same 21-cell grid, root=100) is reused as the "best
-fixed rule" reference column instead of recomputing FLTrust/Median/
-Trimmed-Mean/Krum from scratch.
+- FedStrategist:
+  uses the LinUCB contextual bandit proposed by Haque et al. (2025),
+  adapted from the paper's three-rule arsenal to the full seven-rule
+  arsenal used in this experiment.
 
-Usage:
-    python -m src.experiments.exp10_selector_comparison --variant b --seeds 42 43 44
-    python -m src.experiments.exp10_selector_comparison --variant b \\
-        --systems fedstrategist random --alphas 0.5 --attack_types sign_flipping
+- AdaAggRL:
+  uses the adaptive aggregation mechanism proposed by Wang et al.
+  (AAAI 2025), including gradient-inversion distribution learning,
+  MMD-based environmental cues, and TD3-based continuous aggregation
+  weights.
+
+FedStrategist is evaluated with two detection configurations:
+
+- Shared detection:
+  uses GRADF's detection pipeline
+  (``ModalityRecorder`` and ``RLAttackClassifier``). This isolates the
+  selection policy because the detection signal is held constant.
+
+- Own detection:
+  uses FedStrategist's original three-dimensional update-geometry
+  diagnostic. A performance difference relative to shared detection
+  therefore reflects the effect of its detection mechanism as well as
+  its selection policy.
+
+AdaAggRL has only one configuration because its gradient-inversion and
+MMD-based cues are intrinsic to its aggregation mechanism and constitute
+its detection signal.
+
+Random and Oracle do not require an external detection signal and are
+computed once for reuse across FedStrategist variants.
+
+The best-fixed-rule reference is loaded from the existing
+``exp9_dominance_grid_10seeds_ALL_root100_summary.csv`` results rather
+than recomputing the fixed-rule baselines.
+
+Example:
+
+    python -m src.experiments.exp10_selector_comparison \
+        --variant b --seeds 42 43 44
+
+    python -m src.experiments.exp10_selector_comparison \
+        --variant b --systems fedstrategist random \
+        --alphas 0.5 --attack_types sign_flipping
 """
 
 import argparse
@@ -199,10 +200,6 @@ class FedStrategistGridLearner(AttackedFederatedLearner):
 
     def _run_round(self, round_num, participants, root_data):
         active = self._is_active(round_num)
-        # compute_param_updates_auto: dispatches to the informed-attacker path
-        # for INFORMED_ATTACK_TYPES instead of silently degrading them — see
-        # src/fl/attacked_learner.py's docstring and the bug note in
-        # references/resultado_experimento_seletores_adaptativos.md.
         param_updates, _is_byz_list = compute_param_updates_auto(self, participants, active, root_data)
         n_feat = participants[0].n_features
 
@@ -290,10 +287,6 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
 
     def _run_round(self, round_num, participants, root_data):
         active = self._is_active(round_num)
-        # compute_param_updates_auto: dispatches to the informed-attacker path
-        # for INFORMED_ATTACK_TYPES instead of silently degrading them — see
-        # src/fl/attacked_learner.py's docstring and the bug note in
-        # references/resultado_experimento_seletores_adaptativos.md.
         param_updates, _is_byz_list = compute_param_updates_auto(self, participants, active, root_data)
         n_feat = participants[0].n_features
         K = 1 if self.n_classes == 2 else self.n_classes
@@ -376,9 +369,7 @@ def run_selector_comparison_grid(
     systems: Optional[List[str]] = None,
     variant: str = "b",
 ) -> pd.DataFrame:
-    """`root_size=100` by default — validity condition 1 of the plan doc
-    (the canonical FLTrust paper's root size, not the 3000-sample pool used
-    elsewhere in this repo)."""
+    """`root_size=100` by default — validity condition 1 of the plan doc"""
     alphas = alphas or [0.5, 0.1, 0.05]
     attack_types = attack_types or (INFORMED_ATTACKS + BLIND_ATTACKS)
     systems = systems or ["random", "oracle", "gradf", "fedstrategist", "adaaggrl"]
@@ -462,11 +453,6 @@ def run_selector_comparison_grid(
 
 
 def _load_best_fixed_rule_reference(path: str) -> Optional[pd.DataFrame]:
-    """Loads the already-computed root=100, 10-seed fixed-strategy grid
-    (`exp9_dominance_grid_10seeds_ALL_root100_summary.csv`) and reduces it
-    to the best fixed rule per (alpha, attack_type) — the 'melhor regra
-    fixa' reference column the plan doc's output table asks for, without
-    recomputing FLTrust/Median/Trimmed-Mean/Krum."""
     if not os.path.exists(path):
         logger.warning("Best-fixed-rule reference not found at %s; skipping that column.", path)
         return None

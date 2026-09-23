@@ -8,43 +8,57 @@ from tensorflow import keras
 
 
 class RLDefenseSelector:
-    """DQN that chooses the aggregation strategy best suited to the detected
-    attack type. Unlike `RLAttackClassifier`, this component trains as
-    genuine RL: there is a real environment (FL rounds) and an observable
-    reward (accuracy retention, attack neutralization) — see
-    `src.utils.data_loader.generate_selector_experiences`.
+    """
+    DQN selector for choosing the aggregation strategy according to the
+    detected attack type.
 
-    Design notes (see `references/plano_gradf_iclr2027.md` and
-    `FORMALISMO_MATEMATICO_E_INEDITISMO.md` for the underlying formalism):
+    Unlike ``RLAttackClassifier``, this component implements genuine
+    reinforcement learning: FL rounds provide the environment, and the
+    reward reflects aggregation performance, including accuracy retention
+    and attack neutralization.
 
-    1. **5-dimensional state**, not 2: `[attack_idx, confidence,
-       prev_accuracy, prev_fairness_std, prev_latency]` — the accuracy/
-       fairness/latency of the previous round are part of the state so the
-       network can differentiate rounds with the same detected attack but
-       very different contexts (accuracy dropping, poor fairness, high
-       latency).
-    2. **Real online learning.** `train_step` is called both during offline
-       pretraining (`train_on_experiences`) and on EVERY REAL FL ROUND by
-       `HardeningPipeline.full_pipeline` (see its docstring) — the policy
-       keeps updating during deployment, not just once before round 1.
-    3. **Target network**, synchronized every `target_update_every` training
-       steps, used for the Bellman bootstrap (`max_a' Q_target(s',a')`) —
-       avoids the known instability of using the SAME network being updated
-       as its own moving target.
-    4. **Replay buffer with mini-batch updates.** Every experience (offline
-       or online) enters the same buffer; each `train_step` samples a
-       mini-batch from it for the gradient step, instead of training on a
-       single sample at a time — reduces gradient variance and allows old
-       experiences to be reused.
-    5. **Decaying ε-greedy exploration during online learning**:
-       `select_action` explores with probability `ε` (decaying from
-       `epsilon_start` to `epsilon_end` over `epsilon_decay_rounds`) when
-       `round_num` is supplied (as `GRADFFederatedLearner` does via
-       `round_context`) — the same mechanism used by TARS
-       (`src/defense/tars_selector.py`), so the Gate 1 comparison stays fair
-       (neither selector gets more exploration than the other). Without
-       `round_num` (callers that don't track round, e.g. standalone
-       pretraining episodes), it stays fully greedy.
+    The implementation uses the following design:
+
+    1. Five-dimensional state:
+
+          [attack_idx, confidence, prev_accuracy,
+           prev_fairness_std, prev_latency]
+
+       Previous-round accuracy, fairness, and latency provide contextual
+       information beyond the detected attack type and classifier
+       confidence.
+
+    2. Online learning.
+
+       ``train_step`` is used during offline pretraining through
+       ``train_on_experiences`` and during every real FL round through
+       ``HardeningPipeline.full_pipeline``. The policy therefore continues
+       to adapt during deployment.
+
+    3. Target network.
+
+       A separate target network is synchronized every
+       ``target_update_every`` training steps and is used for the Bellman
+       bootstrap. This avoids using the network being optimized as its own
+       moving target.
+
+    4. Experience replay.
+
+       Offline and online experiences share the same replay buffer.
+       Each ``train_step`` samples a mini-batch from the buffer, allowing
+       previous experiences to be reused and reducing gradient variance.
+
+    5. Decaying epsilon-greedy exploration.
+
+       When ``round_num`` is provided, ``select_action`` explores with
+       probability ``epsilon``, decaying from ``epsilon_start`` to
+       ``epsilon_end`` over ``epsilon_decay_rounds``. This is the same
+       exploration mechanism used by TARS
+       (``src/defense/tars_selector.py``).
+
+       When ``round_num`` is not provided, action selection is fully greedy,
+       which is used by callers that do not track FL rounds, such as
+       standalone pretraining.
     """
 
     N_STATE_DIMS = 5

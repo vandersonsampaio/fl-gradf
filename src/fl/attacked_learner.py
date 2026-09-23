@@ -128,7 +128,7 @@ class InformedAttackedFederatedLearner(AttackedFederatedLearner):
 
     `server_update` is ALWAYS computed, even when `self.aggregation !=
     'fltrust'` — same reason documented in `GRADFFederatedLearner`/
-    `TARSLearner` (see CLAUDE.md): `fltrust_aligned` needs it regardless of
+    `TARSLearner`: `fltrust_aligned` needs it regardless of
     the aggregation rule chosen for the round.
     """
 
@@ -207,20 +207,6 @@ def compute_param_updates_auto(
     or informed (inlined below, mirroring `InformedAttackedFederatedLearner._run_round`)
     update computation depending on whether `learner.attack_type` is one of
     `AttackSimulator.INFORMED_ATTACK_TYPES`.
-
-    Exists because `InformedAttackedFederatedLearner` only overrides
-    `_run_round` wholesale — fine for a learner dedicated to informed
-    attacks, but callers that need to support BOTH families through a
-    single learner class (any subclass whose `attack_type` varies per call,
-    e.g. `src/fl/gradf_learner.py::GRADFFederatedLearner` and
-    `src/experiments/exp10_selector_comparison.py`'s custom learners)
-    previously had no way to get the informed path without duplicating that
-    class's logic — they called the plain blind `_compute_param_updates`
-    unconditionally, which silently degrades informed attack types to their
-    blind fallback (e.g. `AttackSimulator._fltrust_aligned` without
-    `reference` falls back to a plain sign-flip, indistinguishable from
-    `sign_flipping` — a real bug found and fixed via this helper; see
-    `references/resultado_experimento_seletores_adaptativos.md`).
     """
     from src.classification.attack_simulator import AttackSimulator
 

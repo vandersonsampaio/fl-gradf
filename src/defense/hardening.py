@@ -1,31 +1,49 @@
 """
-GRADF's 5-layer hardening pipeline.
+GRADF's five-layer hardening pipeline.
 
-Unlike the earlier (placeholder) version, this implementation:
-  - operates on parameter vectors (deltas) via an `evaluate_fn` function
-    supplied by the caller, instead of requiring `model.clone()`/`.update()`
-    (which don't exist on `_LogisticModel`);
-  - actually invokes `self.classifier`/`self.selector` in Layer 3, to pick the
-    aggregation strategy from the attack type predicted per hospital
-    (majority vote when the accepted hospitals disagree — see
-    FORMALISMO_MATEMATICO_E_INEDITISMO.md, the Step 6 note).
+The pipeline operates on flat parameter-vector deltas and receives an
+``evaluate_fn`` callback from the caller for model evaluation. It does
+not depend on ``model.clone()`` or ``model.update()``.
 
-Known limitation (Layer 2 — legacy DP, active by default): the Laplace noise
-is added independently per coordinate, so its total L2 norm scales with
-sqrt(dimension) of the parameter vector. For small models (tens of
-parameters, as in the plan's original examples) `dp_epsilon=1.0` is
-reasonable; for a real model (e.g. MNIST softmax, ~7850 parameters) that same
-epsilon makes the noise completely dominate the signal (~30-40x larger),
-degrading accuracy even with no attack at all. `dp_epsilon`/`dp_clipping`
-need to be recalibrated to the model's dimensionality — see
-`GRADFFederatedLearner(dp_epsilon=..., dp_clipping=...)`. This mechanism also
-has no real (ε,δ) accounting, mixes L1 sensitivity (Laplace) with an L2 clip,
-and adds noise per client before aggregation — see `src.defense.dp_accountant`
-for the Gaussian mechanism with RDP accounting and correct per-rule
-sensitivity that replaces it when a `dp_mechanism=` is passed to the
-constructor (Decision B1, `references/plano_gradf_iclr2027.md`). Kept as the
-default when `dp_mechanism=None` so already-reported results
-(exp1/exp2/exp4/exp7) are not silently changed.
+Layer 3 invokes the configured ``classifier`` and ``selector`` to select
+the aggregation strategy according to the attack type predicted for
+each hospital. When accepted hospitals produce conflicting predictions,
+the final strategy is determined by majority vote.
+
+Layer 2 supports two privacy mechanisms:
+
+- Legacy mechanism (default when ``dp_mechanism=None``):
+  per-coordinate Laplace noise with clipping. This behavior is preserved
+  for backward compatibility and to avoid silently changing previously
+  reported experiments.
+
+- Gaussian mechanism (when ``dp_mechanism`` is specified):
+  uses ``src.defense.dp_accountant`` for Gaussian noise, per-rule
+  sensitivity, and RDP composition across rounds.
+
+The legacy mechanism has important limitations:
+
+- noise is sampled independently for each parameter coordinate, so its
+  total L2 magnitude grows approximately with the square root of the
+  parameter dimension;
+- ``dp_epsilon`` and ``dp_clipping`` therefore require recalibration
+  when changing model size;
+- the mechanism does not perform formal multi-round
+  ``(epsilon, delta)`` accounting;
+- its noise calibration combines an L1-based Laplace mechanism with an
+  L2 clipping parameter;
+- noise is added to individual client updates before aggregation.
+
+Consequently, the legacy mechanism should not be interpreted as the
+same privacy guarantee provided by the Gaussian/RDP mechanism.
+
+The Gaussian mechanism implemented in ``src.defense.dp_accountant``
+is the preferred mechanism when ``dp_mechanism`` is enabled. It uses
+aggregation-rule-specific L2 sensitivity and a library-based RDP
+accountant for composition across rounds.
+
+The legacy mechanism remains the default to preserve compatibility with
+existing ``exp1``, ``exp2``, ``exp4``, and ``exp7`` results.
 """
 
 from collections import Counter
@@ -185,8 +203,6 @@ class HardeningPipeline:
         idx_by_hid = {hid: i for i, hid in enumerate(hospital_ids)}
 
         # Layer 2: clip (+ per-client noise, legacy mechanism) or clip only
-        # (new Gaussian mechanism — its noise is added later, once, to the
-        # aggregated output — see Layer 3/dp_mechanism.privatize_aggregate below).
         if self.dp_mechanism is not None:
             sanitized = {hid: self.dp_mechanism.clip(updates[idx_by_hid[hid]]) for hid in accepted_ids}
             results["layer2"] = f"Clipped (Gaussian mechanism) {len(sanitized)} updates"
@@ -232,10 +248,6 @@ class HardeningPipeline:
         if agg_metadata:
             results["layer3_metadata"] = agg_metadata
 
-        # New Gaussian mechanism: noise added ONCE to the aggregated output
-        # (not per client, like the legacy Layer 2) — Layer 4 below validates
-        # the ALREADY noised delta, which is what actually gets applied to the
-        # global model.
         if self.dp_mechanism is not None:
             agg_delta = self.dp_mechanism.privatize_aggregate(
                 agg_delta, strategy_name, weights=sample_sizes_accepted,

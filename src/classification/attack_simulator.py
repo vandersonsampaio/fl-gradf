@@ -8,11 +8,11 @@ described in the TARS paper (Ahmed et al., 2025):
   - Gaussian Attack: w = Δ + ε, ε ~ N(0, σ²I)  (gradient-level)
   - Pretense Attack: honest for T rounds, then attack (PretenseAttacker class)
 
-Plus 4 "informed" attacks (Phase 1, Strategy B —
-references/estrategia_B_recriar_headroom.md), designed to specifically stress
-FLTrust/Median/Trimmed-Mean/Krum rather than generic Byzantine noise, in the
-omniscient-attacker threat model of Fang et al. ("Local Model Poisoning
-Attacks against Byzantine-robust Federated Learning", USENIX Security 2020):
+Plus 4 informed attacks designed to specifically stress
+FLTrust/Median/Trimmed-Mean/Krum rather than generic Byzantine noise,
+in the omniscient-attacker threat model of Fang et al.
+("Local Model Poisoning Attacks against Byzantine-robust Federated Learning",
+USENIX Security 2020):
   - fltrust_aligned : clones the server root-dataset direction to maximize
                       FLTrust's cosine-similarity trust score.
   - trim_attack     : per-coordinate push just beyond the honest range,
@@ -23,12 +23,17 @@ Attacks against Byzantine-robust Federated Learning", USENIX Security 2020):
   - low_mag_backdoor: small, persistent single-target shift scaled to the
                       update's own norm, instead of a loud multiplicative
                       spike.
-These need extra context (`reference` = server root gradient this round,
-`peer_updates` = other clients' honest updates this round) that a "blind"
-attacker doesn't have — supplied by
-`src.fl.attacked_learner.InformedAttackedFederatedLearner`. Called without
-that context (e.g. from the plain AttackedFederatedLearner), each falls back
-to a documented, weaker blind variant.
+
+These attacks require additional context:
+  - reference   = server root gradient for the current round
+  - peer_updates = other clients' honest updates for the current round
+
+This context is supplied by
+src.fl.attacked_learner.InformedAttackedFederatedLearner.
+
+When called without this context (for example, from the plain
+AttackedFederatedLearner), each informed attack falls back to a documented,
+weaker blind variant.
 
 Two attack surfaces
 -------------------
@@ -46,11 +51,17 @@ Usage
     X_p, y_p = sim.poison_data(X_train, y_train, 'label_flipping', n_classes=10)
 
     # Simulate a full round: replace Byzantine fraction with poisoned updates
-    updates, is_byz = sim.simulate_round(client_updates, byzantine_fraction=0.2,
-                                         attack_type='gaussian_noise')
+    updates, is_byz = sim.simulate_round(
+        client_updates,
+        byzantine_fraction=0.2,
+        attack_type='gaussian_noise'
+    )
 
     # Pretense (TARS): honest for 5 rounds, then sign flipping
-    pretender = PretenseAttacker(pretense_rounds=5, attack_type='sign_flipping')
+    pretender = PretenseAttacker(
+        pretense_rounds=5,
+        attack_type='sign_flipping'
+    )
     delta = pretender.get_update(clean_delta, round_num=7)
 """
 
@@ -108,10 +119,6 @@ class AttackSimulator:
     # Full list including explicit TARS aliases
     ALL_ATTACK_TYPES: List[str] = sorted(ALL_ATTACKS)
 
-    # Phase 1 (Strategy B): attacks that need `reference`/`peer_updates`
-    # (omniscient attacker) to work as designed — see
-    # InformedAttackedFederatedLearner. Exposed here so experiments know
-    # which learner to use per attack type without hardcoding the list.
     INFORMED_ATTACK_TYPES: List[str] = [
         'fltrust_aligned', 'trim_attack', 'krum_collusion', 'low_mag_backdoor',
     ]
@@ -327,23 +334,6 @@ class AttackSimulator:
         """Evade FLTrust's cosine-similarity trust filter by cloning the
         server's own root-dataset direction (Fang et al., 2020-style
         omniscient attack).
-
-        FLTrust weights each update by ReLU(cos(update, reference)) and
-        clips its norm to the reference's norm before averaging — so a
-        client that submits `reference` itself gets cos=1 (maximal trust
-        weight) and its post-clip contribution is just `reference` again
-        (amplifying it is moot, the clip normalizes magnitude away). The
-        damage isn't a loud spike: under severe non-IID heterogeneity the
-        server's root sample (a small slice of one client's data) is
-        unrepresentative of the true population, so a client that always
-        looks "maximally trusted" while contributing exactly the root
-        direction can starve honest, imperfectly-aligned clients of
-        influence and bias the aggregate toward the narrow root sample
-        instead of the real heterogeneous data.
-
-        Needs `reference` (the server/root gradient this round — see
-        InformedAttackedFederatedLearner). Falls back to a plain sign-flip
-        if unavailable, so this type is still safe to call blind.
         """
         if reference is None or np.linalg.norm(reference) < 1e-10:
             return -update
@@ -361,16 +351,6 @@ class AttackSimulator:
         value just beyond the honest range, in the direction opposite the
         honest mean, so the attack drags the robust per-coordinate estimator
         as far as a single/small colluding group can.
-
-        `intensity` scales how far beyond the honest [min, max] spread the
-        malicious value goes — our own documented instantiation of "just
-        beyond the trim boundary" (the paper's closed-form optimisation
-        against a specific estimator is not implemented here).
-
-        Needs `peer_updates` (other clients' honest updates this round — an
-        omniscient-attacker input; see InformedAttackedFederatedLearner).
-        Falls back to the plain magnitude-scaling 'poisoning' attack if
-        unavailable.
         """
         if not peer_updates:
             return update * (10.0 + 40.0 * float(intensity))
@@ -397,10 +377,6 @@ class AttackSimulator:
         whose distance-sum to its `n-f-2` nearest neighbours is smallest;
         a tight malicious cluster can out-score a genuinely diverse honest
         population under this metric.
-
-        Needs `peer_updates` (an omniscient-attacker input; see
-        InformedAttackedFederatedLearner). Falls back to a boosted
-        sign-flip if unavailable.
         """
         if not peer_updates:
             return -update * (1.0 + intensity * 4.0)
