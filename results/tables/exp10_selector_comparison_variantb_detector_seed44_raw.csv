@@ -1,0 +1,22 @@
+alpha,attack_type,system,variant,accuracy,seed
+0.5,fltrust_aligned,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.8882999999999999,44
+0.5,trim_attack,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.8419000000000001,44
+0.5,krum_collusion,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.8880000000000001,44
+0.5,low_mag_backdoor,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.8389999999999999,44
+0.5,sign_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.8289,44
+0.5,gaussian_noise,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.6618,44
+0.5,label_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.8805999999999999,44
+0.1,fltrust_aligned,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.7861,44
+0.1,trim_attack,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.47079999999999994,44
+0.1,krum_collusion,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.6476,44
+0.1,low_mag_backdoor,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.8523,44
+0.1,sign_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.6106999999999999,44
+0.1,gaussian_noise,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.6804,44
+0.1,label_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.742,44
+0.05,fltrust_aligned,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.7619,44
+0.05,trim_attack,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.6093,44
+0.05,krum_collusion,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.6747000000000001,44
+0.05,low_mag_backdoor,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.7186999999999999,44
+0.05,sign_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.5484000000000001,44
+0.05,gaussian_noise,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.5778,44
+0.05,label_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (pretrained extractor)",0.7069,44

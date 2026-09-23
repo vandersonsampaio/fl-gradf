@@ -53,6 +53,22 @@ mechanism by construction (the paper's own algorithm) — there is no slot to
 plug in someone else's classifier output without turning it into a
 different algorithm. It always runs in its one, real mode.
 
+`adaaggrl_detector` (`DiscreteWithAdaAggRLDetectorLearner`) — Frente 1,
+Etapa 1.1 (`references/1_roadmap_frentes_futuras.md`): the inverse coupling
+of FedStrategist's shared-detection variant (b) above. Instead of feeding
+GRADF's (weaker, anomaly-score-based) detection into a discrete selector,
+this feeds AdaAggRL's OWN detector — gradient-inversion reconstruction +
+the 4 MMD-based environmental cues (S_R, S_cl, S_cg, S_lg), reused verbatim
+from `src/defense/adaaggrl_agent.py` — into a CLEAN discrete selector: the
+same `LinUCBAgent` contextual bandit over the full 7-rule arsenal already
+used by `FedStrategistGridLearner`, picking one rule per round and
+aggregating the round's raw parameter DELTAS through it (not AdaAggRL's own
+continuous per-client weighting of full parameters). This isolates the
+roadmap's central Etapa 1.1 hypothesis: if discrete selection catches up to
+Random/best-fixed once given AdaAggRL's detector, the bottleneck was
+detection quality, not the discrete/continuous choice of aggregation
+mechanic; if it still doesn't, discreteness itself is implicated.
+
 Random/Oracle don't consume a detection signal by construction (Random
 ignores it; Oracle uses the round's TRUE attack type directly), so they are
 computed once and reused across the FedStrategist-variant tables.
@@ -70,7 +86,7 @@ Usage:
 
 import argparse
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -383,6 +399,136 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
         )
 
 
+class DiscreteWithAdaAggRLDetectorLearner(AttackedFederatedLearner):
+    """Frente 1, Etapa 1.1 (`references/1_roadmap_frentes_futuras.md`) — the
+    experimento do detector compartilhado. Reuses AdaAggRL's REAL detector
+    (gradient-inversion reconstruction + the 4 MMD-based environmental cues
+    S_R/S_cl/S_cg/S_lg, `src/defense/adaaggrl_agent.py`) exactly as
+    `AdaAggRLGridLearner` computes it, but hands the round-level summary to a
+    clean discrete selector — a `LinUCBAgent` contextual bandit over the same
+    `FULL_ARSENAL` of 7 aggregation rules `FedStrategistGridLearner` already
+    uses — instead of AdaAggRL's own continuous [0,1]^5 TD3 weighting of full
+    client parameters. Aggregation then dispatches through the chosen rule on
+    the round's parameter DELTAS (the same mechanic every other discrete
+    selector in this file uses), so the only thing borrowed from AdaAggRL is
+    its detection signal, not its aggregation mechanic — keeping "detector"
+    and "selection family" cleanly separated, per the roadmap's own framing.
+
+    `feature_extractor`: 'pretrained' (default here — Passo Zero's real,
+    trained-then-frozen CNN; the roadmap's Portão Zero found the pretrained
+    extractor does not help AdaAggRL itself, so it is used here as the more
+    faithful choice, not because it's expected to be decisive) or 'random'.
+    Only supports `model_type='logistic'` (gradient inversion needs
+    `_LogisticModel`'s flat W/b packing), same restriction as
+    `AdaAggRLGridLearner`.
+    """
+
+    def __init__(
+        self, *args, input_shape: tuple, seed: int = 42,
+        num_images: int = 16, max_iters: int = 30, feature_dim: Optional[int] = None,
+        feature_extractor: str = "pretrained", feature_extractor_path: Optional[str] = None,
+        dataset: str = "mnist", alpha: float = 1.5, **kwargs,
+    ):
+        kwargs.setdefault("aggregation", FULL_ARSENAL[0])
+        kwargs.setdefault("seed", seed)
+        super().__init__(*args, **kwargs)
+        if self.model_type != "logistic":
+            raise ValueError("DiscreteWithAdaAggRLDetectorLearner only supports model_type='logistic'")
+        self.input_shape = input_shape
+        self.num_images = num_images
+        self.max_iters = max_iters
+        self.bandit = LinUCBAgent(FULL_ARSENAL, alpha=alpha, context_dim=4, seed=seed)
+        if feature_extractor == "random":
+            self.feature_extractor = RandomCNNFeatureExtractor(
+                input_shape, feature_dim=feature_dim or 16, seed=seed,
+            )
+        elif feature_extractor == "pretrained":
+            self.feature_extractor = PretrainedCNNFeatureExtractor(
+                input_shape, feature_dim=feature_dim or 32,
+                weights_path=feature_extractor_path, dataset=dataset,
+            )
+        else:
+            raise ValueError(f"Unknown feature_extractor '{feature_extractor}'; expected 'random' or 'pretrained'")
+        self._v_history: Dict[str, np.ndarray] = {}
+
+    def _adaaggrl_state(
+        self, participants, theta_list: List[np.ndarray], param_updates: List[np.ndarray],
+        n_feat: int, K: int, round_num: int,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Same reconstruction + MMD-cue computation as
+        `AdaAggRLGridLearner._run_round`, factored out so both learners stay
+        byte-for-byte comparable on the detection side."""
+        v_current: Dict[str, np.ndarray] = {}
+        s_r_list = []
+        for p, theta_k, u in zip(participants, theta_list, param_updates):
+            W = theta_k[: n_feat * K].reshape(n_feat, K).astype(np.float32)
+            b = theta_k[n_feat * K:].astype(np.float32)
+            D_rec, S_R = reconstruct_client_distribution(
+                W, b, u, self.local_lr, n_feat, K,
+                num_images=self.num_images, max_iters=self.max_iters, seed=round_num,
+            )
+            v_current[p.id] = self.feature_extractor.extract(D_rec)
+            s_r_list.append(S_R)
+
+        v_g = np.concatenate(list(v_current.values()), axis=0)
+        state_rows = []
+        for p, S_R in zip(participants, s_r_list):
+            v_cur = v_current[p.id]
+            v_hist = self._v_history.get(p.id, v_cur)
+            S_cl = cue_similarity(mmd_rbf(v_cur, v_hist))
+            S_cg = cue_similarity(mmd_rbf(v_cur, v_g))
+            S_lg = cue_similarity(mmd_rbf(v_hist, v_g))
+            state_rows.append([S_R, S_cl, S_cg, S_lg])
+        state_matrix = np.array(state_rows)
+
+        for p in participants:
+            self._v_history[p.id] = v_current[p.id]
+
+        return state_matrix, state_matrix.mean(axis=0)
+
+    def _run_round(self, round_num, participants, root_data):
+        active = self._is_active(round_num)
+        # compute_param_updates_auto: dispatches to the informed-attacker path
+        # for INFORMED_ATTACK_TYPES instead of silently degrading them — see
+        # src/fl/attacked_learner.py's docstring and the bug note in
+        # references/resultado_experimento_seletores_adaptativos.md.
+        param_updates, _is_byz_list = compute_param_updates_auto(self, participants, active, root_data)
+        n_feat = participants[0].n_features
+        K = 1 if self.n_classes == 2 else self.n_classes
+
+        eval_data = root_data or {"X": participants[0].X_test, "y": participants[0].y_test}
+        old_model = self._make_model(n_feat)
+        old_model.set_params(self._global_params)  # type: ignore[arg-type]
+        old_acc = old_model.accuracy(eval_data["X"], eval_data["y"])
+
+        theta_list = [self._global_params + u for u in param_updates]  # type: ignore[operator]  # theta_k^{t+1}
+        _state_matrix, mean_state = self._adaaggrl_state(
+            participants, theta_list, param_updates, n_feat, K, round_num,
+        )
+
+        strategy_name = self.bandit.select_action(tuple(mean_state))
+
+        server_root = root_data or self._carve_root(participants[0])
+        server_update = self._make_model(n_feat).fit(server_root["X"], server_root["y"])
+        sample_sizes = [p.n_train for p in participants]
+
+        n_byz = sum(1 for b in _is_byz_list if b)
+        strategy = _make_arsenal_strategy(strategy_name, n_byz)
+        agg_delta, _ = strategy.aggregate(param_updates, sample_sizes=sample_sizes, server_update=server_update)
+        self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+
+        new_model = self._make_model(n_feat)
+        new_model.set_params(self._global_params)
+        new_acc = new_model.accuracy(eval_data["X"], eval_data["y"])
+
+        reward = new_acc - old_acc
+        self.bandit.update(tuple(mean_state), strategy_name, reward)
+
+        per_acc = {p.id: self._make_model(p.n_features).accuracy(p.X_test, p.y_test) for p in participants}
+        global_acc = float(np.mean(list(per_acc.values())))
+        return RoundResult(round_num, global_acc, per_acc, trust_scores=None, n_accepted=None)
+
+
 def run_selector_comparison_grid(
     dataset: str = "mnist",
     alphas: Optional[List[float]] = None,
@@ -482,6 +628,20 @@ def run_selector_comparison_grid(
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
                 _add("AdaAggRL", f"own (gradient-inversion, {adaaggrl_feature_extractor} extractor)", acc)
 
+            if "adaaggrl_detector" in systems:
+                learner = DiscreteWithAdaAggRLDetectorLearner(
+                    n_rounds=n_rounds, n_classes=n_classes, attack_type=attack_type,
+                    byzantine_ids=byzantine_ids, seed=seed,
+                    input_shape=DATASET_INPUT_SHAPE[dataset],
+                    feature_extractor=adaaggrl_feature_extractor, dataset=dataset,
+                )
+                acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
+                _add(
+                    "Discrete+AdaAggRL-detector",
+                    f"LinUCB/7-rule, AdaAggRL detector ({adaaggrl_feature_extractor} extractor)",
+                    acc,
+                )
+
             logger.info("seed=%d alpha=%s attack=%s variant=%s done", seed, alpha, attack_type, variant)
 
     return pd.DataFrame(rows)
@@ -516,7 +676,7 @@ if __name__ == "__main__":
     parser.add_argument("--root_size", type=int, default=100)
     parser.add_argument(
         "--systems", nargs="+", default=["random", "oracle", "gradf", "fedstrategist", "adaaggrl"],
-        choices=["random", "oracle", "gradf", "fedstrategist", "adaaggrl"],
+        choices=["random", "oracle", "gradf", "fedstrategist", "adaaggrl", "adaaggrl_detector"],
     )
     parser.add_argument("--variant", default="b", choices=["a", "b"])
     parser.add_argument(
