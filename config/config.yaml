@@ -1,0 +1,36 @@
+federated_learning:
+  n_rounds: 20
+  aggregation: fltrust
+  local_lr: 0.01
+  local_epochs: 5
+  local_batch_size: 32
+  n_clients: 10
+  byzantine_fraction: 0.2
+  root_fraction: 0.05
+
+datasets:
+  mnist:
+    raw_dir: data/raw/mnist
+    processed_dir: data/processed/mnist
+  cifar10:
+    raw_dir: data/raw/cifar10
+    processed_dir: data/processed/cifar10
+  mimic:
+    raw_dir: data/raw/mimic
+    processed_dir: data/processed
+
+gradf:
+  detection:
+    window_size: 5
+    anomaly_threshold: 0.7
+  hardening:
+    magnitude_threshold: 5.0
+    dp_epsilon: 50.0
+    dp_clipping: 2.0
+    accuracy_tolerance: 0.02
+
+results:
+  models_dir: results/models
+  tables_dir: results/tables
+  figures_dir: results/figures
+  audit_trail_path: results/audit_trail.jsonl

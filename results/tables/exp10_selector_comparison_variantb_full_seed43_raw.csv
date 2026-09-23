@@ -1,0 +1,106 @@
+alpha,attack_type,system,variant,accuracy,seed
+0.5,fltrust_aligned,Random,n/a,0.8866000000000002,43
+0.5,fltrust_aligned,Oracle (decoupled),n/a,0.8741,43
+0.5,fltrust_aligned,GRADF,shared (own),0.8880000000000001,43
+0.5,fltrust_aligned,FedStrategist,b,0.8863,43
+0.5,fltrust_aligned,AdaAggRL,own (gradient-inversion),0.8731,43
+0.5,trim_attack,Random,n/a,0.8356999999999999,43
+0.5,trim_attack,Oracle (decoupled),n/a,0.8413999999999999,43
+0.5,trim_attack,GRADF,shared (own),0.8609,43
+0.5,trim_attack,FedStrategist,b,0.8613,43
+0.5,trim_attack,AdaAggRL,own (gradient-inversion),0.8967,43
+0.5,krum_collusion,Random,n/a,0.8801,43
+0.5,krum_collusion,Oracle (decoupled),n/a,0.8806999999999998,43
+0.5,krum_collusion,GRADF,shared (own),0.8783999999999998,43
+0.5,krum_collusion,FedStrategist,b,0.8869999999999999,43
+0.5,krum_collusion,AdaAggRL,own (gradient-inversion),0.8962999999999999,43
+0.5,low_mag_backdoor,Random,n/a,0.9003,43
+0.5,low_mag_backdoor,Oracle (decoupled),n/a,0.9033999999999999,43
+0.5,low_mag_backdoor,GRADF,shared (own),0.9001000000000001,43
+0.5,low_mag_backdoor,FedStrategist,b,0.8427,43
+0.5,low_mag_backdoor,AdaAggRL,own (gradient-inversion),0.8921999999999999,43
+0.5,sign_flipping,Random,n/a,0.8585,43
+0.5,sign_flipping,Oracle (decoupled),n/a,0.8924999999999998,43
+0.5,sign_flipping,GRADF,shared (own),0.8593,43
+0.5,sign_flipping,FedStrategist,b,0.8261,43
+0.5,sign_flipping,AdaAggRL,own (gradient-inversion),0.8905999999999998,43
+0.5,gaussian_noise,Random,n/a,0.8950000000000001,43
+0.5,gaussian_noise,Oracle (decoupled),n/a,0.8919,43
+0.5,gaussian_noise,GRADF,shared (own),0.8602000000000001,43
+0.5,gaussian_noise,FedStrategist,b,0.8025,43
+0.5,gaussian_noise,AdaAggRL,own (gradient-inversion),0.8962,43
+0.5,label_flipping,Random,n/a,0.8714999999999999,43
+0.5,label_flipping,Oracle (decoupled),n/a,0.8950000000000001,43
+0.5,label_flipping,GRADF,shared (own),0.8145,43
+0.5,label_flipping,FedStrategist,b,0.8761000000000001,43
+0.5,label_flipping,AdaAggRL,own (gradient-inversion),0.5854999999999999,43
+0.1,fltrust_aligned,Random,n/a,0.8564,43
+0.1,fltrust_aligned,Oracle (decoupled),n/a,0.7824,43
+0.1,fltrust_aligned,GRADF,shared (own),0.828,43
+0.1,fltrust_aligned,FedStrategist,b,0.8631,43
+0.1,fltrust_aligned,AdaAggRL,own (gradient-inversion),0.7432000000000001,43
+0.1,trim_attack,Random,n/a,0.5041,43
+0.1,trim_attack,Oracle (decoupled),n/a,0.5216000000000001,43
+0.1,trim_attack,GRADF,shared (own),0.6099,43
+0.1,trim_attack,FedStrategist,b,0.4953,43
+0.1,trim_attack,AdaAggRL,own (gradient-inversion),0.7493,43
+0.1,krum_collusion,Random,n/a,0.6057,43
+0.1,krum_collusion,Oracle (decoupled),n/a,0.7295999999999999,43
+0.1,krum_collusion,GRADF,shared (own),0.7392000000000001,43
+0.1,krum_collusion,FedStrategist,b,0.6419000000000001,43
+0.1,krum_collusion,AdaAggRL,own (gradient-inversion),0.8007,43
+0.1,low_mag_backdoor,Random,n/a,0.8534999999999998,43
+0.1,low_mag_backdoor,Oracle (decoupled),n/a,0.8423,43
+0.1,low_mag_backdoor,GRADF,shared (own),0.8529,43
+0.1,low_mag_backdoor,FedStrategist,b,0.8536999999999999,43
+0.1,low_mag_backdoor,AdaAggRL,own (gradient-inversion),0.7386999999999999,43
+0.1,sign_flipping,Random,n/a,0.7188,43
+0.1,sign_flipping,Oracle (decoupled),n/a,0.7472,43
+0.1,sign_flipping,GRADF,shared (own),0.7958000000000001,43
+0.1,sign_flipping,FedStrategist,b,0.6065,43
+0.1,sign_flipping,AdaAggRL,own (gradient-inversion),0.8311,43
+0.1,gaussian_noise,Random,n/a,0.8154999999999999,43
+0.1,gaussian_noise,Oracle (decoupled),n/a,0.7871,43
+0.1,gaussian_noise,GRADF,shared (own),0.3679,43
+0.1,gaussian_noise,FedStrategist,b,0.6077,43
+0.1,gaussian_noise,AdaAggRL,own (gradient-inversion),0.8324,43
+0.1,label_flipping,Random,n/a,0.7696000000000001,43
+0.1,label_flipping,Oracle (decoupled),n/a,0.7577,43
+0.1,label_flipping,GRADF,shared (own),0.5675000000000001,43
+0.1,label_flipping,FedStrategist,b,0.7438,43
+0.1,label_flipping,AdaAggRL,own (gradient-inversion),0.7191,43
+0.05,fltrust_aligned,Random,n/a,0.7380000000000001,43
+0.05,fltrust_aligned,Oracle (decoupled),n/a,0.7652,43
+0.05,fltrust_aligned,GRADF,shared (own),0.6081,43
+0.05,fltrust_aligned,FedStrategist,b,0.7451,43
+0.05,fltrust_aligned,AdaAggRL,own (gradient-inversion),0.7402,43
+0.05,trim_attack,Random,n/a,0.6352,43
+0.05,trim_attack,Oracle (decoupled),n/a,0.584,43
+0.05,trim_attack,GRADF,shared (own),0.5679000000000001,43
+0.05,trim_attack,FedStrategist,b,0.6033000000000001,43
+0.05,trim_attack,AdaAggRL,own (gradient-inversion),0.8119,43
+0.05,krum_collusion,Random,n/a,0.5989,43
+0.05,krum_collusion,Oracle (decoupled),n/a,0.7047,43
+0.05,krum_collusion,GRADF,shared (own),0.7043,43
+0.05,krum_collusion,FedStrategist,b,0.6763000000000001,43
+0.05,krum_collusion,AdaAggRL,own (gradient-inversion),0.8015000000000001,43
+0.05,low_mag_backdoor,Random,n/a,0.8532,43
+0.05,low_mag_backdoor,Oracle (decoupled),n/a,0.844,43
+0.05,low_mag_backdoor,GRADF,shared (own),0.8469,43
+0.05,low_mag_backdoor,FedStrategist,b,0.7177,43
+0.05,low_mag_backdoor,AdaAggRL,own (gradient-inversion),0.6229000000000001,43
+0.05,sign_flipping,Random,n/a,0.6192,43
+0.05,sign_flipping,Oracle (decoupled),n/a,0.6275999999999999,43
+0.05,sign_flipping,GRADF,shared (own),0.6336999999999999,43
+0.05,sign_flipping,FedStrategist,b,0.5471,43
+0.05,sign_flipping,AdaAggRL,own (gradient-inversion),0.7932,43
+0.05,gaussian_noise,Random,n/a,0.7512,43
+0.05,gaussian_noise,Oracle (decoupled),n/a,0.7694,43
+0.05,gaussian_noise,GRADF,shared (own),0.7274999999999999,43
+0.05,gaussian_noise,FedStrategist,b,0.5734,43
+0.05,gaussian_noise,AdaAggRL,own (gradient-inversion),0.8048,43
+0.05,label_flipping,Random,n/a,0.6688000000000001,43
+0.05,label_flipping,Oracle (decoupled),n/a,0.6655,43
+0.05,label_flipping,GRADF,shared (own),0.6427,43
+0.05,label_flipping,FedStrategist,b,0.434,43
+0.05,label_flipping,AdaAggRL,own (gradient-inversion),0.6178,43

@@ -1,0 +1,29 @@
+combiner_nn:
+  hidden_layers: [64, 32]
+  learning_rate: 0.001
+  epochs: 20
+  batch_size: 32
+
+rl_classifier:
+  hidden_layers: [64, 32]
+  dropout: 0.3
+  learning_rate: 0.001
+  epochs: 20
+  batch_size: 32
+
+rl_selector:
+  hidden_layers: [128, 64]
+  dropout: 0.2
+  learning_rate: 0.001
+  discount: 0.99
+
+detectors:
+  window_size: 5
+
+aggregation:
+  trimmed_mean:
+    trim_ratio: 0.2
+  fedprox:
+    mu: 0.1
+  krum:
+    n_byzantine: null  # null = inferred automatically from n_clients
