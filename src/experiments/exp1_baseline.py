@@ -135,8 +135,6 @@ def train_gradf_models(participants, attack_type, byzantine_fraction, n_classes,
         n_rounds=n_rounds, byzantine_fraction=byzantine_fraction,
         n_classes=n_classes, seed=seed,
     )
-    # epochs=200: a single pass leaves the DQN undertrained — see
-    # RLDefenseSelector.train_on_experiences's docstring.
     selector.train_on_experiences(experiences, epochs=200, seed=seed, verbose=False)
     oracle_map = _derive_oracle_map(experiences, selector.actions)
 
@@ -149,12 +147,6 @@ class GroundTruthClassifierStub:
     returns the TRUE `attack_idx` of the round (set by
     `GroundTruthOracleLearner` before each `_run_round`) — decouples the
     `OracleSelector`'s decision from the per-client detection flag.
-
-    Isolates two questions that the `OracleSelector` gated by the real
-    classifier (`Oracle-selector` in `run_baseline_comparison`) mixes
-    together: "does a correct action to apply exist?" (yes — `oracle_map`)
-    vs. "does the real classifier detect the attack well enough for that
-    action to actually be applied?" (no, for `sign_flipping`/`label_flipping`).
     """
 
     def __init__(self) -> None:
@@ -170,13 +162,6 @@ class GroundTruthOracleLearner(GRADFFederatedLearner):
     the round's TRUE attack type (via `self.attack_type`/`self._is_active`),
     not a classifier's prediction — applied uniformly to all hospitals, so
     Layer 3's majority vote is always unanimous.
-
-    Logs each round's `selected_strategy` in `self.strategy_log` —
-    instrumentation that confirms (not just assumes) that the correct action
-    is actually applied when decoupled from detection. Implemented as an
-    instance-level wrap of `self.hardening.full_pipeline` (instead of
-    rewriting `_run_round` entirely, like the other subclasses in the tree)
-    to avoid duplicating `GRADFFederatedLearner._run_round`'s logic.
     """
 
     def __init__(self, *args, **kwargs) -> None:
@@ -327,9 +312,6 @@ def run_baseline_comparison(
         **common,
     ), pretrain=pretrain_seconds)
 
-    # Floor (random) and ceiling (oracle) of the selection policy — same full
-    # GRADF hardening, only the selection policy changes. See the module and
-    # RandomSelector/OracleSelector docstrings.
     _run("Random-selector", GRADFFederatedLearner(
         aggregation="fedavg", classifier=classifier,
         selector=RandomSelector(selector.actions, seed=seed),

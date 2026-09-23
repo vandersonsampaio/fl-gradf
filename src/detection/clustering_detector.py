@@ -1,4 +1,4 @@
-"""Detection modality 3: clustering distance (see FORMALISMO_MATEMATICO_E_INEDITISMO.md, Definition 4).
+"""Detection modality 3: clustering distance.
 
 S_3^{t,i,j} = cos(g_i^t, g_j^t)  for all j != i
 Z_3^{t,i} = (1/N) * sum_{j!=i} [1 - S_3^{t,i,j}]

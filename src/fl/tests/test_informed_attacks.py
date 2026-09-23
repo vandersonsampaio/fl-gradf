@@ -1,6 +1,5 @@
 """
-Infrastructure tests for the 4 "informed" attacks (Strategy B —
-`references/estrategia_B_recriar_headroom.md`) and for
+Infrastructure tests for the 4 "informed" attacks and for
 `InformedAttackedFederatedLearner`. Small synthetic data, only covering that
 the code runs and produces outputs with valid shape/values — not measuring
 attack effectiveness (that's the actual purpose of `exp9_dominance_grid.py`,
@@ -10,7 +9,7 @@ which runs on real data).
 import numpy as np
 import pytest
 
-import src.defense.aggregation_methods  # noqa: F401  registers median/trimmed_mean/krum
+import src.defense.aggregation_methods
 from src.classification.attack_simulator import AttackSimulator
 from src.fl.attacked_learner import AttackedFederatedLearner, InformedAttackedFederatedLearner
 from tests.fixtures.mock_data import make_synthetic_participants

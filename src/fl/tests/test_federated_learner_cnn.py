@@ -1,6 +1,5 @@
 """
-Infrastructure tests for `model_type='cnn'` (Decision A4,
-`references/plano_gradf_iclr2027.md`) — cover `_CNNModel` in isolation and
+Infrastructure tests for `model_type='cnn'` — cover `_CNNModel` in isolation and
 `FederatedLearner` end to end. Do not test real learning quality (that is
 validated separately on real MNIST/CIFAR-10, see
 `src/experiments/exp1_cnn_scale.py`) — only that the flat-vector

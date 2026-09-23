@@ -7,8 +7,7 @@ GRADFFederatedLearner: orchestrates the full GRADF pipeline per FL round —
 on top of the existing FL/attack infrastructure (AttackedFederatedLearner),
 following the same `_run_round` override pattern used there.
 
-Online selector learning (post-Gate-1 correction, see
-`references/plano_gradf_iclr2027.md` and `src/defense/rl_selector.py`):
+Online selector learning (post-Gate-1 correction, see `src/defense/rl_selector.py`):
 `RLDefenseSelector` used to be trained only once, offline, before the first
 round — "adaptive" described only the architecture, not the learning
 behavior. `_run_round` now tracks the previous round's accuracy/fairness/
@@ -24,9 +23,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-# Ensures the 7 aggregation strategies are registered before any
-# aggregation=... is resolved.
-import src.defense.aggregation_methods  # noqa: F401
+import src.defense.aggregation_methods
 from src.classification.rl_classifier import RLAttackClassifier
 from src.defense.hardening import HardeningPipeline
 from src.defense.rl_selector import RLDefenseSelector
@@ -69,9 +66,6 @@ class GRADFFederatedLearner(AttackedFederatedLearner):
             dp_clipping=dp_clipping,
         )
 
-        # Rolling context from the previous round (acc/fairness/latency) —
-        # becomes the selector's rich state via `round_context` (see the
-        # module docstring). Neutral (0.0) in round 1 — standard DQN cold start.
         self._prev_global_acc = 0.0
         self._prev_fairness_std = 0.0
         self._prev_latency = 0.0
@@ -91,21 +85,11 @@ class GRADFFederatedLearner(AttackedFederatedLearner):
             eval_data["X"], eval_data["y"]
         )
 
-        # server_update: reference delta required by the 'fltrust' strategy.
-        # Always computed (not only when self.aggregation == 'fltrust', unlike
-        # AttackedFederatedLearner) because here the per-round strategy is
-        # decided by the RL selector's VOTE in Layer 3 (`selected_strategy`),
-        # which can choose 'fltrust' regardless of the top-level aggregation —
-        # see the note in HardeningPipeline.full_pipeline about the invariant
-        # this preserves (without server_update, any round where the selector
-        # votes 'fltrust' would be silently discarded, freezing the global model).
         server_root = root_data or self._carve_root(participants[0])
         server_update = self._make_model(participants[0].n_features).fit(
             server_root["X"], server_root["y"]
         )
 
-        # Detection scores + per-hospital isolated evaluation (used both by
-        # the classifier and by the XAI counterfactual).
         modality_scores = []
         per_hospital_eval = []
         for i, (p, update) in enumerate(zip(participants, param_updates)):

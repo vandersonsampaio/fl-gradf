@@ -69,10 +69,6 @@ STATIC_BASELINE_LABELS = {
     "krum": "Krum (static)",
 }
 
-# Alias: static attack rotation (no detection/selection) now lives in
-# src.fl.attacked_learner, reusable by
-# src.utils.data_loader.generate_rotating_selector_experiences without a
-# circular import. Kept under the old name here for readability.
 RotatingStrategyLearner = RotatingAttackedFederatedLearner
 
 
@@ -136,9 +132,6 @@ class TARSLearner(AttackedFederatedLearner):
         state = (old_acc, old_loss, mean_trust)
         strategy_name = self.tars_selector.select_action(state, round_num)
 
-        # server_update: always computed because TARS's policy can pick
-        # 'fltrust' in any round, independent of the top-level `aggregation=`
-        # used only to satisfy FederatedLearner's constructor validation.
         server_root = root_data or self._carve_root(participants[0])
         server_update = self._make_model(participants[0].n_features).fit(server_root["X"], server_root["y"])
         sample_sizes = [p.n_train for p in participants]
@@ -152,10 +145,6 @@ class TARSLearner(AttackedFederatedLearner):
         new_acc = new_model.accuracy(eval_data["X"], eval_data["y"])
         new_loss = cross_entropy_loss(new_model, eval_data["X"], eval_data["y"])
 
-        # Weights (alpha1,alpha2,alpha3)=(1, 0.5, 0.5) in the reward: not
-        # numerically specified by the original paper ("tunable weights"),
-        # chosen to give accuracy (the target metric) dominant weight with
-        # loss/trust as regularizing terms.
         reward = new_acc - 0.5 * new_loss + 0.5 * mean_trust
         next_state = (new_acc, new_loss, mean_trust)
         self.tars_selector.update(state, strategy_name, reward, next_state)
@@ -303,19 +292,10 @@ def run_adaptive_experiment(
         participants, selector.actions, attack_types=attack_labels,
         n_rounds=8, byzantine_fraction=byzantine_fraction, n_classes=n_classes, seed=seed,
     )
-    # Train/deployment mismatch: training only on SINGLE, FIXED-attack
-    # episodes (static_experiences) doesn't expose the selector to the
-    # condition it will actually face here — a ROTATION of attacks. We
-    # combine both sources in the same training pass instead of swapping one
-    # for the other: static_experiences gives fine-grained signal per
-    # isolated attack type, rotating_experiences gives signal under the real
-    # deployment condition.
     rotating_experiences = generate_rotating_selector_experiences(
         participants, selector.actions, attack_sequence=attack_sequence,
         n_rounds=9, byzantine_fraction=byzantine_fraction, n_classes=n_classes, seed=seed,
     )
-    # epochs=200: a single pass leaves the DQN undertrained — see
-    # RLDefenseSelector.train_on_experiences's docstring.
     selector.train_on_experiences(static_experiences + rotating_experiences, epochs=200, seed=seed, verbose=False)
 
     gradf = AdaptiveAttacker(

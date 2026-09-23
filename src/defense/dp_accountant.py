@@ -1,55 +1,64 @@
 """
-Gaussian mechanism + RDP accounting for Layer 2 of the HardeningPipeline —
-Decision B1 (Option A) of `references/plano_gradf_iclr2027.md`.
+Gaussian mechanism with RDP accounting for Layer 2 of HardeningPipeline.
 
-Replaces the legacy per-coordinate Laplace noise of `HardeningPipeline.
-layer2_gradient_sanitization` (kept as the default, for backward
-compatibility — see `hardening.py`) with a standard Gaussian mechanism,
-calibrated to the correct L2 sensitivity and composed over T rounds via a
-real RDP accountant (the `dp_accounting` library, Google — the privacy
-composition is not hand-rolled, since a silent error there would produce
-an incorrect (ε,δ)-DP claim).
+Replaces the legacy per-coordinate Laplace mechanism used by
+``HardeningPipeline.layer2_gradient_sanitization`` with a standard
+Gaussian mechanism. The legacy mechanism remains the default for
+backward compatibility.
 
-Trust model and privacy unit (declared explicitly, per the plan's
-requirement):
+The mechanism uses the ``dp_accounting`` library for RDP composition
+across rounds. Privacy accounting is delegated to the library rather
+than implemented manually.
 
-  - Privacy unit: CLIENT-LEVEL (each cross-silo hospital is one unit, not
-    an individual patient/record within the hospital — record-level DP
-    would require a per-sample mechanism inside local training, out of
-    scope for this submission).
-  - Trust model: MODEL-RELEASE DP. The noise protects whoever observes the
-    global model published at the end of the round (a competing hospital,
-    an external attacker, a repository where the model is distributed) —
-    NOT an honest-but-curious server. The server already inspects updates
-    in the clear in Layers 1/(detection)/3/4 before the noise is added
-    (anomaly detection NEEDS this — Byzantine behavior cannot be detected
-    over encrypted/noised data without destroying the signal), so this DP
-    is not a defense against the server itself. This is consistent with
-    the tension discussed for HE in `hardening.py`/the paper (Layer 5): DP
-    and detection compete for the same plaintext data.
+Privacy model:
 
-Sensitivity per aggregation rule (the missing piece needed to make the
-mechanism correct, not just "call Gaussian instead of Laplace"): every
-aggregation rule in `src.fl.federated_learner._STRATEGIES` operates on
-updates ALREADY CLIPPED to `l2_clip_norm`, but the L2 sensitivity of the
-aggregated OUTPUT, under substitution of one client, differs by rule:
+- Privacy unit: CLIENT-LEVEL. Each cross-silo hospital is treated as
+  one privacy unit. Record-level privacy is out of scope because it
+  would require a per-sample mechanism inside local training.
 
-  - (Weighted) mean rules — `fedavg`, `fedprox`, `fltrust`: the output is a
-    linear combination of the updates; sensitivity under substitution of
-    one client is `2 * w_max * l2_clip_norm`, where `w_max` is the largest
-    normalized weight among the accepted ones (tends to `2*l2_clip_norm/N`
-    with uniform weights) — a tight bound, standard in the DP-FedAvg
-    literature.
-  - Non-linear/robust rules — `median`, `trimmed_mean`, `krum`,
-    `clustering`: these have no known tight sensitivity with a simple
-    closed form (coordinate-wise median/trimmed-mean, and Krum's
-    combinatorial selection, make the substitution-sensitivity argument
-    much harder — an open research problem in its own right). We use the
-    CONSERVATIVE bound `2 * l2_clip_norm` (in the worst case, the output
-    can be entirely the clipped update of a single swapped client) — valid
-    (it does not underestimate sensitivity, which would be the dangerous
-    error), but not tight; documented explicitly as such, here and in the
-    paper (§7).
+- Trust model: MODEL-RELEASE DP. Noise protects observers of the global
+  model released at the end of each round, such as other hospitals,
+  external attackers, or model repositories. It does not protect
+  against the server itself.
+
+The server processes client updates in plaintext before Layer 2, since
+Layers 1, 3, and 4 require access to the updates for anomaly detection
+and aggregation. Therefore, this mechanism does not provide
+server-side privacy.
+
+Sensitivity:
+
+All aggregation strategies in ``src.fl.federated_learner._STRATEGIES``
+operate on updates clipped to ``l2_clip_norm``. The L2 sensitivity of
+the aggregated output depends on the aggregation rule.
+
+- Weighted mean rules (``fedavg``, ``fedprox``, ``fltrust``):
+  sensitivity is bounded by
+
+      2 * w_max * l2_clip_norm
+
+  where ``w_max`` is the largest normalized weight among accepted
+  clients. With uniform weights, this approaches
+  ``2 * l2_clip_norm / N``.
+
+- Non-linear robust rules (``median``, ``trimmed_mean``, ``krum``,
+  ``clustering``):
+  no tight closed-form L2 sensitivity bound is assumed. The
+  implementation uses the conservative bound
+
+      2 * l2_clip_norm
+
+  which is valid but generally not tight. This avoids underestimating
+  sensitivity and therefore avoids overstating the resulting privacy
+  guarantee.
+
+The conservative bound is intentional and should be treated as a
+documented implementation assumption rather than an exact sensitivity
+characterization of the robust aggregation rules.
+
+The resulting Gaussian noise is composed across rounds using RDP and
+converted to an ``(epsilon, delta)`` guarantee according to the
+configured privacy parameters.
 """
 
 from typing import Dict, Optional, Sequence
@@ -57,8 +66,6 @@ from typing import Dict, Optional, Sequence
 import dp_accounting
 import numpy as np
 
-# Rules whose output is a linear (weighted) combination of the accepted
-# updates — tight sensitivity via w_max. All others use the conservative bound.
 _LINEAR_STRATEGIES = frozenset({"fedavg", "fedprox", "fltrust"})
 
 

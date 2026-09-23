@@ -1,4 +1,4 @@
-"""Detection modality 4: temporal consistency (see FORMALISMO_MATEMATICO_E_INEDITISMO.md, Definition 4).
+"""Detection modality 4: temporal consistency.
 
 τ_4^{t,i} = ||g_i^t - g_i^{t-1}||_2 / (||g_i^{t-1}||_2 + ε)
 Z_4^{t,i} = |τ_4^{t,i} - E[τ_4^{t,i}]| / σ(τ_4^{t,i})

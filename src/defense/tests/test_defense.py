@@ -18,8 +18,6 @@ def _clustered_updates(n_honest=7, n_outliers=2, dim=10, outlier_scale=50.0, see
     rng = np.random.default_rng(seed)
     base = rng.standard_normal(dim)
     honest = [base + rng.standard_normal(dim) * 0.05 for _ in range(n_honest)]
-    # Correlated outliers (same opposite direction) to form a cohesive cluster,
-    # instead of independent random vectors that could end up far apart.
     outliers = [-base * outlier_scale + rng.standard_normal(dim) * 0.05 for _ in range(n_outliers)]
     return honest, outliers, base
 
@@ -37,7 +35,6 @@ class TestTrimmedMeanStrategy:
     def test_trims_outliers_when_ratio_covers_them(self):
         honest, outliers, base = _clustered_updates(n_honest=7, n_outliers=2)
         updates = honest + outliers
-        # trim_ratio=0.3 over 9 updates -> k=2 removed from each end, covers the 2 outliers
         agg, meta = TrimmedMeanStrategy(trim_ratio=0.3).aggregate(updates)
         assert meta is None
         assert np.linalg.norm(agg - base) < 1.0
@@ -164,7 +161,6 @@ class TestRLDefenseSelector:
         for _ in range(5):
             selector.train_step(state, action_idx=0, reward=0.5, next_state=next_state)
         assert len(selector.replay_buffer) == 5
-        # target network should have been synced at least once (every 5 steps)
         target_weights = selector.target_model.get_weights()
         model_weights = selector.model.get_weights()
         for tw, mw in zip(target_weights, model_weights):

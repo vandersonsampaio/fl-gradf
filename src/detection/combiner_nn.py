@@ -8,8 +8,7 @@ from tensorflow import keras
 class AnomalyCombinerNN(keras.Model):
     """Combines the 4 detection modalities' scores into an anomaly probability.
 
-    See FORMALISMO_MATEMATICO_E_INEDITISMO.md, Definition 5:
-    f_combine(z) = sigmoid(W_out . ReLU(W_2 . ReLU(W_1 . z))), z = [Z_1, Z_2, Z_3, Z_4].
+    Definition: f_combine(z) = sigmoid(W_out . ReLU(W_2 . ReLU(W_1 . z))), z = [Z_1, Z_2, Z_3, Z_4].
     """
 
     def __init__(self):
@@ -19,7 +18,6 @@ class AnomalyCombinerNN(keras.Model):
         self.output_layer = keras.layers.Dense(1, activation='sigmoid')
 
     def call(self, inputs):
-        # inputs: [batch_size, 4] (4 modalities)
         x = self.dense1(inputs)
         x = self.dense2(x)
         return self.output_layer(x)
@@ -74,15 +72,11 @@ class DetectionCombiner:
         self.model.save_weights(path)
 
     def load(self, path="results/models/combiner_nn.weights.h5", n_modalities=4):
-        # A real forward pass (instead of `.build()`) ensures each Dense sub-layer
-        # builds its weights with the correct shape before load_weights.
         self.model(np.zeros((1, n_modalities), dtype=np.float32))
         self.model.load_weights(path)
 
 
 if __name__ == '__main__':
-    # Synthetic smoke-test data; real training data comes from
-    # src/utils/data_loader.py + src/fl/attacked_learner.py.
     rng = np.random.default_rng(0)
     X_train = rng.standard_normal((1000, 4))
     y_train = rng.integers(0, 2, 1000)

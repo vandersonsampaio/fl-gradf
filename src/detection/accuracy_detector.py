@@ -1,4 +1,4 @@
-"""Detection modality 2: accuracy degradation (see FORMALISMO_MATEMATICO_E_INEDITISMO.md, Definition 4).
+"""Detection modality 2: accuracy degradation.
 
 Δ_2^{t,i} = |Acc(θ^{t-1}; V) - Acc(θ_updated; V)| / Acc(θ^{t-1}; V)
 Z_2^{t,i} = (Δ_2^{t,i} - E[Δ_2^{t,i}]) / σ(Δ_2^{t,i})
