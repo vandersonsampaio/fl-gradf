@@ -1,0 +1,49 @@
+B2.8 — oráculo guloso por rodada (7 regras), 210 runs; 19 células válidas (fltrust_aligned α ≤ 0,1 excluídas)
+
+ alpha      attack_type  oraculo_por_rodada melhor_esqueleto  acc_esqueleto melhor_regra_estatica  acc_regra_estatica  Q_oraculo_menos_esqueleto_pp  Q_ic95_lo  Q_ic95_hi  W_esqueleto_menos_estatica_pp  G_oraculo_menos_estatica_pp
+  0.05   gaussian_noise               0.668            fixed          0.804          trimmed_mean               0.738                       -13.662    -15.664    -11.660                          6.592                       -7.070
+  0.05   krum_collusion               0.696            fixed          0.805               fltrust               0.640                       -10.810    -12.125     -9.495                         16.461                        5.651
+  0.05   label_flipping               0.722          sr_only          0.712               fltrust               0.640                         1.086     -0.645      2.817                          7.163                        8.249
+  0.05 low_mag_backdoor               0.839            fixed          0.783          trimmed_mean               0.765                         5.673      2.329      9.017                          1.785                        7.458
+  0.05    sign_flipping               0.732            fixed          0.730               fltrust               0.648                         0.146     -2.970      3.262                          8.179                        8.325
+  0.05      trim_attack               0.747            fixed          0.805               fltrust               0.649                        -5.858     -8.925     -2.791                         15.618                        9.760
+  0.10   gaussian_noise               0.728          sr_only          0.841          trimmed_mean               0.805                       -11.303    -15.915     -6.691                          3.609                       -7.694
+  0.10   krum_collusion               0.754            fixed          0.843               fltrust               0.625                        -8.883    -10.544     -7.222                         21.819                       12.936
+  0.10   label_flipping               0.799            fixed          0.710               fltrust               0.624                         8.927      4.692     13.162                          8.573                       17.500
+  0.10 low_mag_backdoor               0.848          td3_ref          0.794          trimmed_mean               0.831                         5.357      0.841      9.873                         -3.698                        1.659
+  0.10    sign_flipping               0.820            fixed          0.809               fltrust               0.623                         1.089      0.359      1.819                         18.632                       19.721
+  0.10      trim_attack               0.780            fixed          0.820               fltrust               0.623                        -3.973     -9.406      1.460                         19.670                       15.697
+  0.50  fltrust_aligned               0.866            fixed          0.891                median               0.900                        -2.471     -3.454     -1.488                         -0.888                       -3.359
+  0.50   gaussian_noise               0.895          sr_only          0.897          trimmed_mean               0.895                        -0.123     -0.226     -0.020                          0.180                        0.057
+  0.50   krum_collusion               0.892          sr_only          0.896                  krum               0.882                        -0.471     -0.529     -0.413                          1.392                        0.921
+  0.50   label_flipping               0.893            fixed          0.774          trimmed_mean               0.886                        11.865      7.048     16.682                        -11.172                        0.693
+  0.50 low_mag_backdoor               0.905            fixed          0.897          trimmed_mean               0.899                         0.789      0.492      1.086                         -0.185                        0.604
+  0.50    sign_flipping               0.889            fixed          0.892                  krum               0.884                        -0.265     -0.473     -0.057                          0.709                        0.444
+  0.50      trim_attack               0.896          sr_only          0.897          trimmed_mean               0.869                        -0.060     -0.123      0.003                          2.745                        2.685
+
+Regras escolhidas pelo oráculo (contagem de rodadas por célula):
+ alpha      attack_type                                                      regras_escolhidas
+  0.05   gaussian_noise                                  fltrust:140, trimmed_mean:7, median:3
+  0.05   krum_collusion                         fltrust:136, fedavg:8, fedprox:5, clustering:1
+  0.05   label_flipping             fltrust:121, fedavg:12, clustering:10, median:5, fedprox:2
+  0.05 low_mag_backdoor              fltrust:97, clustering:29, median:11, fedavg:9, fedprox:4
+  0.05    sign_flipping                        fltrust:109, clustering:32, fedavg:8, fedprox:1
+  0.05      trim_attack                                  fltrust:112, clustering:34, fedprox:4
+  0.10   gaussian_noise fltrust:95, trimmed_mean:43, fedavg:4, fedprox:4, clustering:2, krum:2
+  0.10   krum_collusion                           fltrust:120, fedavg:17, fedprox:12, median:1
+  0.10   label_flipping                       fltrust:103, fedavg:18, clustering:18, median:11
+  0.10 low_mag_backdoor       fltrust:111, trimmed_mean:17, clustering:12, fedavg:9, fedprox:1
+  0.10    sign_flipping                           fltrust:89, clustering:39, fedavg:19, krum:3
+  0.10      trim_attack                fltrust:94, clustering:39, fedavg:15, fedprox:1, krum:1
+  0.50  fltrust_aligned               fltrust:73, krum:48, fedavg:12, fedprox:10, clustering:7
+  0.50   gaussian_noise                       trimmed_mean:102, median:22, fltrust:14, krum:12
+  0.50   krum_collusion              clustering:54, fedavg:46, fltrust:21, fedprox:18, krum:11
+  0.50   label_flipping                     clustering:92, fltrust:45, krum:12, trimmed_mean:1
+  0.50 low_mag_backdoor                             fedavg:119, fltrust:13, krum:10, fedprox:8
+  0.50    sign_flipping                                     clustering:80, fltrust:54, krum:16
+  0.50      trim_attack                                    clustering:124, fltrust:15, krum:11
+
+Células-alvo (esqueleto > melhor regra estática, IC95 > 0): 14/19 — gaussian_noise α=0.05; krum_collusion α=0.05; label_flipping α=0.05; sign_flipping α=0.05; trim_attack α=0.05; gaussian_noise α=0.1; krum_collusion α=0.1; label_flipping α=0.1; sign_flipping α=0.1; trim_attack α=0.1; gaussian_noise α=0.5; krum_collusion α=0.5; sign_flipping α=0.5; trim_attack α=0.5
+  nelas, oráculo por rodada ABAIXO do esqueleto (IC95 < 0): 8  [gaussian_noise α=0.05; krum_collusion α=0.05; trim_attack α=0.05; gaussian_noise α=0.1; krum_collusion α=0.1; gaussian_noise α=0.5; krum_collusion α=0.5; sign_flipping α=0.5]
+  nelas, oráculo por rodada ACIMA do esqueleto (IC95 > 0): 2  [label_flipping α=0.1; sign_flipping α=0.1]
+VEREDITO (critério do PLANO §4): A GRANULARIDADE EXPLICA: nem o oráculo por rodada alcança o esqueleto na maioria das células-alvo
