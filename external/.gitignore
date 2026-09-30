@@ -1,0 +1,10 @@
+# Dependências externas locais, não versionadas.
+# - AdaAggRL/: clone de github.com/yjEugenia/AdaAggRL no commit 27b9c18
+#   (Passo 2; ver references/auditoria_fidelidade_adaaggrl.md). Para recriar:
+#   git clone https://github.com/yjEugenia/AdaAggRL.git external/AdaAggRL && git -C external/AdaAggRL checkout 27b9c18
+# - .venv_adaaggrl/: venv isolado com as versões do requirements.txt oficial
+#   (torch 2.3.0, torchvision 0.18.0, numpy 1.26.4, gym 0.26.2, gymnasium 0.29.1,
+#   stable_baselines3 2.3.2, ray 2.22.0, tensorboard, Pillow 10.3.0, scipy 1.13.0, pandas 2.2.2).
+# - runs_tmp/: medições de custo e smoke tests descartados.
+*
+!.gitignore

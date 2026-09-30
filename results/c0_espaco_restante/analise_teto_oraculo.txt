@@ -1,0 +1,36 @@
+C.0 — teto ORÁCULO = FedAvg sem ataque só com os 8 honestos (mesmas partições; métrica sobre os 10 test sets)
+
+Teto por alpha (média de 10 sementes):
+       accuracy  accuracy_8_honestos  fedavg_10_sem_ataque
+alpha                                                     
+0.05     0.7716               0.7740                0.8535
+0.10     0.7896               0.7889                0.8554
+0.50     0.8986               0.8956                0.9051
+
+ alpha      attack_type  teto_oraculo melhor_esqueleto  gap_esqueleto_pp melhor_global  acc_melhor_global  gap_global_pp  gap_glob_ic95_lo  gap_glob_ic95_hi  com_espaco
+  0.10   label_flipping         0.790            fixed             8.013         fixed              0.710          8.013             4.009            12.017        True
+  0.05   label_flipping         0.772          sr_only             5.998       sr_only              0.712          5.998             5.523             6.473        True
+  0.05    sign_flipping         0.772            fixed             4.150         fixed              0.730          4.150            -0.415             8.715       False
+  0.50   label_flipping         0.899            fixed            12.441  trimmed_mean              0.886          1.269             1.230             1.308       False
+  0.50    sign_flipping         0.899            fixed             0.714         fixed              0.892          0.714             0.593             0.835       False
+  0.50   krum_collusion         0.899          sr_only             0.234       sr_only              0.896          0.234             0.200             0.268       False
+  0.50   gaussian_noise         0.899          sr_only             0.210       sr_only              0.897          0.210             0.186             0.234       False
+  0.50      trim_attack         0.899          sr_only             0.206       sr_only              0.897          0.206             0.190             0.222       False
+  0.50 low_mag_backdoor         0.899            fixed             0.190  trimmed_mean              0.899          0.005            -0.023             0.033       False
+  0.50  fltrust_aligned         0.899            fixed             0.774        median              0.900         -0.114            -0.135            -0.093       False
+  0.05 low_mag_backdoor         0.772            fixed            -1.097         fixed              0.783         -1.097            -4.369             2.175       False
+  0.10    sign_flipping         0.790            fixed            -1.946         fixed              0.809         -1.946            -2.517            -1.375       False
+  0.10      trim_attack         0.790            fixed            -2.994         fixed              0.820         -2.994            -3.693            -2.295       False
+  0.05   gaussian_noise         0.772            fixed            -3.257         fixed              0.804         -3.257            -3.319            -3.195       False
+  0.05   krum_collusion         0.772            fixed            -3.295         fixed              0.805         -3.295            -3.352            -3.238       False
+  0.05      trim_attack         0.772            fixed            -3.366         fixed              0.805         -3.366            -3.462            -3.270       False
+  0.10 low_mag_backdoor         0.790          td3_ref            -0.445  trimmed_mean              0.831         -4.143            -4.178            -4.108       False
+  0.10   gaussian_noise         0.790          sr_only            -5.165       sr_only              0.841         -5.165            -5.218            -5.112       False
+  0.10   krum_collusion         0.790            fixed            -5.370         fixed              0.843         -5.370            -5.525            -5.215       False
+
+Critério (NOTAS.md §5): gap global > 2 p.p. com IC95 > 0, 19 células válidas
+  células COM espaço: 2/19
+    label_flipping α=0.1; label_flipping α=0.05
+  células SEM espaço: 17/19
+    sign_flipping α=0.05; label_flipping α=0.5; sign_flipping α=0.5; krum_collusion α=0.5; gaussian_noise α=0.5; trim_attack α=0.5; low_mag_backdoor α=0.5; fltrust_aligned α=0.5; low_mag_backdoor α=0.05; sign_flipping α=0.1; trim_attack α=0.1; gaussian_noise α=0.05; krum_collusion α=0.05; trim_attack α=0.05; low_mag_backdoor α=0.1; gaussian_noise α=0.1; krum_collusion α=0.1
+  esqueleto perde para regra fixa em: label_flipping α=0.5 (trimmed_mean); low_mag_backdoor α=0.5 (trimmed_mean); fltrust_aligned α=0.5 (median); low_mag_backdoor α=0.1 (trimmed_mean)

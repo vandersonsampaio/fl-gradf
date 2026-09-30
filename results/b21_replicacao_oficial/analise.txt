@@ -1,0 +1,58 @@
+B2.1 + B2.2 — 40 runs carregados (esperados 40)
+
+Métrica primária (mediana da acurácia nas rodadas 401–500):
+condition     fixed     td3
+attack seed                
+EB     105   0.9664  0.9638
+       106   0.9688  0.9661
+       107   0.9688  0.9644
+       108   0.9677  0.9604
+       109   0.9675  0.9639
+       110   0.8945  0.9677
+       111   0.9634  0.9666
+       112   0.9665  0.9662
+       113   0.9657  0.9665
+       114   0.9667  0.9648
+LMP    105   0.9676  0.9653
+       106   0.9664  0.9674
+       107   0.9671  0.9661
+       108   0.9666  0.9661
+       109   0.9666  0.9631
+       110   0.9660  0.9643
+       111   0.9660  0.9649
+       112   0.9648  0.9668
+       113   0.9685  0.9681
+       114   0.9628  0.9605
+
+== H1 (primária: mediana 401–500): fixed − td3 (pooled, pares ataque×semente) ==
+  n=20  Δ=-0.22 p.p.  IC95=(-1.01, +0.57)  d=-0.13
+  TOST ±1.0 p.p.: p=0.0266   Wilcoxon: p=0.0637
+  VEREDITO: EQUIVALENTE (TOST)
+    LMP: n=10 Δ=+0.10 p.p. IC95=(-0.02, +0.22) d=+0.60 Wilcoxon p=0.1055 Holm=0.2109
+    EB: n=10 Δ=-0.54 p.p. IC95=(-2.26, +1.17) d=-0.23 Wilcoxon p=0.3750 Holm=0.3750
+
+== H1 (secundária: média 451–500, métrica do Passo 2): fixed − td3 (pooled, pares ataque×semente) ==
+  n=20  Δ=-0.12 p.p.  IC95=(-0.67, +0.43)  d=-0.10
+  TOST ±1.0 p.p.: p=0.0017   Wilcoxon: p=0.0973
+  VEREDITO: EQUIVALENTE (TOST)
+    LMP: n=10 Δ=+0.09 p.p. IC95=(-0.03, +0.20) d=+0.54 Wilcoxon p=0.1309 Holm=0.2617
+    EB: n=10 Δ=-0.33 p.p. IC95=(-1.53, +0.87) d=-0.19 Wilcoxon p=0.4316 Holm=0.4316
+
+== Secundárias descritivas (média por ataque × condição) ==
+                  n_resets_extra  att_mass_mean
+attack condition                               
+EB     fixed                 0.2         0.0000
+       td3                   2.2         0.0001
+LMP    fixed                 0.8         0.0000
+       td3                   0.6         0.0000
+
+== B2.2: hipóteses mecanísticas (Holm sobre H3–H5) ==
+  σ_a (ruído de exploração, unidades de ação) = 0.0475
+  H3 corr(EB, LMP) das ações > 0.9: n=10  r por semente=[0.993, 0.991, 0.994, 0.99, 0.922, 0.899, 0.989, 0.988, 0.993, 0.992]
+     mediana r=0.991  Wilcoxon unilateral p=0.0020  Holm=0.0020  -> CONFIRMADA
+  H4 drift |π500−π0| < σ_a: n=20  mediana=0.0097  máx=0.0147
+     Wilcoxon unilateral p=0.0000  Holm=0.0000  -> CONFIRMADA
+  H5 S_swap |π500(s)−π500(s')| < σ_a: n=20  mediana=0.0055  máx=0.0062
+     Wilcoxon unilateral p=0.0000  Holm=0.0000  -> CONFIRMADA
+  Referências (sem teste): mediana S_shuffle=0.0061; mediana S_swap do π0=0.0055; mediana |π0−centro|=0.0265
+
