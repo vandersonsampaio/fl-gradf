@@ -1,0 +1,4 @@
+05b74975048ed215e9fb861121f8491aa27bab5fbbe331a18a124d975bae78e5  results/b27_horizonte/PLANO.md  # congelado 2026-10-01 12:39:28 -0300, antes da grade
+b08a2525b23202f979db9dbf5b41c968017050f4859ca77f06ea13bf1720d925  scripts/b27_horizonte.py  # código no congelamento
+0adbb107bbc691b96f897110b7585f3424253e618f51e824a1242817f8d98b47  scripts/run_grid_b27.sh  # código no congelamento
+e6a41a973e603f7008aab1a90c41ec60fc6748726f99bfb693521199eb1581f7  scripts/frente1_ablacao_adaaggrl.py  # dependência NÃO versionada, estado no congelamento
