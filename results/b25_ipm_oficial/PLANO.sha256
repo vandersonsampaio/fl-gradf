@@ -1,0 +1,5 @@
+dc7821859972d676094010e09fd410b2e15cc7dc81f9c4a603a83136a3f3858b  results/b25_ipm_oficial/PLANO.md  # congelado 2026-10-01 12:15:46 -0300, antes do sanity e da grade
+b450d2bfba584de9ab47cf6af9cb27065564c17ff1940d20645cc0f44e8119b6  scripts/passo2_oficial/run_b25.py  # código no congelamento
+46e5c877078bef2248d79bd9700cfc4a46d21e8f21e70e16684e582520936c2b  scripts/passo2_oficial/test_b25_ipm.py  # código no congelamento
+5ad8624b277ec355ab94de22237f53d9fbff00f5aed50d293e0e38c36c673865  scripts/passo2_oficial/analisar_b25.py  # código no congelamento
+99d23451f076bbd5b619e4b651b03bc975722c22e902d0059317b1ae80ed65a7  scripts/passo2_oficial/run_grid_b25.sh  # código no congelamento

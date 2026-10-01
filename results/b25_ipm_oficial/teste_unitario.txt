@@ -1,0 +1,18 @@
+1a. IPM real, pesos sintéticos
+----------IPM real (B2.5, eps=2) Attack--------------
+  sintético ε=2 cid=7: cos=-1.000000 razão=2.000000
+  sintético ε=2 cid=9: cos=-1.000000 razão=2.000000
+----------IPM real (B2.5, eps=10) Attack--------------
+  sintético ε=10 cid=7: cos=-1.000000 razão=10.000000
+  sintético ε=10 cid=9: cos=-1.000000 razão=10.000000
+1b. IPM real, MNISTClassifier do código oficial
+----------IPM real (B2.5, eps=2) Attack--------------
+  MNISTClassifier ε=2 cid=7: cos=-1.000000 razão=2.000000
+  MNISTClassifier ε=2 cid=9: cos=-1.000000 razão=2.000000
+----------IPM real (B2.5, eps=10) Attack--------------
+  MNISTClassifier ε=10 cid=7: cos=-1.000000 razão=10.000000
+  MNISTClassifier ε=10 cid=9: cos=-1.000000 razão=10.000000
+2. IPM oficial (como chamado em exp_environments.step: rede posta em old_weights antes)
+----------IPM Attack--------------
+  norma do update forjado = 0.000e+00
+OK
