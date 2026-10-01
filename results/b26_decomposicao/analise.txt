@@ -1,0 +1,81 @@
+B2.6 — 1680 linhas (esperadas 1680); unidade = semente (média das 19 células válidas), n = 10
+
+Média por variante (19 células, 10 sementes):
+variant
+cosserver_only    81.32
+sr_b025           82.47
+sr_b075           70.45
+sr_bin            81.92
+sr_cosserver      82.11
+sr_memof          81.53
+sr_nomem          81.25
+sr_only           80.90
+
+== Hipóteses confirmatórias (Holm sobre H1–H4, α = 0,05) ==
+  H1 a memória contribui (sr_only − sr_nomem > 0): Δ=-0.35 p.p. IC95=(-0.82, +0.12) IC90=(-0.73, +0.03) d=-0.53 p=0.9678 Holm=1.0000 -> NÃO confirmada
+  H2 a força da memória importa (sr_only − sr_memof ≠ 0): Δ=-0.63 p.p. IC95=(-1.08, -0.18) IC90=(-1.00, -0.27) d=-1.01 p=0.0098 Holm=0.0391 -> CONFIRMADA
+  H3 máscara binária ≈ suave (sr_bin − sr_only, TOST ±1,0 p.p.): Δ=+1.02 p.p. IC95=(+0.47, +1.57) IC90=(+0.58, +1.47) d=+1.33 p=0.5384 Holm=1.0000 -> NÃO confirmada
+  H4 cos_server ≈ S_R (cosserver_only − sr_only, TOST ±1,0 p.p.): Δ=+0.42 p.p. IC95=(-0.22, +1.06) IC90=(-0.09, +0.94) d=+0.47 p=0.0349 Holm=0.1047 -> NÃO confirmada
+
+== Por ataque (descritivo; Wilcoxon bilateral, Holm sobre os 7 ataques; média das células válidas do ataque por semente) ==
+  H1 (sr_nomem):
+    fltrust_aligned    Δ=-1.16 IC95=(-2.10, -0.22) p=0.0020 Holm=0.0137
+    gaussian_noise     Δ=+0.02 IC95=(-0.02, +0.05) p=1.0000 Holm=1.0000
+    krum_collusion     Δ=-0.01 IC95=(-0.05, +0.02) p=0.5391 Holm=1.0000
+    label_flipping     Δ=-1.93 IC95=(-3.61, -0.25) p=0.0488 Holm=0.1953
+    low_mag_backdoor   Δ=-3.18 IC95=(-4.60, -1.76) p=0.0039 Holm=0.0195
+    sign_flipping      Δ=+3.36 IC95=(+2.67, +4.05) p=0.0020 Holm=0.0137
+    trim_attack        Δ=-0.08 IC95=(-0.27, +0.11) p=0.4922 Holm=1.0000
+  H2 (sr_memof):
+    fltrust_aligned    Δ=-1.08 IC95=(-2.00, -0.15) p=0.0020 Holm=0.0137
+    gaussian_noise     Δ=+0.00 IC95=(-0.01, +0.01) p=0.8379 Holm=1.0000
+    krum_collusion     Δ=+0.03 IC95=(-0.02, +0.08) p=0.4316 Holm=1.0000
+    label_flipping     Δ=-1.66 IC95=(-3.59, +0.28) p=0.1055 Holm=0.4219
+    low_mag_backdoor   Δ=-3.42 IC95=(-5.01, -1.83) p=0.0039 Holm=0.0195
+    sign_flipping      Δ=+1.44 IC95=(+0.81, +2.07) p=0.0020 Holm=0.0137
+    trim_attack        Δ=-0.04 IC95=(-0.31, +0.23) p=0.7695 Holm=1.0000
+  H3 (sr_bin):
+    fltrust_aligned    Δ=+1.09 IC95=(+0.10, +2.08) p=0.0020 Holm=0.0137
+    gaussian_noise     Δ=-0.07 IC95=(-0.09, -0.06) p=0.0020 Holm=0.0137
+    krum_collusion     Δ=+0.52 IC95=(+0.42, +0.63) p=0.0020 Holm=0.0137
+    label_flipping     Δ=+5.09 IC95=(+2.57, +7.62) p=0.0098 Holm=0.0293
+    low_mag_backdoor   Δ=+2.23 IC95=(+0.65, +3.80) p=0.0137 Holm=0.0293
+    sign_flipping      Δ=-1.91 IC95=(-2.75, -1.07) p=0.0020 Holm=0.0137
+    trim_attack        Δ=+0.27 IC95=(-0.09, +0.62) p=0.1602 Holm=0.1602
+  H4 (cosserver_only):
+    fltrust_aligned    Δ=-8.59 IC95=(-14.02, -3.15) p=0.0039 Holm=0.0156
+    gaussian_noise     Δ=-4.58 IC95=(-7.15, -2.01) p=0.0020 Holm=0.0137
+    krum_collusion     Δ=-3.54 IC95=(-5.65, -1.43) p=0.0059 Holm=0.0176
+    label_flipping     Δ=+11.50 IC95=(+9.02, +13.99) p=0.0020 Holm=0.0137
+    low_mag_backdoor   Δ=+3.78 IC95=(+2.65, +4.91) p=0.0020 Holm=0.0137
+    sign_flipping      Δ=+1.07 IC95=(-1.67, +3.80) p=0.4922 Holm=0.4922
+    trim_attack        Δ=-2.70 IC95=(-4.60, -0.81) p=0.0098 Holm=0.0195
+
+== Exploratório (sem critério) ==
+  sr_cosserver − sr_only: Δ=+1.21 p.p. IC95=(-0.05, +2.47)
+  sr_b025 − sr_only: Δ=+1.57 p.p. IC95=(+1.22, +1.92)
+  sr_b075 − sr_only: Δ=-10.45 p.p. IC95=(-11.42, -9.47)
+  sr_cosserver − max(sr_only, cosserver_only) por semente: Δ=+0.62 p.p. IC95=(-0.51, +1.74)
+
+Média por célula válida (10 sementes) — S_R contra cos_server contra combinado:
+variant                 sr_only  cosserver_only  sr_cosserver
+alpha attack_type                                            
+0.05  gaussian_noise      80.35           68.20         69.87
+      krum_collusion      80.42           70.10         71.73
+      label_flipping      70.93           71.04         74.45
+      low_mag_backdoor    74.59           78.74         78.26
+      sign_flipping       73.14           74.06         75.12
+      trim_attack         80.22           72.29         75.76
+0.10  gaussian_noise      84.09           83.66         83.86
+      krum_collusion      82.98           83.78         84.38
+      label_flipping      65.29           83.42         83.37
+      low_mag_backdoor    77.10           84.78         84.93
+      sign_flipping       79.00           80.94         81.11
+      trim_attack         81.31           82.05         84.07
+0.50  fltrust_aligned     87.92           79.33         79.66
+      gaussian_noise      89.67           88.48         88.75
+      krum_collusion      89.61           88.52         88.56
+      label_flipping      72.37           88.65         88.58
+      low_mag_backdoor    89.56           89.07         89.60
+      sign_flipping       88.87           89.21         89.05
+      trim_attack         89.66           88.74         88.95
