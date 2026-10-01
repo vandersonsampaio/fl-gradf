@@ -143,6 +143,76 @@ python -m src.experiments.exp4_adaptive --root_size 100 --seeds 42 43 44 45 46 4
 
 ---
 
+## Post-p1.0.0: AdaAggRL audit experiments
+
+Follow-up work toward a second paper: does AdaAggRL's RL component (TD3) actually contribute, or is the headroom captured by its fixed skeleton (per-client signal + threshold + memory)? These experiments are **pre-registered** (a `PREREGISTRO.md` or `PLANO.md` plus a `.sha256` file with the hashes of the plan and of the code, frozen before any run) and live outside `src/` so the p1.0.0 code stays untouched.
+
+### Directory layout
+
+| Path | Contents | Versioned |
+|------|----------|-----------|
+| `scripts/frente1_ablacao_adaaggrl.py`, `scripts/frente1_v0_diagnostico.py` | Ablation of our own AdaAggRL reproduction (`fixed`, `sr_only`, `cosmed_only`, `cosserver_only` vs. `td3_ref`) and the V0 cue sanity check | not yet (untracked) |
+| `results/frente1_ablacao_adaaggrl/` | Ablation grid in our framework (seeds 42–51, 21 cells): `PREREGISTRO.md`, `RESULTADO.md`, raw/aggregated CSVs | not yet (untracked) |
+| `external/AdaAggRL/` | Clone of the **official** AdaAggRL code (`github.com/yjEugenia/AdaAggRL`, commit `27b9c18`), never edited | no (see `external/.gitignore`) |
+| `external/.venv_adaaggrl/` | Isolated venv with the official pinned versions (torch 2.3.0, SB3 2.3.2, numpy 1.26.4, gym 0.26.2, gymnasium 0.29.1) | no |
+| `scripts/passo2_oficial/` | Runners, grid launchers and pre-written analyses for the official code (below) | yes |
+| `scripts/passo2_oficial/shim/inversefed/` | Constants from Geiping's `invertinggradients` that the official code imports but doesn't ship | yes |
+| `results/frente1_passo2_oficial/` | **Passo 2**: official code, 500 rounds, TD3 vs. fixed vs. random action, seeds 100–104 | yes (no logs) |
+| `results/b21_replicacao_oficial/` | **B2.1 + B2.2**: confirmatory replication (fixed vs. TD3, seeds 105–114) + mechanistic hypotheses | yes (no logs; actor checkpoints only at steps 0 and 500) |
+| `results/b23_steelman_oficial/` | **B2.3**: TD3 "steelman" (lr 1e-3, `learning_starts` 10), seeds 100–104, paired with Passo 2's runs; `EXECUCAO.md` logs a scheduling change | yes (no logs; actor checkpoints only at steps 0 and 500) |
+| `scripts/c0_espaco_restante.py`, `scripts/c0_teto_corrigido.py`, `scripts/c0_teto_oraculo.py` | **C.0**: remaining headroom per cell in our framework (CPU only, project venv), against three ceilings: FedAvg without attack, best of 5 rules without attack, FedAvg over the 8 honest clients only (oracle) | yes |
+| `results/c0_espaco_restante/` | C.0 outputs (seeds 42–51, 21 cells): `NOTAS.md` (interpretation, criterion frozen before the oracle run in §5, gate decision in §6) + `NOTAS.sha256`, one `analise*.txt` / `espaco_restante*.csv` pair per ceiling, raw ceiling runs | yes |
+| `scripts/b28_oraculo_por_regra.py` | **B2.8**: greedy per-round oracle over the 7-rule arsenal (our framework, CPU only; `run` and `analisar` subcommands) | yes |
+| `results/b28_oraculo_por_regra/` | B2.8 outputs (seeds 42–51, 21 cells, 210 runs): `PLANO.md` + `PLANO.sha256`, `raw/seed*.csv` (final accuracy and the rule chosen at every round), `oraculo_por_celula.csv`, `analise.txt`, `RESULTADO.md` | yes (no logs) |
+| `results/b23b_steelman_normalizado/` | **B2.3b**: last TD3 steelman on the official code (reward normalized with SB3's `VecNormalize`, lr 1e-4, `learning_starts` 10), seeds 100–104, paired with Passo 2 and B2.3 | yes (no logs; actor checkpoints only at steps 0 and 500) |
+| `scripts/b26_decomposicao.py`, `scripts/run_grid_b26.sh` | **B2.6**: confirmatory decomposition of the skeleton in our framework (CPU only): memory on/off and official-strength memory, binary vs. soft weighting, `cos_server` vs. S_R, combined signal and threshold sensitivity (`run` and `analisar` subcommands) | yes |
+| `results/b26_decomposicao/` | B2.6 outputs (8 variants × seeds 52–61 × 21 cells = 1,680 runs): `PREREGISTRO.md` + `PREREGISTRO.sha256`, `raw/<variant>_seed*.csv`, `por_semente.csv`, `analise.txt`, `RESULTADO.md` | yes (no logs) |
+
+Every `results/<experiment>/` folder follows the same pattern: `PREREGISTRO.md` (or `PLANO.md`) + `.sha256`, `grid.log` (START/DONE/FAIL/GRID_END per run), `raw/` (one JSON per run with per-round accuracy, loss, executed action, weight mass on real attackers and resets; `*.partial.json` checkpoints every 25 rounds while running), then `analise.txt`, `resumo_runs.csv` and `RESULTADO.md` after the analysis. B2.1/B2.3 additionally save the states observed by the policy (`raw/obs/*.npy`, shape `(steps, 10, 4)`) and TD3 actor checkpoints every 50 steps (`raw/actors/*_stepNNN.pt`).
+
+### Scripts (`scripts/passo2_oficial/`)
+
+| Script | Role |
+|--------|------|
+| `run_oficial.py` | Runs the official environment unmodified through a Gymnasium adapter; conditions `td3` (exactly as in the official `main.py`), `fixed` (`[0.475]*5`, the center of the action box), `random` |
+| `run_b21.py` | Reuses `run_oficial.py` and adds logging of observed states and actor checkpoints |
+| `run_b23.py` | Reuses `run_b21.py`; changes only the TD3 `learning_rate` and `learning_starts` |
+| `run_b23b.py` | Reuses `run_b21.py`; wraps the environment in a reward-only `VecNormalize` and changes `learning_rate` / `learning_starts` |
+| `run_grid.sh`, `run_grid_b21.sh`, `run_grid_b23.sh`, `run_b23_escalonado.sh`, `run_grid_b23b.sh` | Resumable grid launchers (skip runs whose final JSON exists), 6 GPU processes, `OMP_NUM_THREADS=3` |
+| `analisar.py`, `analisar_b21.py`, `analisar_b23.py`, `analisar_b23b.py` | Pre-registered analyses (TOST ±1.0 p.p., Wilcoxon, Holm; B2.2/B2.3/B2.3b rebuild the deterministic policy from the actor checkpoints) |
+
+```bash
+# official code: always with the isolated venv; 1.51 GPU-hours per 500-round run (RTX 3050),
+# the GPU saturates at 4–6 processes (~9 h per batch of 6)
+bash scripts/passo2_oficial/run_grid_b21.sh                                          # resumable
+external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_b21.py           # only with the full grid
+
+# our framework: project venv, CPU only (TensorFlow does not see the GPU there), so it can
+# run alongside the GPU queue at low priority
+CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.c0_teto_oraculo
+```
+
+C.0 reads two inputs that are not versioned yet: `results/frente1_ablacao_adaaggrl/grade_combined_raw.csv` and `results/tables/exp9_dominance_grid_10seeds_ALL_root100_raw.csv`.
+
+To recreate `external/`: `git clone https://github.com/yjEugenia/AdaAggRL.git external/AdaAggRL && git -C external/AdaAggRL checkout 27b9c18`, then build the venv with the versions listed in `external/.gitignore`.
+
+### Status
+
+| Experiment | Result |
+|------------|--------|
+| Passo 2 (seeds 100–104) | Equivalence not established (TOST p = 0.18, one late reset); exploratory: the TD3 policy does not move away from its initialization |
+| B2.1 (seeds 105–114) | **Equivalence confirmed**: fixed − TD3 = −0.22 p.p., 90% CI (−0.87, +0.43), TOST p = 0.027 |
+| B2.2 | **H3–H5 confirmed**: action correlation across attacks r = 0.991; policy drift ≈ 1/5 of the exploration noise; input sensitivity of the final actor equals that of a freshly initialized one |
+| B2.3 (exploratory) | **The steelman does not beat the fixed action** (−10.2 p.p., p = 0.084) and is worse than the published TD3 (−10.4 p.p., p = 0.002). The policy moves (drift 0.47) but to a **constant corner** of the action box, independent of the state; under EB, corners with threshold a₅ ≈ 0 switch the filtering off and the model collapses (2/5 seeds). Limitation: one configuration, unnormalized official reward |
+| C.0 (descriptive) | By the frozen criterion (gap > 2 p.p. against the oracle ceiling, 95% CI > 0), **2/19 cells have headroom**: `label_flipping` at α = 0.05 and 0.1. The skeleton loses to a classic fixed rule in 4 cells. The oracle ceiling is not a ceiling at α ≤ 0.1 (methods under attack exceed it), so "no headroom" there is not established |
+| B2.8 (exploratory) | By the frozen criterion, **"granularity explains"**: in 8/14 target cells (skeleton beats the best static rule) not even an ideal per-round rule choice, which picks by looking at the test set, reaches per-client filtering. The verdict depends on three α = 0.5 cells with differences < 0.5 p.p.; requiring \|Δ\| > 1 p.p. gives 5/14 (inconclusive). The strong evidence is at α ≤ 0.1 with model attacks (oracle 4–14 p.p. below the skeleton); under `label_flipping` the per-round oracle beats the skeleton. The oracle picks FLTrust (root-anchored) in most rounds at α ≤ 0.1 |
+| B2.3b (exploratory) | **Last steelman: does not beat the fixed action** (+0.95 p.p., p = 0.066; secondary metric 0.00 p.p.) → gate B-a is definitive and the configuration search ends. Reward normalization removed the B2.3 collapses (EB resets 0.8 vs. 15.8). The policy keeps drifting (0.17 at round 500, not saturated) towards a seed-specific interior action; its state dependence triples over training but stays at ~1/3.5 of the exploration noise. Across the published, B2.3 and B2.3b regimes, TD3 never beats the fixed action in 500 rounds |
+| B2.6 (confirmatory) | H1 (memory helps) **not confirmed**: the effect depends on the attack and cancels out. H2 **confirmed**: the official weak memory (0.9^flag) beats λ = 2 by 0.63 p.p. H3 (binary ≈ soft) **not confirmed** because the binary mask is *better* (+1.02 p.p.). H4 (`cos_server` ≈ S_R) **not confirmed** after Holm: the signals are complementary (S_R wins model attacks at α = 0.05, `cos_server` wins `label_flipping` by 11.5 p.p.). Exploratory: the threshold b has the largest effect (b = 0.75: −10.5 p.p.) |
+
+Planning and audit documents (`references/roadmap_tese_gradf_v3.md` — the current plan, with measured costs —, `references/auditoria_fidelidade_adaaggrl.md`, `references/c0_fechamento.md`, `references/slr_protocolo.md`, `references/proximos_passos_pos_ablacao.md`) are local-only (`references/` is git-ignored).
+
+---
+
 ## Architecture
 
 ### Core FL (`src/fl/`)

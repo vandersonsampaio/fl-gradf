@@ -1,0 +1,39 @@
+Passo 2 — 30 runs carregados (esperados 30)
+
+Métrica primária (acurácia média nas últimas 50 rodadas):
+condition     fixed  random     td3
+attack seed                        
+EB     100   0.8811  0.9163  0.8250
+       101   0.9674  0.6995  0.9656
+       102   0.9671  0.8142  0.9660
+       103   0.9639  0.7969  0.9664
+       104   0.9622  0.6630  0.9679
+LMP    100   0.9659  0.9686  0.9648
+       101   0.9654  0.9663  0.9696
+       102   0.9680  0.9679  0.9657
+       103   0.9631  0.9641  0.9668
+       104   0.9655  0.9687  0.9675
+
+== H1: fixed − td3 (pooled, pares ataque×semente) ==
+  n=10  Δ=+0.45 p.p.  IC95=(-0.87, +1.76)  d=+0.24
+  TOST ±1.0 p.p.: p=0.1822   Wilcoxon: p=0.5566
+  VEREDITO: INCONCLUSIVO
+    LMP: n=5 Δ=-0.13 p.p. IC95=(-0.49, +0.23) d=-0.44 Wilcoxon p=0.4375 Holm=0.8750
+    EB: n=5 Δ=+1.02 p.p. IC95=(-2.19, +4.23) d=+0.39 Wilcoxon p=1.0000 Holm=1.0000
+
+== H2: random − td3 (pooled, pares ataque×semente) ==
+  n=10  Δ=-8.00 p.p.  IC95=(-17.53, +1.54)  d=-0.60
+  TOST ±1.0 p.p.: p=0.9343   Wilcoxon: p=0.1934
+  VEREDITO: INCONCLUSIVO
+    LMP: n=5 Δ=+0.02 p.p. IC95=(-0.36, +0.41) d=+0.08 Wilcoxon p=1.0000 Holm=1.0000
+    EB: n=5 Δ=-16.02 p.p. IC95=(-35.21, +3.18) d=-1.04 Wilcoxon p=0.1250 Holm=0.2500
+
+== Secundárias / exploratórias (média por ataque × condição) ==
+                  final_acc  att_mass_mean  n_resets_extra  simlc_rows_per_round  act_dist_center_post100  act_std_post100
+attack condition                                                                                                          
+EB     fixed         0.9585         0.0002             0.6                1.5120                   0.0000           0.0000
+       random        0.7517         0.0011            12.0                1.0804                   0.2391           0.2749
+       td3           0.9539         0.0002             2.8                1.4000                   0.0448           0.0495
+LMP    fixed         0.9660         0.0000             0.2                0.0028                   0.0000           0.0000
+       random        0.9679         0.0001             0.0                0.0000                   0.2391           0.2749
+       td3           0.9682         0.0000             0.6                0.0004                   0.0444           0.0476

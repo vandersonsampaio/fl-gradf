@@ -1,0 +1,22 @@
+alpha,attack_type,system,variant,accuracy,seed
+0.5,fltrust_aligned,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.8884000000000001,46
+0.5,trim_attack,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.8714000000000001,46
+0.5,krum_collusion,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.8698,46
+0.5,low_mag_backdoor,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.8402999999999998,46
+0.5,sign_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.8281000000000001,46
+0.5,gaussian_noise,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.7722,46
+0.5,label_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.8783999999999998,46
+0.1,fltrust_aligned,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.7843,46
+0.1,trim_attack,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.4581999999999999,46
+0.1,krum_collusion,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.6531,46
+0.1,low_mag_backdoor,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.8539999999999999,46
+0.1,sign_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.6205,46
+0.1,gaussian_noise,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.6300000000000001,46
+0.1,label_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.7337999999999999,46
+0.05,fltrust_aligned,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.7539,46
+0.05,trim_attack,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.607,46
+0.05,krum_collusion,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.681,46
+0.05,low_mag_backdoor,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.8587999999999999,46
+0.05,sign_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.5508000000000001,46
+0.05,gaussian_noise,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.4772,46
+0.05,label_flipping,Discrete+AdaAggRL-detector,"LinUCB/7-rule, AdaAggRL detector (random extractor)",0.7035,46

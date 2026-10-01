@@ -1,0 +1,6 @@
+c6824ad428baba338baf973ac544d2eb07074313a9d65477a1895f220395cb7f  results/b23_steelman_oficial/PLANO.md  # congelado 2026-09-28 08:19:21 -0300, antes de qualquer run do B2.3
+304744bce37aa757d67f9fc1c6dafe8899d46dde4595823e25ebdb44479a91c6  scripts/passo2_oficial/run_b23.py  # código no congelamento
+d8cd9faf89fefdc75f8c12b4bef04f39bc05aca85ba7b98909dbf7c23375f5e8  scripts/passo2_oficial/run_grid_b23.sh  # código no congelamento
+2519bd13e0efc6b3f3e237618e4f730940c607db88751835c28855c6bb4dc075  scripts/passo2_oficial/analisar_b23.py  # código no congelamento
+08f7be2ce640adc53757318c3a97748fa24b114174d726bdae43f764146b70fe  scripts/passo2_oficial/run_b21.py  # código no congelamento
+05b9c06fc3aae3c3db0d0992774a102f760887d5f9986313dc1401189e0c9a72  scripts/passo2_oficial/run_oficial.py  # código no congelamento

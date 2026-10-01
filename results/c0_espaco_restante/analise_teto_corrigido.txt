@@ -1,0 +1,37 @@
+C.0 — teto corrigido = melhor das 5 regras SEM ataque (mesmo regime do exp9)
+
+Acurácia sem ataque por alpha × regra (média de 10 sementes):
+rule   fedavg  fltrust    krum  median  trimmed_mean
+alpha                                               
+0.05   0.8535   0.7205  0.3277  0.6158        0.7648
+0.10   0.8554   0.7570  0.5455  0.7397        0.8311
+0.50   0.9051   0.8280  0.8842  0.8962        0.8985
+
+Regra-teto por alpha: α=0.05: fedavg, α=0.1: fedavg, α=0.5: fedavg
+
+ alpha      attack_type  teto melhor_esqueleto  gap_esqueleto_pp melhor_global  acc_melhor_global  gap_global_pp  gap_glob_ic95_lo  gap_glob_ic95_hi
+  0.10   label_flipping 0.855            fixed            14.589         fixed              0.710         14.589            10.552            18.626
+  0.05   label_flipping 0.854          sr_only            14.195       sr_only              0.712         14.195            13.712            14.678
+  0.05    sign_flipping 0.854            fixed            12.347         fixed              0.730         12.347             7.811            16.883
+  0.05 low_mag_backdoor 0.854            fixed             7.100         fixed              0.783          7.100             3.822            10.378
+  0.05   gaussian_noise 0.854            fixed             4.940         fixed              0.804          4.940             4.892             4.988
+  0.05   krum_collusion 0.854            fixed             4.902         fixed              0.805          4.902             4.816             4.988
+  0.05      trim_attack 0.854            fixed             4.831         fixed              0.805          4.831             4.720             4.942
+  0.10    sign_flipping 0.855            fixed             4.630         fixed              0.809          4.630             4.030             5.230
+  0.10      trim_attack 0.855            fixed             3.582         fixed              0.820          3.582             2.886             4.278
+  0.10 low_mag_backdoor 0.855          td3_ref             6.131  trimmed_mean              0.831          2.433             2.364             2.502
+  0.50   label_flipping 0.905            fixed            13.084  trimmed_mean              0.886          1.912             1.873             1.951
+  0.10   gaussian_noise 0.855          sr_only             1.411       sr_only              0.841          1.411             1.328             1.494
+  0.50    sign_flipping 0.905            fixed             1.357         fixed              0.892          1.357             1.245             1.469
+  0.10   krum_collusion 0.855            fixed             1.206         fixed              0.843          1.206             1.070             1.342
+  0.50   krum_collusion 0.905          sr_only             0.877       sr_only              0.896          0.877             0.840             0.914
+  0.50   gaussian_noise 0.905          sr_only             0.853       sr_only              0.897          0.853             0.827             0.879
+  0.50      trim_attack 0.905          sr_only             0.849       sr_only              0.897          0.849             0.829             0.869
+  0.50 low_mag_backdoor 0.905            fixed             0.833  trimmed_mean              0.899          0.648             0.618             0.678
+  0.50  fltrust_aligned 0.905            fixed             1.417        median              0.900          0.529             0.507             0.551
+  0.10  fltrust_aligned 0.855            fixed             7.476          krum              0.894         -3.906            -3.955            -3.857
+  0.05  fltrust_aligned 0.854          sr_only            11.007          krum              0.896         -4.245            -4.312            -4.178
+
+[esqueleto (fixed/sr_only/AdaAggRL)] gap > 1 p.p.: 17/21 | > 2 p.p.: 13/21 | > 5 p.p.: 8/21
+[global (inclui regras fixas)] gap > 1 p.p.: 14/21 | > 2 p.p.: 10/21 | > 5 p.p.: 4/21
+[global] IC95 do gap acima de 0: 19/21 | gap negativo (algum método sob ataque supera o teto): 2/21

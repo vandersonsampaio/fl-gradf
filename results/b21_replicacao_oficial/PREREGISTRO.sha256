@@ -1,0 +1,6 @@
+90b032e1f02c28f7f68b6f66971ccd889dfe7b152e77a40ce04584c5f85d8e81  results/b21_replicacao_oficial/PREREGISTRO.md  # congelado 2026-09-27 13:30:31 -0300, antes do início da grade
+08f7be2ce640adc53757318c3a97748fa24b114174d726bdae43f764146b70fe  scripts/passo2_oficial/run_b21.py  # código no congelamento
+20a8e4ef8d9a8c41af189d67998ed4b1be3d08ef81b6b444f69eb31a8d1e1eb9  scripts/passo2_oficial/run_grid_b21.sh  # código no congelamento
+2c574ee86402e1ed2869ca71c2ccfdfac919eedadf4e6a5325bd37434091f35f  scripts/passo2_oficial/analisar_b21.py  # código no congelamento
+05b9c06fc3aae3c3db0d0992774a102f760887d5f9986313dc1401189e0c9a72  scripts/passo2_oficial/run_oficial.py  # código no congelamento
+eb4af80b64a27d89b35935239e7f9d88fbc816618b6b11795cb41c22051d6086  scripts/passo2_oficial/analisar.py  # código no congelamento
