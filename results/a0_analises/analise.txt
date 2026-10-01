@@ -1,0 +1,64 @@
+A0 — análises baratas (roadmap v4 §4.2)
+
+(a) Verificação: 48 runs; máx |acc A0 − acc B2.6| = 0.00e+00 (REPRODUZ o B2.6)
+
+(a) Massa média nos atacantes por rodada (FedAvg uniforme daria 0,2):
+                                  mean     min     max
+variant alpha attack_type                             
+sr_bin  0.05  gaussian_noise    0.0000  0.0000  0.0000
+              krum_collusion    0.0000  0.0000  0.0000
+              trim_attack       0.0000  0.0000  0.0000
+        0.10  gaussian_noise    0.0000  0.0000  0.0000
+              krum_collusion    0.0000  0.0000  0.0000
+              low_mag_backdoor  0.1914  0.1768  0.2025
+              sign_flipping     0.0712  0.0712  0.0712
+              trim_attack       0.0000  0.0000  0.0000
+sr_only 0.05  gaussian_noise    0.0000  0.0000  0.0000
+              krum_collusion    0.0000  0.0000  0.0000
+              trim_attack       0.0001  0.0000  0.0003
+        0.10  gaussian_noise    0.0000  0.0000  0.0000
+              krum_collusion    0.0000  0.0000  0.0000
+              low_mag_backdoor  0.1847  0.1737  0.1961
+              sign_flipping     0.0564  0.0562  0.0566
+              trim_attack       0.0000  0.0000  0.0000
+
+    sr_only: células com massa ≥ 0.05: 2/8 -> sem aproveitamento relevante (direção 6 não explicada por aproveitamento)
+    sr_bin: células com massa ≥ 0.05: 2/8 -> sem aproveitamento relevante (direção 6 não explicada por aproveitamento)
+
+(b) Teto da seleção de sinais (B2.6, 19 células, média por semente; %):
+    max por semente (viesado)                       84.30  IC95=(83.72, 84.88)
+    escolha por célula (in-sample)                  83.59  IC95=(82.82, 84.36)
+    escolha por célula (deixa a semente de fora)    83.24  IC95=(82.61, 83.87)
+    sr_only                                         80.90  IC95=(80.51, 81.28)
+    cosserver_only                                  81.32  IC95=(80.48, 82.16)
+    sr_cosserver                                    82.11  IC95=(81.01, 83.21)
+    sr_bin                                          81.92  IC95=(81.52, 82.32)
+    sr_b025                                         82.47  IC95=(82.40, 82.53)
+    ganho de max por semente sobre o melhor sinal único por semente: +2.81 p.p. IC95=(+2.30, +3.32)
+    ganho de escolha por célula (LOSO) sobre o melhor sinal único por semente: +1.75 p.p. IC95=(+1.31, +2.19)
+    Sinal escolhido por célula (in-sample): gaussian_noise α=0.05: sr_only; krum_collusion α=0.05: sr_only; label_flipping α=0.05: cosserver_only; low_mag_backdoor α=0.05: cosserver_only; sign_flipping α=0.05: cosserver_only; trim_attack α=0.05: sr_only; gaussian_noise α=0.1: sr_only; krum_collusion α=0.1: cosserver_only; label_flipping α=0.1: cosserver_only; low_mag_backdoor α=0.1: cosserver_only; sign_flipping α=0.1: cosserver_only; trim_attack α=0.1: cosserver_only; fltrust_aligned α=0.5: sr_only; gaussian_noise α=0.5: sr_only; krum_collusion α=0.5: sr_only; label_flipping α=0.5: cosserver_only; low_mag_backdoor α=0.5: sr_only; sign_flipping α=0.5: cosserver_only; trim_attack α=0.5: sr_only
+
+(c) Concordância por cliente entre S_R e cos_server (registro da ablação: trajetória td3, só semente 42; PRELIMINAR) e AUC de cada sinal para separar atacantes (1 = separa perfeitamente):
+ alpha      attack_type  spearman_medio  AUC_S_R  AUC_cos_server
+  0.05  fltrust_aligned          -0.363    0.701           0.000
+  0.05   gaussian_noise           0.043    1.000           0.713
+  0.05   krum_collusion           0.205    0.965           0.892
+  0.05   label_flipping          -0.025    0.649           0.799
+  0.05 low_mag_backdoor          -0.080    0.563           0.404
+  0.05    sign_flipping           0.051    0.792           0.828
+  0.05      trim_attack           0.308    0.972           0.956
+  0.10  fltrust_aligned          -0.123    0.526           0.000
+  0.10   gaussian_noise           0.115    0.999           0.642
+  0.10   krum_collusion           0.267    0.913           0.893
+  0.10   label_flipping           0.018    0.531           0.935
+  0.10 low_mag_backdoor          -0.118    0.511           0.727
+  0.10    sign_flipping           0.230    0.776           0.991
+  0.10      trim_attack           0.354    0.901           0.966
+  0.50  fltrust_aligned          -0.036    0.495           0.000
+  0.50   gaussian_noise           0.073    0.997           0.659
+  0.50   krum_collusion           0.296    0.864           0.921
+  0.50   label_flipping          -0.180    0.478           0.996
+  0.50 low_mag_backdoor          -0.069    0.371           0.658
+  0.50    sign_flipping           0.130    0.642           0.985
+  0.50      trim_attack           0.309    0.940           0.958
+
