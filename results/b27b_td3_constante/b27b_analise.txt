@@ -1,0 +1,40 @@
+B2.7b explicativo — H = 150, sementes 42–51, 3 células (exploratório; B2.7a já visto)
+runs novos: 120 (esperado 120)
+
+Médias por sistema (acurácia em H = 150):
+system                   fixed  fixed_b025  fixed_b075  fixed_td3mean  td3_frozen  td3_ref
+alpha attack_type                                                                         
+0.05  label_flipping    0.6183      0.7534      0.5465         0.6741      0.6614   0.6848
+      low_mag_backdoor  0.8062      0.8819      0.7152         0.8287      0.8334   0.8374
+0.10  label_flipping    0.7140      0.7853      0.4725         0.7233      0.7323   0.7412
+
+Δ pareados por semente (p.p., IC95 t; TOST ±1 p.p. descritivo):
+ alpha      attack_type                              comparacao  n  delta_pp  ic95_lo_pp  ic95_hi_pp  p_tost_1pp
+  0.05   label_flipping                    td3_ref − td3_frozen 10     2.344      -1.233       5.921       0.791
+  0.05   label_flipping                      td3_frozen − fixed 10     4.305      -0.039       8.649       0.940
+  0.05   label_flipping                 td3_ref − fixed_td3mean 10     1.066      -5.550       7.682       0.509
+  0.05   label_flipping                   fixed_td3mean − fixed 10     5.583      -0.053      11.219       0.951
+  0.05   label_flipping                         td3_ref − fixed 10     6.649       2.842      10.456       0.996
+  0.05   label_flipping                    td3_ref − fixed_b025 10    -6.857     -10.659      -3.055       0.997
+  0.05   label_flipping                    td3_ref − fixed_b075 10    13.834      -1.146      28.814       0.958
+  0.05   label_flipping td3_ref − melhor constante (fixed_b025) 10    -6.857     -10.659      -3.055       0.997
+  0.05 low_mag_backdoor                    td3_ref − td3_frozen 10     0.408      -2.173       2.989       0.308
+  0.05 low_mag_backdoor                      td3_frozen − fixed 10     2.716      -0.819       6.251       0.850
+  0.05 low_mag_backdoor                 td3_ref − fixed_td3mean 10     0.879      -2.757       4.515       0.471
+  0.05 low_mag_backdoor                   fixed_td3mean − fixed 10     2.245      -2.552       7.042       0.714
+  0.05 low_mag_backdoor                         td3_ref − fixed 10     3.124      -1.221       7.469       0.851
+  0.05 low_mag_backdoor                    td3_ref − fixed_b025 10    -4.449      -6.799      -2.099       0.996
+  0.05 low_mag_backdoor                    td3_ref − fixed_b075 10    12.223       2.271      22.175       0.984
+  0.05 low_mag_backdoor td3_ref − melhor constante (fixed_b025) 10    -4.449      -6.799      -2.099       0.996
+  0.10   label_flipping                    td3_ref − td3_frozen 10     0.885      -1.737       3.507       0.462
+  0.10   label_flipping                      td3_frozen − fixed 10     1.830      -2.398       6.058       0.666
+  0.10   label_flipping                 td3_ref − fixed_td3mean 10     1.783      -2.276       5.842       0.664
+  0.10   label_flipping                   fixed_td3mean − fixed 10     0.932      -3.637       5.501       0.487
+  0.10   label_flipping                         td3_ref − fixed 10     2.715      -2.229       7.659       0.774
+  0.10   label_flipping                    td3_ref − fixed_b025 10    -4.415      -7.346      -1.484       0.986
+  0.10   label_flipping                    td3_ref − fixed_b075 10    26.864      21.902      31.826       1.000
+  0.10   label_flipping td3_ref − melhor constante (fixed_b025) 10    -4.415      -7.346      -1.484       0.986
+
+Critério 1 — 'o ganho é exploração, não aprendizado': IC95 de (td3_ref − td3_frozen) contém 0 nas 3 células [sim] E (td3_frozen − fixed) > 0 com IC95 > 0 em ≥ 1 célula [0/3] -> NÃO atendido
+Critério 2 — 'constante deslocada' (fixed_td3mean ≈ td3_ref): IC95 de (td3_ref − fixed_td3mean) contém 0 nas 3 células -> ATENDIDO
+Critério original do PLANO (secundário): td3_ref > melhor constante (IC95 > 0) em 0/3 células -> não atendido
