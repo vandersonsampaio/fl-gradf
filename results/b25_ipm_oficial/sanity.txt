@@ -1,0 +1,8 @@
+B2.5 sanity — semente 100, 100 rodadas; métrica = média da acurácia nas rodadas 81–100
+critério: degrada o FedAvg se ≥ 5 p.p. abaixo do FedAvg sem ataque; não é totalmente excluído se a massa média nos atacantes sob o fixed > 0.01
+
+FedAvg sem ataque: 93.38%  (resets extras: 0)
+ε=2: FedAvg 87.48% (queda +5.90 p.p., degrada=True, resets extras 0); fixed: massa média nos atacantes=0.1408 em 92 rodadas com atacantes reais (não excluído=True), acc 81–100 88.80%; massa FedAvg (referência)=0.2261
+ε=10: FedAvg 29.91% (queda +63.48 p.p., degrada=True, resets extras 8); fixed: massa média nos atacantes=0.0103 em 92 rodadas com atacantes reais (não excluído=True), acc 81–100 92.13%; massa FedAvg (referência)=0.1537
+
+ESCOLHA: ε = 2.0 — satisfaz os dois critérios (desempate: menor ε)

@@ -1,0 +1,4 @@
+alpha,attack_type,seed,system,H,accuracy,sec
+0.05,low_mag_backdoor,45,td3_frozen,15,0.7403000000000001,1850.8053483963013
+0.05,low_mag_backdoor,45,td3_frozen,50,0.8262,1850.8053514957428
+0.05,low_mag_backdoor,45,td3_frozen,150,0.8507,1850.8053529262543
