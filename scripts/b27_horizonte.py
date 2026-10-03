@@ -49,6 +49,7 @@ CELLS = [
 ]
 BYZ = [0, 1]
 INPUT_SHAPE = (28, 28, 1)
+TETO_DIR = f"{OUT}/raw_teto_corrigido"  # tetos refeitos após a correção do _Oracle8 (raw/teto_* = versão com o bug)
 MIN_CELLS = 3  # "o aprendizado se paga em H": Δ > 0 com IC95 > 0 em ≥ 3 das 8 células
 
 
@@ -175,7 +176,7 @@ def run_ceiling(alpha, seed, n_rounds=H_MAX, out_dir=None):
     from src.fl.attacked_learner import AttackedFederatedLearner
     from src.utils.data_loader import load_dataset_participants
 
-    out_dir = out_dir or f"{OUT}/raw"
+    out_dir = out_dir or TETO_DIR
     os.makedirs(out_dir, exist_ok=True)
     path = f"{out_dir}/teto_a{alpha}_seed{seed}_R{n_rounds}.csv"
     if os.path.exists(path):
@@ -196,10 +197,12 @@ def run_ceiling(alpha, seed, n_rounds=H_MAX, out_dir=None):
     class _Oracle8(AttackedFederatedLearner):
         def _run_round(self, round_num, parts, root_data):
             rr = super()._run_round(round_num, parts, root_data)
-            if round_num + 1 in HORIZONS:
+            # o train numera as rodadas a partir de 1: round_num = nº de rodadas concluídas
+            # (correção de 2026-10-02; antes gravava após H−1 rodadas, ver CORRECAO_TETO.md)
+            if round_num in HORIZONS:
                 m = self._make_model(participants[0].n_features)
                 m.set_params(self._global_params)
-                acc10[round_num + 1] = float(np.mean([m.accuracy(p.X_test, p.y_test) for p in participants]))
+                acc10[round_num] = float(np.mean([m.accuracy(p.X_test, p.y_test) for p in participants]))
             return rr
 
     _reseed(seed)
@@ -265,7 +268,7 @@ def _ci95(d):
 
 def analisar():
     raw = pd.concat([pd.read_csv(f) for f in sorted(glob.glob(f"{OUT}/raw/celula_*_R{H_MAX}.csv"))])
-    tetos = pd.concat([pd.read_csv(f) for f in sorted(glob.glob(f"{OUT}/raw/teto_*_R{H_MAX}.csv"))])
+    tetos = pd.concat([pd.read_csv(f) for f in sorted(glob.glob(f"{TETO_DIR}/teto_*_R{H_MAX}.csv"))])
     raw.to_csv(f"{OUT}/grade_raw.csv", index=False)
     tetos.to_csv(f"{OUT}/tetos_raw.csv", index=False)
     rule_arms = sorted(s for s in raw.system.unique() if s.startswith("arm_rule_"))

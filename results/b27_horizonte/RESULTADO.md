@@ -37,19 +37,19 @@
 
 ## Robustez contra convergência (pergunta do C0)
 
-Os tetos sobem com o horizonte, sobretudo o oráculo FedAvg-8 em α baixo:
+Os tetos sobem com o horizonte, sobretudo o oráculo FedAvg-8 em α baixo. Valores do oráculo **corrigidos** em 2026-10-02 (ver a correção no fim deste arquivo):
 
 | α | FedAvg-10 sem ataque (15 → 50 → 150) | oráculo FedAvg-8 (15 → 50 → 150) |
 |---|---|---|
-| 0,05 | 85,3 → 88,5 → 89,5% | 76,7 → 83,9 → 86,5% |
-| 0,1 | 85,5 → 88,5 → 89,4% | 78,8 → 82,4 → 85,0% |
-| 0,5 | 90,5 → 91,6 → 91,9% | 89,8 → 91,1 → 91,7% |
+| 0,05 | 85,3 → 88,5 → 89,5% | 77,1 → 84,0 → 86,5% |
+| 0,1 | 85,5 → 88,5 → 89,4% | 79,0 → 82,5 → 85,0% |
+| 0,5 | 90,5 → 91,6 → 91,9% | 89,9 → 91,1 → 91,7% |
 
-- **O oráculo FedAvg-8 não converge em 15 rodadas com α ≤ 0,1.** Ele ganha 8–10 p.p. até H = 150. Por isso parte dos gaps negativos do C0 (métodos sob ataque acima do oráculo em 15 rodadas) é **artefato de convergência do teto**:
-  - TD3 em `gaussian_noise` α 0,05: gap ao oráculo −3,7 → −1,4 p.p.
+- **O oráculo FedAvg-8 não converge em 15 rodadas com α ≤ 0,1.** Ele ganha 6,0–9,4 p.p. até H = 150. Por isso parte dos gaps negativos do C0 (métodos sob ataque acima do oráculo em 15 rodadas) é **artefato de convergência do teto**:
+  - TD3 em `gaussian_noise` α 0,05: gap ao oráculo −3,2 → −1,4 p.p.
 - Em outras células o gap negativo **persiste** com o horizonte:
-  - TD3 em `krum_collusion` α 0,1: −4,7 → −4,4;
-  - TD3 em `sign_flipping` α 0,1: −1,4 → −2,7.
+  - TD3 em `krum_collusion` α 0,1: −4,5 → −4,4;
+  - TD3 em `sign_flipping` α 0,1: −1,2 → −2,7.
   - Nelas, o esqueleto pondera os honestos melhor que a média uniforme, o que é consistente com o A0(a): massa ≈ 0 nos atacantes.
 - **`label_flipping` α ≤ 0,1, a única região com espaço no C0, continua com gap grande em H = 150** (TD3: +18,0 p.p. ao oráculo em α 0,05; +10,9 em α 0,1). O espaço restante é de **robustez**, não de convergência.
 
@@ -74,3 +74,15 @@ Os tetos sobem com o horizonte, sobretudo o oráculo FedAvg-8 em α baixo:
 1. **P2:** "o aprendizado não se paga" se estende a horizontes 10× maiores (150 rodadas) para LinUCB e DQN, contra a versão fixa no mesmo espaço de ação e contra o aleatório. Para o TD3 do esqueleto, a afirmação fica **delimitada**: há uma tendência positiva em `label_flipping` e `low_mag_backdoor`, que passa no critério em 1 de 8 células em H = 150.
 2. **C0:** parte dos gaps negativos era convergência do teto; o espaço em `label_flipping` α ≤ 0,1 é de robustez e persiste.
 3. **Reprodutibilidade:** o DQN do GRADF v1 é não-determinístico entre runs, e o RNG global do framework depende da ordem de execução. Isso deve ser corrigido antes do GRADF-v2 (P3) e declarado como limitação dos resultados do P1.
+
+## Correção do teto oráculo FedAvg-8 (2026-10-02)
+
+- **Bug:** `run_ceiling` gravava o oráculo FedAvg-8 quando `round_num + 1 ∈ {15, 50, 150}`, mas o `train` numera as rodadas a partir de 1. Os valores rotulados H = 15, 50 e 150 eram os das rodadas 14, 49 e 149.
+- **O teto FedAvg-10 e todos os sistemas estavam corretos**, porque usam `results[H − 1]`.
+- **Correção:** `if round_num in HORIZONS` em `scripts/b27_horizonte.py`. Os 30 jobs de teto foram refeitos em `raw_teto_corrigido/`; os arquivos com o bug ficam em `raw/teto_*` e a análise anterior em `v1_teto_bug_*`.
+- **Efeito:**
+  - o FedAvg-10 sai idêntico (|Δ| = 0);
+  - o oráculo muda +0,25 p.p. em média em H = 15 (máx. 0,56), +0,05 em H = 50 e +0,01 em H = 150;
+  - os gaps ao oráculo mudam no máximo 0,46 p.p.;
+  - **os Δ dos agentes e todos os veredictos do critério ficam idênticos.**
+- **Verificação:** o oráculo corrigido em H = 15 fica a 0,05 p.p. (média; máx. 0,13) do teto oráculo do C0, que foi calculado em outro processo.
