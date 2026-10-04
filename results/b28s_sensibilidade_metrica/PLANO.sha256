@@ -1,0 +1,3 @@
+b90cae1a66f062e272d4ae3a4790f41e8f5111e017fb07f0b4cbe696f2528f73  results/b28s_sensibilidade_metrica/PLANO.md  # congelado 2026-10-04 19:26:19 -0300, antes de qualquer run
+3e03d24c89b8f3989dea399849a9b53912c384284182221bd45d4e9bc4c11419  scripts/b28s_sensibilidade_metrica.py  # código no congelamento (smoke de 1 job no scratchpad, sem inspeção de acurácias)
+f887454a38ef348ad93106563d252dda9689cbadbca33cfb42bfe01382aff814  scripts/run_grid_b28s.sh  # código no congelamento
