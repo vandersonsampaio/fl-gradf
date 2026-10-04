@@ -1,0 +1,90 @@
+C0b — espaço restante em H = 150 (descritivo; critério do C0); sementes 72–81; 19 células
+linhas: 4560 (esperado 4560); tetos: 180 (esperado 180)
+
+H= 15: células com espaço contra o MELHOR EXISTENTE (oráculo FedAvg-8, gap > 2.0 p.p., IC95 > 0) = 0/19; contra o esqueleto de referência (sr_only) = 6/19
+H= 50: células com espaço contra o MELHOR EXISTENTE (oráculo FedAvg-8, gap > 2.0 p.p., IC95 > 0) = 0/19; contra o esqueleto de referência (sr_only) = 5/19
+H=150: células com espaço contra o MELHOR EXISTENTE (oráculo FedAvg-8, gap > 2.0 p.p., IC95 > 0) = 0/19; contra o esqueleto de referência (sr_only) = 5/19
+
+(i) Mapa em H = 150:
+ alpha      attack_type melhor_existente  acc_melhor  gap_global_oraculo8_pp  gap_global_oraculo8_lo  gap_global_oraculo8_hi  espaco_global  gap_global_fedavg10_pp  gap_esqueleto_ref_oraculo8_pp  espaco_vs_esqueleto_ref
+  0.05   gaussian_noise           sr_bin       0.880                  -1.485                  -1.513                  -1.457          False                   1.522                         -1.397                    False
+  0.05   krum_collusion          sr_b025       0.872                  -0.715                  -0.775                  -0.655          False                   2.292                          0.982                    False
+  0.05   label_flipping          fltrust       0.851                   1.331                   0.725                   1.937          False                   4.338                         17.154                     True
+  0.05 low_mag_backdoor   cosserver_only       0.891                  -2.645                  -4.059                  -1.231          False                   0.362                          3.267                     True
+  0.05    sign_flipping       clustering       0.875                  -1.073                  -1.111                  -1.035          False                   1.934                          2.042                     True
+  0.05      trim_attack          sr_b025       0.870                  -0.556                  -0.630                  -0.482          False                   2.451                          0.718                    False
+  0.10   gaussian_noise           sr_bin       0.895                  -4.473                  -4.496                  -4.450          False                  -0.072                         -4.468                    False
+  0.10   krum_collusion          sr_b025       0.893                  -4.361                  -4.384                  -4.338          False                   0.040                         -3.803                    False
+  0.10   label_flipping       clustering       0.891                  -4.133                  -4.181                  -4.085          False                   0.268                          5.889                     True
+  0.10 low_mag_backdoor          sr_b025       0.906                  -5.595                  -5.622                  -5.568          False                  -1.194                         -2.105                    False
+  0.10    sign_flipping          sr_b025       0.889                  -3.901                  -3.933                  -3.869          False                   0.500                         -1.537                    False
+  0.10      trim_attack       clustering       0.894                  -4.451                  -4.475                  -4.427          False                  -0.050                         -3.983                    False
+  0.50  fltrust_aligned     trimmed_mean       0.914                   0.245                   0.163                   0.327          False                   0.503                          0.397                    False
+  0.50   gaussian_noise           sr_bin       0.918                  -0.093                  -0.124                  -0.062          False                   0.165                         -0.073                    False
+  0.50   krum_collusion          sr_b025       0.915                   0.176                   0.117                   0.235          False                   0.434                          0.258                    False
+  0.50   label_flipping   cosserver_only       0.908                   0.866                   0.505                   1.227          False                   1.124                         20.464                     True
+  0.50 low_mag_backdoor          sr_b025       0.919                  -0.241                  -0.287                  -0.195          False                   0.017                         -0.147                    False
+  0.50    sign_flipping       clustering       0.914                   0.307                   0.285                   0.329          False                   0.565                          1.769                    False
+  0.50      trim_attack           sr_bin       0.914                   0.241                   0.117                   0.365          False                   0.499                          0.316                    False
+
+(iii) Melhor variante do esqueleto − melhor regra estática (p.p., IC95), H = 150:
+ alpha      attack_type melhor_variante melhor_regra  var_menos_regra_pp  var_menos_regra_lo  var_menos_regra_hi
+  0.05   gaussian_noise          sr_bin      fltrust               2.722               2.166               3.278
+  0.05   krum_collusion         sr_b025      fltrust               1.766               1.160               2.372
+  0.05   label_flipping  cosserver_only      fltrust              -2.942              -8.141               2.257
+  0.05 low_mag_backdoor  cosserver_only   clustering               0.412              -1.014               1.838
+  0.05    sign_flipping  cosserver_only   clustering              -1.337              -3.604               0.930
+  0.05      trim_attack         sr_b025      fltrust               1.641               1.038               2.244
+  0.10   gaussian_noise          sr_bin trimmed_mean               1.229               1.109               1.349
+  0.10   krum_collusion         sr_b025      fltrust               2.184               1.396               2.972
+  0.10   label_flipping  cosserver_only   clustering              -0.607              -1.314               0.100
+  0.10 low_mag_backdoor         sr_b025 trimmed_mean               1.767               1.731               1.803
+  0.10    sign_flipping         sr_b025      fltrust               1.685               0.988               2.382
+  0.10      trim_attack         sr_b025   clustering              -0.116              -0.148              -0.084
+  0.50  fltrust_aligned         sr_b025 trimmed_mean              -0.001              -0.062               0.060
+  0.50   gaussian_noise          sr_bin trimmed_mean               0.145               0.097               0.193
+  0.50   krum_collusion         sr_b025 trimmed_mean               1.219               1.166               1.272
+  0.50   label_flipping  cosserver_only   clustering               0.643               0.283               1.003
+  0.50 low_mag_backdoor         sr_b025   clustering               0.142               0.108               0.176
+  0.50    sign_flipping  cosserver_only   clustering              -0.172              -0.367               0.023
+  0.50      trim_attack          sr_bin   clustering               0.607               0.460               0.754
+
+(ii) Teto da seleção de sinais em H = 150 (19 células, média por semente; %):
+    max por semente (viesado)                   89.18  IC95=(88.83, 89.52)
+    escolha por célula (in-sample)              88.92  IC95=(88.48, 89.36)
+    escolha por célula (LOSO, referência)       88.79  IC95=(88.37, 89.21)
+    sr_only                                     86.04  IC95=(85.58, 86.49)
+    sr_bin                                      85.39  IC95=(84.83, 85.96)
+    sr_b025                                     87.10  IC95=(87.01, 87.19)
+    cosserver_only                              87.55  IC95=(87.02, 88.09)
+    fltrust                                     87.35  IC95=(87.16, 87.55)
+    trimmed_mean                                75.58  IC95=(75.57, 75.59)
+    clustering                                  82.46  IC95=(82.26, 82.66)
+    median                                      74.41  IC95=(74.38, 74.43)
+    ganho de max por semente sobre o melhor sinal único por semente: +1.62 p.p. IC95=(+1.28, +1.97)
+    ganho de escolha por célula (LOSO) sobre o melhor sinal único por semente: +1.24 p.p. IC95=(+0.98, +1.49)
+    Sinal escolhido por célula (in-sample): gaussian_noise α=0.05: sr_only; krum_collusion α=0.05: cosserver_only; label_flipping α=0.05: cosserver_only; low_mag_backdoor α=0.05: cosserver_only; sign_flipping α=0.05: cosserver_only; trim_attack α=0.05: cosserver_only; gaussian_noise α=0.1: sr_only; krum_collusion α=0.1: sr_only; label_flipping α=0.1: cosserver_only; low_mag_backdoor α=0.1: cosserver_only; sign_flipping α=0.1: cosserver_only; trim_attack α=0.1: sr_only; fltrust_aligned α=0.5: sr_only; gaussian_noise α=0.5: sr_only; krum_collusion α=0.5: sr_only; label_flipping α=0.5: cosserver_only; low_mag_backdoor α=0.5: sr_only; sign_flipping α=0.5: cosserver_only; trim_attack α=0.5: sr_only
+
+Concordância por cliente (trajetória sr_only, rodadas ≥ 2, média de 10 sementes; descritivo):
+                        spearman_medio  AUC_S_R  AUC_cos_server
+alpha attack_type                                              
+0.05  gaussian_noise             0.045    1.000           0.552
+      krum_collusion             0.247    0.940           0.833
+      label_flipping            -0.049    0.630           0.806
+      low_mag_backdoor          -0.112    0.597           0.318
+      sign_flipping              0.111    0.695           0.857
+      trim_attack                0.267    0.904           0.889
+0.10  gaussian_noise             0.091    1.000           0.511
+      krum_collusion             0.401    0.930           0.888
+      label_flipping            -0.041    0.540           0.836
+      low_mag_backdoor          -0.131    0.488           0.553
+      sign_flipping              0.174    0.701           0.959
+      trim_attack                0.392    0.895           0.949
+0.50  fltrust_aligned            0.008    0.491           0.001
+      gaussian_noise             0.018    0.991           0.547
+      krum_collusion             0.247    0.855           0.818
+      label_flipping            -0.071    0.493           0.984
+      low_mag_backdoor          -0.006    0.420           0.516
+      sign_flipping              0.038    0.535           0.951
+      trim_attack                0.244    0.804           0.869
+
