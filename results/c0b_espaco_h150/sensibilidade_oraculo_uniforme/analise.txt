@@ -1,0 +1,43 @@
+C0b — sensibilidade POST HOC: tetos com ponderação uniforme (VERIFICACOES.md §3)
+
+Tetos por α × H (média de 10 sementes):
+H                               15     50     150
+alpha system                                     
+0.05  teto_fedavg10           85.34  88.56  89.47
+      teto_fedavg10_uniforme  87.06  89.52  90.44
+      teto_oraculo8_uniforme  80.33  85.70  87.92
+      teto_oraculo_fedavg8    77.13  83.99  86.46
+0.10  teto_fedavg10           85.51  88.53  89.39
+      teto_fedavg10_uniforme  88.80  90.61  91.23
+      teto_oraculo8_uniforme  83.90  87.91  89.46
+      teto_oraculo_fedavg8    78.99  82.46  84.99
+0.50  teto_fedavg10           90.50  91.54  91.93
+      teto_fedavg10_uniforme  90.49  91.60  92.07
+      teto_oraculo8_uniforme  89.65  90.96  91.74
+      teto_oraculo_fedavg8    89.86  91.10  91.67
+
+H= 15: células com espaço contra o MELHOR EXISTENTE (oráculo-8 UNIFORME, gap > 2.0 p.p., IC95 > 0) = 0/19; contra o esqueleto de referência = 7/19
+H= 50: células com espaço contra o MELHOR EXISTENTE (oráculo-8 UNIFORME, gap > 2.0 p.p., IC95 > 0) = 1/19; contra o esqueleto de referência = 9/19
+H=150: células com espaço contra o MELHOR EXISTENTE (oráculo-8 UNIFORME, gap > 2.0 p.p., IC95 > 0) = 1/19; contra o esqueleto de referência = 9/19
+
+Mapa em H = 150:
+ alpha      attack_type melhor_existente  acc_melhor  gap_global_teto_oraculo8_uniforme_pp  gap_global_teto_oraculo8_uniforme_lo  gap_global_teto_oraculo8_uniforme_hi  espaco_global_or8u  gap_global_teto_fedavg10_uniforme_pp  gap_esqueleto_ref_teto_oraculo8_uniforme_pp  espaco_esqref_or8u
+  0.05   gaussian_noise           sr_bin       0.880                                -0.027                                -0.051                                -0.003               False                                 2.486                                        0.061               False
+  0.05   krum_collusion          sr_b025       0.872                                 0.743                                 0.682                                 0.804               False                                 3.256                                        2.440                True
+  0.05   label_flipping          fltrust       0.851                                 2.789                                 2.186                                 3.392                True                                 5.302                                       18.612                True
+  0.05 low_mag_backdoor   cosserver_only       0.891                                -1.187                                -2.604                                 0.230               False                                 1.326                                        4.725                True
+  0.05    sign_flipping       clustering       0.875                                 0.385                                 0.344                                 0.426               False                                 2.898                                        3.500                True
+  0.05      trim_attack          sr_b025       0.870                                 0.902                                 0.829                                 0.975               False                                 3.415                                        2.176                True
+  0.10   gaussian_noise           sr_bin       0.895                                -0.001                                -0.026                                 0.024               False                                 1.773                                        0.004               False
+  0.10   krum_collusion          sr_b025       0.893                                 0.111                                 0.072                                 0.150               False                                 1.885                                        0.669               False
+  0.10   label_flipping       clustering       0.891                                 0.339                                 0.283                                 0.395               False                                 2.113                                       10.361                True
+  0.10 low_mag_backdoor          sr_b025       0.906                                -1.123                                -1.169                                -1.077               False                                 0.651                                        2.367                True
+  0.10    sign_flipping          sr_b025       0.889                                 0.571                                 0.532                                 0.610               False                                 2.345                                        2.935                True
+  0.10      trim_attack       clustering       0.894                                 0.021                                -0.015                                 0.057               False                                 1.795                                        0.489               False
+  0.50  fltrust_aligned     trimmed_mean       0.914                                 0.317                                 0.247                                 0.387               False                                 0.646                                        0.469               False
+  0.50   gaussian_noise           sr_bin       0.918                                -0.021                                -0.057                                 0.015               False                                 0.308                                       -0.001               False
+  0.50   krum_collusion          sr_b025       0.915                                 0.248                                 0.197                                 0.299               False                                 0.577                                        0.330               False
+  0.50   label_flipping   cosserver_only       0.908                                 0.938                                 0.577                                 1.299               False                                 1.267                                       20.536                True
+  0.50 low_mag_backdoor          sr_b025       0.919                                -0.169                                -0.203                                -0.135               False                                 0.160                                       -0.075               False
+  0.50    sign_flipping       clustering       0.914                                 0.379                                 0.369                                 0.389               False                                 0.708                                        1.841               False
+  0.50      trim_attack           sr_bin       0.914                                 0.313                                 0.179                                 0.447               False                                 0.642                                        0.388               False

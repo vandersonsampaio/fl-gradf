@@ -23,11 +23,15 @@ Critério do C0: gap ao oráculo FedAvg-8 > 2 p.p. com IC95 > 0.
   - `label_flipping` α 0,5: +20,5;
   - `low_mag_backdoor` α 0,05: +3,3;
   - `sign_flipping` α 0,05: +2,0.
-- **O oráculo FedAvg-8 não é teto com α ≤ 0,1, mesmo em H = 150.**
-  - Em 13 das 19 células (todas as 6 de α 0,1), o melhor existente fica acima do oráculo; em α 0,1 a diferença é de 3,9 a 5,6 p.p.
-  - Contra o FedAvg-10 sem ataque, os gaps em α 0,1 ficam entre −1,2 e +0,5 p.p.
-  - Com o A0(a) (massa ≈ 0 nos atacantes), a leitura é que **ponderar os honestos melhor que a média uniforme** (filtro por cliente e regras robustas) rende mais que excluir os atacantes e fazer a média do resto. Não é aproveitamento dos atacantes.
-- **Confirma o Portão C0 em H = 150:** em acurácia, não sobra espaço contra o melhor existente. O diferencial do P3 fica em R3/R4/R5 (privacidade, custo, robustez adaptativa). O R1 só tem alvo contra o esqueleto de referência e o AdaAggRL.
+- **O oráculo FedAvg-8 (pré-registrado) subestima o teto com α ≤ 0,1** (corrigido em 2026-10-04; ver a seção de sensibilidade e `VERIFICACOES.md`).
+  - Em 13 das 19 células (todas as 6 de α 0,1), o melhor existente fica acima dele; em α 0,1 a diferença é de 3,9 a 5,6 p.p.
+  - **Causa:** o `FedAvgStrategy` do framework pondera **por tamanho de amostra** (de ~10² a ~10⁴ exemplos por cliente com α 0,1), enquanto a métrica é a **média uniforme** das acurácias nos test sets dos clientes. O oráculo com ponderação uniforme dos 8 honestos reproduz o melhor método (ex.: `sr_bin` sob `gaussian_noise` α 0,1: 89,5% contra 89,5%).
+  - **Correção da leitura anterior:** o que leva ao teto é excluir os atacantes e **ponderar os honestos de forma uniforme**, não "ponderar os honestos melhor que a média uniforme", como estava escrito. Não é aproveitamento dos atacantes (massa ≈ 0 em 4 das 6 células de α 0,1; a exceção é `low_mag_backdoor`, `massa_atacantes_a0.1.csv`).
+  - Não há bug no código do oráculo: com a máscara toda em 1, ele reproduz exatamente o FedAvg-10 (`VERIFICACOES.md` §1).
+- **Portão C0 em H = 150:**
+  - pelo critério pré-registrado (oráculo por amostra), 0/19;
+  - pela sensibilidade com o oráculo uniforme, **1/19: `label_flipping` α 0,05**, com espaço de +2,8 p.p. (IC95 +2,2 a +3,4) contra o FLTrust.
+  - Fora essa célula, não sobra espaço contra o melhor existente. O diferencial do P3 fica em R3/R4/R5 (privacidade, custo, robustez adaptativa), com um alvo estreito de R1 em `label_flipping` α 0,05.
 
 ## (iii) Melhor variante do esqueleto contra a melhor regra estática (H = 150)
 
@@ -68,12 +72,35 @@ Confirma o A0(c), que tinha 1 semente:
 
 ## Implicações
 
-1. **P2:** com horizonte suficiente, o melhor método existente fecha o espaço restante em todas as células, inclusive `label_flipping` α ≤ 0,1, que era o espaço do C0. O espaço continua grande contra o AdaAggRL e o esqueleto de referência nos ataques de rótulo e backdoor.
-2. **P3 (R1, Portão C0b):** não há alvo de acurácia contra o melhor global. O diferencial é privacidade (os dois sinais fortes têm custo), custo computacional e robustez adaptativa (`fltrust_aligned` inverte o cos_server; `low_mag_backdoor` escapa dos dois sinais).
-3. **Direção 1 (seleção de sinais):** headroom real, mas pequeno (+1,2 p.p.) e decrescente com o horizonte. Um seletor não aprendido deve bastar (R7).
+1. **P2:** com horizonte suficiente, o melhor método existente fecha o espaço restante em quase todas as células, inclusive `label_flipping` α 0,1. A exceção é `label_flipping` α 0,05: +2,8 p.p. contra o oráculo uniforme (sensibilidade). O espaço continua grande contra o AdaAggRL e o esqueleto de referência nos ataques de rótulo e backdoor (9/19 células contra o oráculo uniforme).
+2. **P3 (R1, Portão C0b):** o alvo de acurácia contra o melhor global é **estreito**: só `label_flipping` α 0,05 (~+2,8 p.p.). O diferencial principal é privacidade (os dois sinais fortes têm custo), custo computacional e robustez adaptativa (`fltrust_aligned` inverte o cos_server; `low_mag_backdoor` escapa dos dois sinais).
+3. **Teto do C0/B2.7/C0b em α ≤ 0,1:** o oráculo FedAvg-8 por amostra não deve ser usado como teto nessa métrica. Usar o oráculo uniforme, ou trocar a métrica por uma ponderada por amostra, de forma coerente, nos próximos experimentos.
+4. **Direção 1 (seleção de sinais):** headroom real, mas pequeno (+1,2 p.p.) e decrescente com o horizonte. Um seletor não aprendido deve bastar (R7).
+
+## Sensibilidade post hoc: tetos com ponderação uniforme (2026-10-04)
+
+Declarada como post hoc em `VERIFICACOES.md` §3. Script `scripts/c0b_sensibilidade_oraculo_uniforme.py`, saídas em `sensibilidade_oraculo_uniforme/`. É o mesmo código do `run_ceiling`, com a ponderação do FedAvg uniforme, nas sementes 72–81.
+
+| α | oráculo-8 por amostra (pré-reg.) | **oráculo-8 uniforme** | FedAvg-10 por amostra | FedAvg-10 uniforme |
+|---|---|---|---|---|
+| 0,05 | 86,46% | **87,92%** | 89,47% | 90,44% |
+| 0,1 | 84,99% | **89,46%** | 89,39% | 91,23% |
+| 0,5 | 91,67% | **91,74%** | 91,93% | 92,07% |
+
+(H = 150.)
+
+| critério do C0 (gap > 2 p.p., IC95 > 0) | H = 15 | H = 50 | H = 150 |
+|---|---|---|---|
+| espaço contra o **melhor existente** (oráculo uniforme) | 0/19 | 1/19 | **1/19** (`label_flipping` α 0,05: +2,79 p.p., IC95 +2,19 a +3,39) |
+| espaço contra o **esqueleto de referência** (oráculo uniforme) | 7/19 | 9/19 | 9/19 |
+
+- **Em α 0,1, o melhor existente atinge o oráculo uniforme** em todas as células (gaps de −1,1 a +0,6 p.p.): excluir os atacantes e ponderar os honestos por igual é exatamente o que os melhores métodos fazem.
+- **Em α 0,05, a única célula aberta é `label_flipping`**, em que o melhor existente (FLTrust, 85,1%) fica 2,8 p.p. abaixo do oráculo uniforme (87,9%).
+- O FedAvg-10 uniforme fica 0,7–5,3 p.p. acima do melhor existente em α ≤ 0,1. É o ganho de usar também os dados dos 2 clientes que são atacantes, o que nenhuma defesa pode recuperar sem aproveitar os atacantes. Por isso ele não é o teto relevante para o critério.
 
 ## Ressalvas
 
 - Descritivo; o melhor existente e o melhor sinal por célula são escolhidos em retrospecto (otimista para o existente, ou seja, conservador para "espaço").
 - MNIST logístico, 10 clientes, 2 bizantinos, root 100; as regras estáticas são aplicadas como no B2.7.
+- O teto pré-registrado (oráculo por amostra) subestima o teto real em α ≤ 0,1. A sensibilidade com o oráculo uniforme é post hoc, motivada por uma verificação feita depois dos resultados.
 - Antes da grade houve exposição de acurácias de uma célula da semente 72 em H = 15 (declarada no ADENDO1).

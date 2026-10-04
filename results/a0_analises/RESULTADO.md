@@ -7,7 +7,7 @@
 
 - **Verificação:** os 48 runs reproduzem exatamente o B2.6 (máx. |Δacc| = 0). O registro de pesos não perturbou a trajetória.
 - **Regra pré-registrada:** "aproveitamento real" exige massa média ≥ 0,05 em ≥ 4 das 8 células. Resultado: **2/8 células**, tanto no `sr_only` quanto no `sr_bin` → **sem aproveitamento relevante.**
-- Em 6 células (`gaussian_noise`, `krum_collusion` e `trim_attack`, em α = 0,05 e 0,1), a massa é **0,0000–0,0001**: os atacantes são excluídos por completo. O ganho sobre o oráculo FedAvg-8 nessas células (gap negativo do C0) vem, portanto, de **como os honestos são ponderados**, não de usar os atacantes.
+- Em 6 células (`gaussian_noise`, `krum_collusion` e `trim_attack`, em α = 0,05 e 0,1), a massa é **0,0000–0,0001**: os atacantes são excluídos por completo. O ganho sobre o oráculo FedAvg-8 nessas células (gap negativo do C0) vem, portanto, de **como os honestos são ponderados**, não de usar os atacantes. *Precisão de 2026-10-04:* concretamente, da ponderação **uniforme** dos honestos contra a ponderação **por tamanho de amostra** do oráculo. Com a métrica de média uniforme sobre clientes, o oráculo-8 uniforme reproduz os melhores métodos (`results/c0b_espaco_h150/VERIFICACOES.md` §3; `results/c0_espaco_restante/CORRECAO_2026-10-04.md`).
 - As 2 exceções não são "aproveitamento" no sentido da direção 6:
   - `low_mag_backdoor` α = 0,1: massa ≈ 0,19, perto do uniforme (0,2). O S_R não separa esse ataque (AUC 0,51 no item c), então os atacantes **passam**, não são explorados.
   - `sign_flipping` α = 0,1: massa 0,06–0,07, concentrada nas rodadas 2–7 (0,08–0,29), que caem a ~0 depois da rodada 8. É um transiente de exclusão tardia.
