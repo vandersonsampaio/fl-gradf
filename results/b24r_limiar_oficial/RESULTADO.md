@@ -40,5 +40,29 @@
 ## Ressalvas
 
 - n = 5, uma célula (EB, MNIST, q = 0,5), exploratório, sem correção de multiplicidade.
-- O centro foi refeito nesta grade. O centro do Passo 2 (mesma configuração, outra execução na GPU) deu primária 94,9% contra 96,7%: a diferença entre execuções da mesma configuração chega a ~1,8 p.p. na média de 5 sementes.
+- O centro foi refeito nesta grade. O centro do Passo 2 (mesma configuração, outra execução na GPU) deu primária média de 94,9% contra 96,7%. A diferença de ~1,8 p.p. vem de uma única semente (próxima seção).
 - Os resets com a₅ ≤ 0,1 dominam as duas métricas, inclusive a secundária, que não exclui janelas pós-reset. Mas eles são consequência da ação e contam como resultado (regra do plano).
+
+## Verificação da semente 100 do centro (2026-10-04, depois da grade)
+
+Comparação das três execuções da mesma configuração (`fixed` a₅ = 0,475, EB, semente 100, mesmo torch 2.3.0+cu121, mesmo dispositivo cuda:0):
+- Passo 2;
+- verificação de 25 rodadas do ADENDO1;
+- centro refeito nesta grade.
+
+| | Passo 2 | centro refeito |
+|---|---|---|
+| estado inicial (acc/perda do reset inicial) | 0,1221 / 358,66 | idêntico |
+| primeira rodada com Δacc ≠ 0 | — | **rodada 1** |
+| resets extras | **1, na rodada 421** | 0 |
+| primária (mediana 401–500) | **88,3%** | 96,9% |
+| secundária (média 1–500) | 90,4% | 93,7% |
+
+- As três execuções partem do mesmo estado inicial e divergem já na rodada 1. Máx. |Δacc| = 10,3 p.p. entre a verificação e o centro refeito nas 25 primeiras rodadas; 8,4 p.p. entre a verificação e o Passo 2. Isso confirma o diagnóstico do ADENDO1: **o código oficial na GPU não é bit-reprodutível entre execuções**, e a semente fixa só a inicialização.
+- **A diferença média de 1,8 p.p. entre os dois centros vem toda da semente 100.**
+  - No Passo 2, essa semente teve um reset tardio (rodada 421) dentro da janela da métrica primária. É o mesmo "reset tardio" que tornou a H1 do Passo 2 inconclusiva.
+  - Nas outras 4 sementes, os centros diferem em −0,40, −0,09, +0,15 e +0,65 p.p. (sementes 101–104).
+- **Implicação:** a ocorrência de um reset tardio é, ela própria, aleatória entre execuções da mesma configuração. Num experimento confirmatório no código oficial, a variância relevante inclui essa loteria de resets, e não só a variação de acurácia entre sementes. Esse é o motivo de ter uma métrica com sensibilidade por AUC e de contar os resets como resultado, o que o B3.1 deve herdar.
+- **Sem efeito nas conclusões do B2.4r:** Q1 e Q2 usam o centro refeito, na mesma grade e com a mesma versão do código. Sensibilidade com o centro do Passo 2 (descritiva):
+  - Q1 continua SIM: a₅ = 0 dá −60,4 p.p. (−66,3; −54,6) e a₅ = 0,1 dá −16,7 p.p. (−26,0; −7,5) na primária.
+  - Q2 continua NÃO: a₅ = 0,25 dá +1,7 p.p. (−2,9; +6,3) na primária e +0,3 (−0,4; +1,0) na secundária; a₅ = 0,95 dá +1,4 (−3,2; +6,0) e −1,6 (−4,9; +1,6). Os IC95 contêm 0, e o Δ positivo vem só do reset da semente 100 no centro do Passo 2.
