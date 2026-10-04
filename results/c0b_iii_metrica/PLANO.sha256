@@ -1,0 +1,4 @@
+f1c00e8dec1d661786d7053d52d42bdc799b56d0198b2b5edcee27d6c68ac3a9  results/c0b_iii_metrica/PLANO.md  # congelado 2026-10-04 20:22:48 -0300, antes de qualquer run
+504bc0d2177008b9cc437843fcbeff200fa302abb1898ae8fbed7b75ec397a7d  scripts/c0b_iii_metrica.py  # código no congelamento (smoke de reprodução em andamento; resultado e eventual correção em adendo antes do disparo)
+c3a4dedba28c1cb7a8e790cf972b3e53a581359d8140096df4ab5697bdd6384e  scripts/run_grid_c0b_iii.sh  # código no congelamento
+bcd1d0499a7e356be5ea70cce31d49b36b21c8387d87e00fe441a04bfa761141  scripts/fila_cpu_d2_iii.sh  # fila da CPU: B2.8s -> D2 -> C0b-iii
