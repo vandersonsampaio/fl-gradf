@@ -2,6 +2,8 @@
 
 Pedidas pelo autor depois do RESULTADO. Análises baratas sobre o código e os dados já existentes.
 
+**Terminologia:** o oráculo-8 uniforme é um **teto de referência** (excluir os atacantes e ponderar os honestos por igual), **não um limite superior**: nada garante que outra ponderação dos honestos não o supere (por exemplo, balancear classes sob rótulos enviesados).
+
 ## 1. O código do oráculo com a máscara toda em 1 reproduz o FedAvg-10? **SIM, exatamente**
 
 - **Teste:** cópia literal do `_Oracle8` de `scripts/b27_horizonte.py::run_ceiling`, mas agregando os 10 clientes (ninguém excluído). α 0,1, sementes 72–74, mesma ressemeadura.
@@ -37,9 +39,9 @@ Os pesos por cliente só foram gravados para as 4 variantes do esqueleto. Nas c�
 | 74 | 84,99% | **89,42%** | 89,45% | 89,41% |
 
 - **Os "gaps negativos" em α ≤ 0,1 são um artefato da ponderação do oráculo, não do oráculo em si nem do aproveitamento dos atacantes.**
-  - A métrica é a **média uniforme** das acurácias nos test sets dos 10 clientes. Com dados muito desiguais, a média ponderada por tamanho de amostra favorece os clientes grandes e piora essa métrica.
+  - *(Mecanismo corrigido em 2026-10-05.)* A "média das acurácias nos test sets dos clientes" é, na prática, a acurácia no **test set global do MNIST, IID e balanceado por classe** (dividido em partes iguais, 1000 exemplos por cliente; `data/download_datasets.py`; verificado no B2.8s). Com rótulos enviesados por cliente (Dirichlet α ≤ 0,1), a ponderação por tamanho de amostra dá peso demais às classes dos clientes grandes, e o modelo agregado fica desbalanceado num teste balanceado. A ponderação uniforme entre clientes dilui esse viés.
   - Com ponderação uniforme, o oráculo-8 reproduz o `sr_bin`, que exclui os atacantes e pondera os honestos por igual, e fica ≈ no FedAvg-10.
 - **Consequências** (a decidir; nada foi recalculado):
-  - O oráculo FedAvg-8 (com ponderação por amostra), usado como teto no C0, no B2.7 e no C0b, **subestima o teto em α ≤ 0,1** em ~4,5 p.p. (α 0,1, H = 150).
+  - O oráculo FedAvg-8 (com ponderação por amostra), usado como teto no C0, no B2.7 e no C0b, **subestima o teto de referência em α ≤ 0,1** em ~4,5 p.p. (α 0,1, H = 150).
   - O critério de "espaço" do C0b contra um oráculo-8 **uniforme** pode mudar o veredito em células como `label_flipping` α 0,05 (melhor existente 85,1%). Isso pede uma sensibilidade: 30 jobs de teto com o oráculo uniforme, minutos de CPU, declarada como post hoc.
-  - A leitura do A0(a) e do C0b ("ponderar os honestos melhor que a média uniforme") deve ser corrigida para: **ponderar os honestos de forma uniforme, e não por tamanho de amostra**, é o que leva ao teto com a métrica de média sobre clientes.
+  - A leitura do A0(a) e do C0b ("ponderar os honestos melhor que a média uniforme") deve ser corrigida para: **ponderar os honestos de forma uniforme, e não por tamanho de amostra**, é o que leva ao teto, porque, sob rótulos enviesados, a ponderação por amostra desbalanceia as classes no teste global balanceado.

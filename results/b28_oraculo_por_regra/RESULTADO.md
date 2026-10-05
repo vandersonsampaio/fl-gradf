@@ -59,3 +59,10 @@ Em α = 0,5, esqueleto e oráculo por rodada ficam praticamente empatados. O P2 
 - **Guloso:** ótimo por rodada, não na trajetória (visto nos G negativos em `gaussian_noise` α ≤ 0,1).
 - **15 rodadas:** gap misturado com convergência; o B2.7 trata do horizonte.
 - **ASR** do `low_mag_backdoor` não medida.
+
+## Nota de 2026-10-05 (ponderação × robustez)
+
+- Dois dos 7 braços do oráculo por rodada (FedAvg e FedProx) ponderam por tamanho de amostra; os outros 5 e o esqueleto não.
+- Sob rótulos enviesados por cliente (α ≤ 0,1) e teste global balanceado, **a ponderação por tamanho de amostra do FedAvg padrão custa, sozinha e sem ataque, até ~4,5 p.p.** em relação à ponderação uniforme (oráculo-8, α 0,1, H = 150: 85,0% × 89,5%; FedAvg-10: 1,0–1,8 p.p.). Tabelas que comparam defesas com o FedAvg padrão (e os braços FedAvg/FedProx do B2.8 e do B2.7) devem descontar esse efeito, para não atribuir à robustez da defesa o que é só ponderação.
+- No B2.8, o oráculo escolhe a regra pela própria acurácia, a cada rodada, e por isso pode evitar FedAvg/FedProx quando a ponderação por amostra prejudica.
+- A métrica (acurácia no test set global IID; test sets dos clientes são partes iguais) **não** favorece por si a ponderação uniforme: a sensibilidade de métrica do B2.8s é vazia por construção e reproduziu o veredito (`results/b28s_sensibilidade_metrica/RESULTADO.md`).

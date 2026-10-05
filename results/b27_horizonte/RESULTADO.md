@@ -6,7 +6,7 @@
 
 ## Resposta curta
 
-**Não.** Pelo critério do plano (Δ > 0 com IC95 > 0 em ≥ 3 das 8 células), **nenhum agente se paga em nenhum horizonte**. O único sinal positivo (TD3, 1/8 células em H = 150) foi explicado pelo B2.7a/b como ruído de exploração e constante deslocada, e não como aprendizado (ver a leitura do TD3 abaixo).
+**Não.** Pelo critério do plano (Δ > 0 com IC95 > 0 em ≥ 3 das 8 células), **nenhum agente se paga em nenhum horizonte**. O único sinal positivo (TD3, 1/8 células em H = 150) foi explicado pelo B2.7a/b como fatores sem aprendizado (ruído de exploração e/ou constante deslocada, não separáveis), e não como aprendizado (ver a leitura do TD3 abaixo).
 
 | agente | referência fixa | H = 15 | H = 50 | H = 150 | Δ médio sobre as células (15 → 50 → 150) |
 |---|---|---|---|---|---|
@@ -26,10 +26,10 @@
 - **Leitura (atualizada em 2026-10-04 com o B2.7a/b, `results/b27b_td3_constante/RESULTADO.md`):** o TD3 **não** passa a usar o sinal com horizonte longo. Nas 3 células com inclinação positiva:
   - a política não depende do estado: o sd_estados de π₁₅₀ (~0,0005) é igual ao da rede inicial e ~300× menor que σ_a = 0,15;
   - o TD3 com o ator congelado (mesmo ruído, sem aprendizado) não se distingue do `td3_ref` (IC95 contém 0 nas 3 células);
-  - a constante que o próprio TD3 aprendeu reproduz o `td3_ref`;
+  - a constante que o próprio TD3 aprendeu não se distingue do `td3_ref` (IC95 largo, ±6 p.p.; isso não é equivalência);
   - **uma constante com b = 0,25 supera o TD3 em 4,4 a 6,9 p.p. nas 3 células**, com IC95 inteiro abaixo de 0.
   
-  O ganho sobre o centro vem de fatores sem aprendizado: o ruído de exploração e uma constante ligeiramente deslocada (b ≈ 0,45). **O B2.7c foi cancelado** (condição 1 não atendida). *A leitura anterior ("indício de que o TD3 passa a usar o sinal… merece confirmação") fica superada.*
+  O ganho sobre o centro vem de fatores sem aprendizado (ruído de exploração e/ou constante deslocada para b ≈ 0,45, não separáveis: o critério 1 do B2.7b falhou por pouco, e o critério 2 só mostra que não há diferença detectável). **O B2.7c foi cancelado** (condição 1 não atendida). *A leitura anterior ("indício de que o TD3 passa a usar o sinal… merece confirmação") fica superada.*
 
 **LinUCB: muito abaixo do melhor braço fixo em todos os horizontes.**
 - Δ entre −0,6 e −26,4 p.p. A diferença encolhe com H em 4 células e cresce em outras (`sign_flipping` α 0,05: −19,4 → −26,4).
@@ -51,13 +51,13 @@ Os tetos sobem com o horizonte, sobretudo o oráculo FedAvg-8 em α baixo. Valor
 | 0,1 | 85,5 → 88,5 → 89,4% | 79,0 → 82,5 → 85,0% |
 | 0,5 | 90,5 → 91,6 → 91,9% | 89,9 → 91,1 → 91,7% |
 
-- **Nota (2026-10-04):** os gaps desta seção são contra o oráculo FedAvg-8 **ponderado por tamanho de amostra**. Com α ≤ 0,1, os gaps negativos **misturam convergência e ponderação por amostra**: o oráculo-8 com ponderação uniforme fica ~4,5 p.p. acima do ponderado em α 0,1 (H = 150) e é o teto coerente com a métrica (ver `results/c0b_espaco_h150/RESULTADO.md`, seção de sensibilidade, e `VERIFICACOES.md`).
+- **Nota (2026-10-04):** os gaps desta seção são contra o oráculo FedAvg-8 **ponderado por tamanho de amostra**. Com α ≤ 0,1, os gaps negativos **misturam convergência e ponderação por amostra**: o oráculo-8 com ponderação uniforme fica ~4,5 p.p. acima do ponderado em α 0,1 (H = 150) e é o teto de referência adequado (ver `results/c0b_espaco_h150/RESULTADO.md`, seção de sensibilidade, e `VERIFICACOES.md`).
 - **O oráculo FedAvg-8 não converge em 15 rodadas com α ≤ 0,1.** Ele ganha 6,0–9,4 p.p. até H = 150. Por isso parte dos gaps negativos do C0 (métodos sob ataque acima do oráculo em 15 rodadas) é **artefato de convergência do teto**:
   - TD3 em `gaussian_noise` α 0,05: gap ao oráculo −3,2 → −1,4 p.p.
 - Em outras células o gap negativo **persiste** com o horizonte:
   - TD3 em `krum_collusion` α 0,1: −4,5 → −4,4;
   - TD3 em `sign_flipping` α 0,1: −1,2 → −2,7.
-  - Nelas, o esqueleto exclui os atacantes (A0(a): massa ≈ 0) e pondera os honestos de forma uniforme, enquanto o oráculo FedAvg-8 pondera por tamanho de amostra. Com a métrica de média uniforme sobre clientes, isso basta para superar o oráculo. (Corrigido em 2026-10-04; ver `results/c0b_espaco_h150/VERIFICACOES.md`: o oráculo por amostra subestima o teto em α ≤ 0,1.)
+  - Nelas, o esqueleto exclui os atacantes (A0(a): massa ≈ 0) e pondera os honestos de forma uniforme, enquanto o oráculo FedAvg-8 pondera por tamanho de amostra. Como a métrica é a acurácia no test set global IID e balanceado, e os rótulos são enviesados por cliente, a ponderação por amostra desbalanceia as classes, e isso basta para o esqueleto superar o oráculo (mecanismo corrigido em 2026-10-05). (Corrigido em 2026-10-04; ver `results/c0b_espaco_h150/VERIFICACOES.md`: o oráculo por amostra subestima o teto em α ≤ 0,1.)
 - **`label_flipping` α ≤ 0,1, a única região com espaço no C0, continua com gap grande em H = 150 contra o TD3 e o esqueleto de referência** (TD3: +18,0 p.p. ao oráculo em α 0,05; +10,9 em α 0,1). **Contra o melhor método existente, o espaço fecha em α 0,1 e sobra +2,8 p.p. em α 0,05** (C0b, oráculo uniforme; o melhor existente é o FLTrust).
 
 ## Verificações (`verificacao.txt`)
@@ -78,7 +78,7 @@ Os tetos sobem com o horizonte, sobretudo o oráculo FedAvg-8 em α baixo. Valor
 
 ## Implicações
 
-1. **P2:** "o aprendizado não se paga" se estende a horizontes 10× maiores (150 rodadas) para LinUCB e DQN, contra a versão fixa no mesmo espaço de ação e contra o aleatório. **O TD3 também não se paga até 150 rodadas:** o ganho sobre o centro em `label_flipping` e `low_mag_backdoor` vem de fatores sem aprendizado (ruído de exploração e constante deslocada; B2.7a/b), e a melhor constante (b = 0,25) o supera.
+1. **P2:** "o aprendizado não se paga" se estende a horizontes 10× maiores (150 rodadas) para LinUCB e DQN, contra a versão fixa no mesmo espaço de ação e contra o aleatório. **O TD3 também não se paga até 150 rodadas:** o ganho sobre o centro em `label_flipping` e `low_mag_backdoor` vem de fatores sem aprendizado (ruído de exploração e/ou constante deslocada, não separáveis; B2.7a/b), e a melhor constante (b = 0,25) o supera.
 2. **C0:** parte dos gaps negativos era convergência do teto, e parte, a ponderação por amostra do oráculo (C0b). O espaço em `label_flipping` α ≤ 0,1 persiste contra o TD3 e o esqueleto de referência. Contra o melhor existente, fecha em α 0,1 e sobra +2,8 p.p. em α 0,05 (C0b, oráculo uniforme).
 3. **Reprodutibilidade:** o DQN do GRADF v1 é não-determinístico entre runs, e o RNG global do framework depende da ordem de execução. Isso deve ser corrigido antes do GRADF-v2 (P3) e declarado como limitação dos resultados do P1.
 

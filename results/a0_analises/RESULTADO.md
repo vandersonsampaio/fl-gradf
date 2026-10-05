@@ -7,7 +7,7 @@
 
 - **Verificação:** os 48 runs reproduzem exatamente o B2.6 (máx. |Δacc| = 0). O registro de pesos não perturbou a trajetória.
 - **Regra pré-registrada:** "aproveitamento real" exige massa média ≥ 0,05 em ≥ 4 das 8 células. Resultado: **2/8 células**, tanto no `sr_only` quanto no `sr_bin` → **sem aproveitamento relevante.**
-- Em 6 células (`gaussian_noise`, `krum_collusion` e `trim_attack`, em α = 0,05 e 0,1), a massa é **0,0000–0,0001**: os atacantes são excluídos por completo. O ganho sobre o oráculo FedAvg-8 nessas células (gap negativo do C0) vem, portanto, de **como os honestos são ponderados**, não de usar os atacantes. *Precisão de 2026-10-04:* concretamente, da ponderação **uniforme** dos honestos contra a ponderação **por tamanho de amostra** do oráculo. Com a métrica de média uniforme sobre clientes, o oráculo-8 uniforme reproduz os melhores métodos (`results/c0b_espaco_h150/VERIFICACOES.md` §3; `results/c0_espaco_restante/CORRECAO_2026-10-04.md`).
+- Em 6 células (`gaussian_noise`, `krum_collusion` e `trim_attack`, em α = 0,05 e 0,1), a massa é **0,0000–0,0001**: os atacantes são excluídos por completo. O ganho sobre o oráculo FedAvg-8 nessas células (gap negativo do C0) vem, portanto, de **como os honestos são ponderados**, não de usar os atacantes. *Precisão de 2026-10-04:* concretamente, da ponderação **uniforme** dos honestos contra a ponderação **por tamanho de amostra** do oráculo. Como a métrica é a acurácia no test set global IID e balanceado, e os rótulos são enviesados por cliente, a ponderação por amostra desbalanceia as classes; o oráculo-8 uniforme reproduz os melhores métodos (mecanismo corrigido em 2026-10-05) (`results/c0b_espaco_h150/VERIFICACOES.md` §3; `results/c0_espaco_restante/CORRECAO_2026-10-04.md`).
 - As 2 exceções não são "aproveitamento" no sentido da direção 6:
   - `low_mag_backdoor` α = 0,1: massa ≈ 0,19, perto do uniforme (0,2). O S_R não separa esse ataque (AUC 0,51 no item c), então os atacantes **passam**, não são explorados.
   - `sign_flipping` α = 0,1: massa 0,06–0,07, concentrada nas rodadas 2–7 (0,08–0,29), que caem a ~0 depois da rodada 8. É um transiente de exclusão tardia.
@@ -32,6 +32,8 @@ Média sobre as 19 células válidas do B2.6, por semente (n = 10):
 - **Ganho da escolha de sinal por célula (LOSO) sobre o melhor sinal único por semente: +1,75 p.p. (IC95 +1,31 a +2,19).** É o headroom que a direção 1 do P3 disputa. É pequeno, mas tem IC inteiro acima de zero. Contra o `sr_b025` fixo, a margem cai para ~+0,8 p.p.
 - O padrão de escolha é legível: **cos_server** em `label_flipping`, `sign_flipping` e `low_mag_backdoor` (ataques que o S_R não separa); **S_R** em `gaussian_noise`, `krum_collusion` e `trim_attack` com α baixo.
 
+- *Nota de 2026-10-04:* (1) esse valor foi superado pelo C0b em H = 150: **+1,24 p.p.** sobre o melhor sinal único por semente (LOSO, IC95 +0,98 a +1,49; `results/c0b_espaco_h150/RESULTADO.md` (ii)); (2) é o teto de **escolher um sinal por célula** (o mesmo sinal para todos os clientes e rodadas), e **não limita uma combinação dos sinais por cliente**.
+
 ## (c) Concordância S_R × cos_server (preliminar: semente 42, trajetória td3)
 
 - **Spearman médio por rodada entre clientes:** de −0,36 a +0,35. Os dois sinais são **quase ortogonais**.
@@ -55,9 +57,10 @@ Mediana entre runs, estados das rodadas 401–500, σ_a = 0,0475:
 
 - **Publicado:** a política quase não se move (drift ≪ σ_a) e não depende do estado.
 - **B2.3 (lr 1e-3):** a política se move muito, satura num canto do Box até o passo ~200 e fica **ainda menos** dependente do estado (sd 0,001).
-- **B2.3b (lr 1e-4, recompensa normalizada):** o drift cresce de forma monotônica e o `sd_estados` triplica (0,0045 → 0,0134). Mesmo assim, fica a ~¼ de σ_a em 500 rodadas. É a única configuração com dependência de estado crescente, que é a limitação de horizonte já registrada no roadmap (B2.7b cortado).
+- **B2.3b (lr 1e-4, recompensa normalizada):** o drift cresce de forma monotônica e o `sd_estados` triplica (0,0045 → 0,0134). Mesmo assim, fica a ~¼ de σ_a em 500 rodadas. É a única configuração com dependência de estado crescente, que é a limitação de horizonte já registrada no roadmap (horizonte longo no código oficial: cortado).
 
 ## Decisões para o P3
 
 1. **Direção 6** (aproveitar atacantes): **sem motivação** pelo critério pré-registrado.
 2. **Direção 1** (seleção de sinal): headroom real, mas modesto (~+1,7 p.p. sobre o melhor sinal único por semente; ~+0,8 sobre o `sr_b025`). Os sinais são complementares por tipo de ataque.
+   - *Nota de 2026-10-04:* (1) esse valor foi superado pelo C0b em H = 150: **+1,24 p.p.** (LOSO, IC95 +0,98 a +1,49; `results/c0b_espaco_h150/RESULTADO.md` (ii)); (2) é o teto de **escolher um sinal por célula**, e **não limita uma combinação dos sinais por cliente**, que pode usar sinais diferentes para clientes diferentes na mesma rodada.

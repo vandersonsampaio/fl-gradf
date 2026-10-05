@@ -23,9 +23,9 @@ Critério do C0: gap ao oráculo FedAvg-8 > 2 p.p. com IC95 > 0.
   - `label_flipping` α 0,5: +20,5;
   - `low_mag_backdoor` α 0,05: +3,3;
   - `sign_flipping` α 0,05: +2,0.
-- **O oráculo FedAvg-8 (pré-registrado) subestima o teto com α ≤ 0,1** (corrigido em 2026-10-04; ver a seção de sensibilidade e `VERIFICACOES.md`).
+- **O oráculo FedAvg-8 (pré-registrado) subestima o teto de referência com α ≤ 0,1** (corrigido em 2026-10-04; ver a seção de sensibilidade e `VERIFICACOES.md`).
   - Em 13 das 19 células (todas as 6 de α 0,1), o melhor existente fica acima dele; em α 0,1 a diferença é de 3,9 a 5,6 p.p.
-  - **Causa:** o `FedAvgStrategy` do framework pondera **por tamanho de amostra** (de ~10² a ~10⁴ exemplos por cliente com α 0,1), enquanto a métrica é a **média uniforme** das acurácias nos test sets dos clientes. O oráculo com ponderação uniforme dos 8 honestos reproduz o melhor método (ex.: `sr_bin` sob `gaussian_noise` α 0,1: 89,5% contra 89,5%).
+  - **Causa:** o `FedAvgStrategy` do framework pondera **por tamanho de amostra** (de ~10² a ~10⁴ exemplos por cliente com α 0,1), enquanto a métrica é a acurácia no **test set global do MNIST, IID e balanceado por classe** (dividido em partes iguais, 1000 exemplos por cliente; `data/download_datasets.py`; verificado no B2.8s) *(mecanismo corrigido em 2026-10-05)*. Com rótulos enviesados por cliente, a ponderação por amostra desbalanceia as classes do modelo agregado. O oráculo com ponderação uniforme dos 8 honestos reproduz o melhor método (ex.: `sr_bin` sob `gaussian_noise` α 0,1: 89,5% contra 89,5%).
   - **Correção da leitura anterior:** o que leva ao teto é excluir os atacantes e **ponderar os honestos de forma uniforme**, não "ponderar os honestos melhor que a média uniforme", como estava escrito. Não é aproveitamento dos atacantes (massa ≈ 0 em 4 das 6 células de α 0,1; a exceção é `low_mag_backdoor`, `massa_atacantes_a0.1.csv`).
   - Não há bug no código do oráculo: com a máscara toda em 1, ele reproduz exatamente o FedAvg-10 (`VERIFICACOES.md` §1).
 - **Portão C0 em H = 150:**
@@ -68,14 +68,18 @@ Confirma o A0(c), que tinha 1 semente:
   - o **cos_server** separa `label_flipping` (0,81–0,98), `sign_flipping` (0,86–0,96), `trim_attack` (0,87–0,95) e `krum_collusion` (0,82–0,89);
   - **nenhum dos dois separa `low_mag_backdoor`** (AUC ≤ 0,60);
   - no `fltrust_aligned`, o cos_server é **invertido** (AUC 0,001), como esperado para um ataque desenhado contra o sinal do servidor (R5).
-- **Leitura:** um seletor não aprendido baseado na separação de cada sinal tem base empírica. O teto que ele pode capturar é o do item (ii): ~+1,2 p.p.
+- **Leitura:** um seletor não aprendido baseado na separação de cada sinal tem base empírica. O teto do item (ii) (~+1,2 p.p.) é o de **escolher um sinal por célula**. Ele **não limita uma combinação por cliente**, que usa os dois sinais com clientes diferentes na mesma rodada; essa combinação não foi medida aqui.
 
 ## Implicações
 
+**Terminologia:** o oráculo-8 uniforme é um **teto de referência** (excluir os atacantes e ponderar os honestos por igual), **não um limite superior**: nada garante que outra ponderação dos honestos não o supere (por exemplo, balancear classes sob rótulos enviesados).
+
+
 1. **P2:** com horizonte suficiente, o melhor método existente fecha o espaço restante em quase todas as células, inclusive `label_flipping` α 0,1. A exceção é `label_flipping` α 0,05: +2,8 p.p. contra o oráculo uniforme (sensibilidade). O espaço continua grande contra o AdaAggRL e o esqueleto de referência nos ataques de rótulo e backdoor (9/19 células contra o oráculo uniforme).
 2. **P3 (R1, Portão C0b):** o alvo de acurácia contra o melhor global é **estreito**: só `label_flipping` α 0,05 (~+2,8 p.p.). O diferencial principal é privacidade (os dois sinais fortes têm custo), custo computacional e robustez adaptativa (`fltrust_aligned` inverte o cos_server; `low_mag_backdoor` escapa dos dois sinais).
-3. **Teto do C0/B2.7/C0b em α ≤ 0,1:** o oráculo FedAvg-8 por amostra não deve ser usado como teto nessa métrica. Usar o oráculo uniforme, ou trocar a métrica por uma ponderada por amostra, de forma coerente, nos próximos experimentos.
-4. **Direção 1 (seleção de sinais):** headroom real, mas pequeno (+1,2 p.p.) e decrescente com o horizonte. Um seletor não aprendido deve bastar (R7).
+3. **Teto do C0/B2.7/C0b em α ≤ 0,1:** o oráculo FedAvg-8 por amostra não deve ser usado como teto. Usar o oráculo uniforme nos próximos experimentos. (Uma métrica "ponderada por amostra" não é alternativa: os test sets dos clientes têm o mesmo tamanho e são IID, então ela coincide com a atual; B2.8s.)
+4. **Nota para o P2 (ponderação × robustez):** Sob rótulos enviesados por cliente (α ≤ 0,1) e teste global balanceado, **a ponderação por tamanho de amostra do FedAvg padrão custa, sozinha e sem ataque, até ~4,5 p.p.** em relação à ponderação uniforme (oráculo-8, α 0,1, H = 150: 85,0% × 89,5%; FedAvg-10: 1,0–1,8 p.p.). Tabelas que comparam defesas com o FedAvg padrão (e os braços FedAvg/FedProx do B2.8 e do B2.7) devem descontar esse efeito, para não atribuir à robustez da defesa o que é só ponderação.
+5. **Direção 1 (seleção de sinais):** o teto de escolher **um sinal por célula** é pequeno (+1,2 p.p.) e decresce com o horizonte. Uma combinação **por cliente** não é limitada por esse teto e fica em aberto para o P3. Para a escolha por célula, um seletor não aprendido deve bastar (R7).
 
 ## Sensibilidade post hoc: tetos com ponderação uniforme (2026-10-04)
 
@@ -102,5 +106,5 @@ Declarada como post hoc em `VERIFICACOES.md` §3. Script `scripts/c0b_sensibilid
 
 - Descritivo; o melhor existente e o melhor sinal por célula são escolhidos em retrospecto (otimista para o existente, ou seja, conservador para "espaço").
 - MNIST logístico, 10 clientes, 2 bizantinos, root 100; as regras estáticas são aplicadas como no B2.7.
-- O teto pré-registrado (oráculo por amostra) subestima o teto real em α ≤ 0,1. A sensibilidade com o oráculo uniforme é post hoc, motivada por uma verificação feita depois dos resultados.
+- O teto pré-registrado (oráculo por amostra) subestima o teto de referência (oráculo uniforme) em α ≤ 0,1; o oráculo uniforme também não é limite superior (ver Terminologia). A sensibilidade com o oráculo uniforme é post hoc, motivada por uma verificação feita depois dos resultados.
 - Antes da grade houve exposição de acurácias de uma célula da semente 72 em H = 15 (declarada no ADENDO1).
