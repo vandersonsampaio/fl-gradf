@@ -1,0 +1,54 @@
+B2.8s — sensibilidade da métrica; 1890 linhas (esperado 1890)
+
+== Métrica UNIFORME (oracle_u) ==
+ alpha      attack_type melhor_esqueleto melhor_estatica    Q_pp    Q_lo    Q_hi    W_pp    W_lo   G_pp                                                        escolhas_oraculo
+  0.05   gaussian_noise            fixed    trimmed_mean -14.040 -15.597 -12.483   6.569   6.381 -7.471                                   fltrust:141, trimmed_mean:7, median:2
+  0.05   krum_collusion            fixed         fltrust -10.198 -11.855  -8.541  16.303  13.921  6.105                         fltrust:131, fedavg:10, clustering:5, fedprox:4
+  0.05   label_flipping          sr_only         fltrust   1.742  -0.011   3.495   7.041   4.960  8.783                        fltrust:108, fedavg:16, clustering:14, median:12
+  0.05 low_mag_backdoor            fixed    trimmed_mean   5.874   2.604   9.144   1.802  -1.471  7.676              fltrust:96, clustering:29, median:12, fedavg:10, fedprox:3
+  0.05    sign_flipping            fixed         fltrust  -0.829  -5.239   3.581   8.884   3.282  8.055                                    fltrust:107, clustering:34, fedavg:9
+  0.05      trim_attack            fixed         fltrust  -4.827  -7.681  -1.973  16.374  13.975 11.547                                   fltrust:101, clustering:47, fedprox:2
+  0.10   gaussian_noise          sr_only    trimmed_mean -12.833 -17.497  -8.169   3.583   3.271 -9.250 fltrust:109, trimmed_mean:32, fedprox:4, fedavg:3, clustering:1, krum:1
+  0.10   krum_collusion            fixed         fltrust  -8.950 -10.742  -7.158  21.802  19.489 12.852               fltrust:122, fedavg:17, fedprox:9, clustering:1, median:1
+  0.10   label_flipping            fixed         fltrust   9.219   3.612  14.826   8.438   3.418 17.657                         fltrust:103, clustering:20, fedavg:18, median:9
+  0.10 low_mag_backdoor          td3_ref    trimmed_mean   5.306   0.922   9.690  -3.699  -8.181  1.607        fltrust:116, clustering:13, trimmed_mean:11, fedavg:9, fedprox:1
+  0.10    sign_flipping            fixed         fltrust   1.651   1.049   2.253  18.371  16.147 20.022                            fltrust:88, clustering:41, fedavg:20, krum:1
+  0.10      trim_attack            fixed         fltrust  -0.294  -1.155   0.567  19.426  17.511 19.132                 fltrust:76, clustering:51, fedavg:19, krum:3, fedprox:1
+  0.50  fltrust_aligned            fixed    trimmed_mean  -2.028  -2.501  -1.555   0.121  -0.041 -1.907                fltrust:69, krum:46, fedavg:17, fedprox:11, clustering:7
+  0.50   gaussian_noise          sr_only    trimmed_mean  -0.154  -0.232  -0.076   0.174   0.115  0.020                        trimmed_mean:103, median:20, fltrust:16, krum:11
+  0.50   krum_collusion          sr_only    trimmed_mean  -0.507  -0.574  -0.440   1.639   1.601  1.132                clustering:54, fedavg:51, fltrust:26, krum:11, fedprox:8
+  0.50   label_flipping            fixed    trimmed_mean  11.889   7.038  16.740 -11.195 -16.051  0.694                      clustering:93, fltrust:42, krum:12, trimmed_mean:3
+  0.50 low_mag_backdoor            fixed    trimmed_mean   0.840   0.587   1.093  -0.201  -0.437  0.639                              fedavg:120, fedprox:12, krum:10, fltrust:8
+  0.50    sign_flipping            fixed            krum  -0.223  -0.471   0.025   0.678   0.561  0.455                                      clustering:84, fltrust:50, krum:16
+  0.50      trim_attack          sr_only    trimmed_mean  -0.026  -0.102   0.050   2.734   2.691  2.708                                      clustering:130, krum:11, fltrust:9
+células-alvo: 14; abaixo 7, acima 2 -> VEREDITO: A GRANULARIDADE EXPLICA
+
+== Métrica PONDERADA por tamanho do test set (oracle_w) ==
+ alpha      attack_type melhor_esqueleto melhor_estatica    Q_pp    Q_lo    Q_hi    W_pp    W_lo   G_pp                                                        escolhas_oraculo
+  0.05   gaussian_noise            fixed    trimmed_mean -14.040 -15.597 -12.483   6.569   6.381 -7.471                                   fltrust:141, trimmed_mean:7, median:2
+  0.05   krum_collusion            fixed         fltrust -10.198 -11.855  -8.541  16.303  13.921  6.105                         fltrust:131, fedavg:10, clustering:5, fedprox:4
+  0.05   label_flipping          sr_only         fltrust   1.742  -0.011   3.495   7.041   4.960  8.783                        fltrust:108, fedavg:16, clustering:14, median:12
+  0.05 low_mag_backdoor            fixed    trimmed_mean   5.874   2.604   9.144   1.802  -1.471  7.676              fltrust:96, clustering:29, median:12, fedavg:10, fedprox:3
+  0.05    sign_flipping            fixed         fltrust  -0.829  -5.239   3.581   8.884   3.282  8.055                                    fltrust:107, clustering:34, fedavg:9
+  0.05      trim_attack            fixed         fltrust  -4.827  -7.681  -1.973  16.374  13.975 11.547                                   fltrust:101, clustering:47, fedprox:2
+  0.10   gaussian_noise          sr_only    trimmed_mean -12.833 -17.497  -8.169   3.583   3.271 -9.250 fltrust:109, trimmed_mean:32, fedprox:4, fedavg:3, clustering:1, krum:1
+  0.10   krum_collusion            fixed         fltrust  -8.950 -10.742  -7.158  21.802  19.489 12.852               fltrust:122, fedavg:17, fedprox:9, clustering:1, median:1
+  0.10   label_flipping            fixed         fltrust   9.219   3.612  14.826   8.438   3.418 17.657                         fltrust:103, clustering:20, fedavg:18, median:9
+  0.10 low_mag_backdoor          td3_ref    trimmed_mean   5.306   0.922   9.690  -3.699  -8.181  1.607        fltrust:116, clustering:13, trimmed_mean:11, fedavg:9, fedprox:1
+  0.10    sign_flipping            fixed         fltrust   1.651   1.049   2.253  18.371  16.147 20.022                            fltrust:88, clustering:41, fedavg:20, krum:1
+  0.10      trim_attack            fixed         fltrust  -0.294  -1.155   0.567  19.426  17.511 19.132                 fltrust:76, clustering:51, fedavg:19, krum:3, fedprox:1
+  0.50  fltrust_aligned            fixed    trimmed_mean  -2.028  -2.501  -1.555   0.121  -0.041 -1.907                fltrust:69, krum:46, fedavg:17, fedprox:11, clustering:7
+  0.50   gaussian_noise          sr_only    trimmed_mean  -0.153  -0.230  -0.076   0.174   0.115  0.021                        trimmed_mean:104, median:20, fltrust:15, krum:11
+  0.50   krum_collusion          sr_only    trimmed_mean  -0.507  -0.574  -0.440   1.639   1.601  1.132                clustering:54, fedavg:51, fltrust:26, krum:11, fedprox:8
+  0.50   label_flipping            fixed    trimmed_mean  11.889   7.038  16.740 -11.195 -16.051  0.694                      clustering:93, fltrust:42, krum:12, trimmed_mean:3
+  0.50 low_mag_backdoor            fixed    trimmed_mean   0.841   0.586   1.096  -0.201  -0.437  0.640                              fedavg:122, krum:10, fedprox:10, fltrust:8
+  0.50    sign_flipping            fixed            krum  -0.223  -0.471   0.025   0.678   0.561  0.455                                      clustering:84, fltrust:50, krum:16
+  0.50      trim_attack          sr_only    trimmed_mean  -0.026  -0.102   0.050   2.734   2.691  2.708                                      clustering:130, krum:11, fltrust:9
+células-alvo: 14; abaixo 7, acima 2 -> VEREDITO: A GRANULARIDADE EXPLICA
+
+Células-alvo comuns: 14; concordância do sinal de Q: 100%
+Diferenças: 
+
+CRITÉRIO DA SENSIBILIDADE (PLANO §3): GRANULARIDADE BLINDADA (veredito igual e ≥ 75% de concordância de sinal nas células-alvo comuns)
+
+(Descritivo) veredito do B2.8 original: 8/14 células-alvo abaixo -> 'a granularidade explica'; nesta grade, métrica uniforme: A GRANULARIDADE EXPLICA
