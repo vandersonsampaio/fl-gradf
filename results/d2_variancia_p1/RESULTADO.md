@@ -38,8 +38,26 @@
 
 ## Nota de limitação para o P1 (pronta para a revisão)
 
-> Os resultados do GRADF por célula (Tabela 3) têm variância de execução não reportada: o seletor DQN é não-determinístico entre execuções com a mesma semente (SD médio de 9,3 p.p. por célula; amplitude de até 63 p.p.). A comparação agregada da Tabela 4 é robusta a essa variância. Em três sementes e quatro execuções, a diferença GRADF − Random permaneceu negativa em todas as combinações, com desvio entre execuções (1,8 p.p.) menor que a metade do efeito publicado (−4,2 p.p.) e menor que a variação entre sementes (3,4 p.p.). FedStrategist, Random e Oracle variam ≤ 2,5 p.p. por célula; o AdaAggRL é determinístico.
+> Os resultados do GRADF por célula (Tabela 3) têm variância de execução não reportada: o seletor DQN é não-determinístico entre execuções com a mesma semente (SD médio de 9,3 p.p. por célula; amplitude de até 63 p.p.). A comparação agregada da Tabela 4 é robusta a essa variância: em três sementes e quatro execuções, a diferença GRADF − Random permaneceu negativa em todas as combinações. Como cada semente do P1 corresponde a uma execução, a variância de execução já está contida na variação entre sementes usada nos testes da Tabela 4; os testes permanecem válidos, apenas mais ruidosos que o necessário. FedStrategist, Random e Oracle variam ≤ 2,5 p.p. por célula; o AdaAggRL é determinístico.
 
-## Pendente
+**O que sustenta a conclusão** é o **sinal negativo de GRADF − Random em todas as 12 combinações**. A razão SD/efeito é secundária e, no GRADF, tem folga pequena: SD_exec de 1,77 p.p. contra o limiar de ½|Δ| = 2,1 p.p., com só 3 sementes.
 
-- **"Depois do D1":** medir de novo após tornar o DQN determinístico (D1, ainda não implementado).
+**Uso da nota:**
+- não contatar o editor agora, porque a conclusão do P1 não muda;
+- **incluir a nota na resposta à revisão, mesmo que os revisores não perguntem**;
+- no P2, a limitação do DQN no B2.7 cita estes números em vez de "alguns p.p.".
+
+## Afirmações do P1 que dependem do GRADF por célula ou por ataque (releitura de 05/10)
+
+Nenhuma frase do texto destaca o GRADF numa célula específica ("vence em X", "colapsa em Y"). Estes pontos, porém, usam valores do GRADF por célula ou por ataque e herdam a variância de execução. Pelo D2, o SD de execução esperado numa média de 10 sementes é de ~2,9 p.p. por célula (9,3/√10) e de ~1,7 p.p. por ataque (30 célula × semente):
+
+| onde | o que depende do GRADF por célula/ataque | risco | ação na revisão |
+|---|---|---|---|
+| **Tabela 3**, coluna GRADF | acurácia média por célula (10 sementes) | ~2,9 p.p. por célula de ruído de execução | nota de rodapé: valores do GRADF por célula têm variância de execução; não comparar células isoladas |
+| **Figura 2** e texto ("*In terms of headroom count, … none by GRADF*") | contagem de células com headroom capturado (critério por célula) | uma célula pode entrar ou sair da contagem por ruído de execução | trocar por "nenhuma de forma consistente", ou recalcular a contagem com médias entre execuções |
+| **Tabela 5**, colunas do GRADF, e texto ("*Neither of the two surpasses the Random-selector in any individual attack type*") | Δ, p e d por tipo de ataque | o maior Δ do GRADF por ataque é +0,014 (`sign_flipping`, p = 0,40). A afirmação é provável, mas não está garantida contra ~1,7 p.p. de ruído | manter, com a ressalva de que os valores por ataque do GRADF incluem variância de execução; os testes continuam válidos |
+| **Figura 3** (por tipo de ataque) | posição do GRADF por ataque | igual à Tabela 5 | mesma ressalva |
+
+## D2 encerrado
+
+A remedição "depois do D1" **não** é mais item do P1: ela só mostraria que o D1 funcionou. Ela vira o **critério de aceitação do D1 no P3**: *|Δ| = 0 entre execuções com a mesma semente para o GRADF v1 determinístico.*

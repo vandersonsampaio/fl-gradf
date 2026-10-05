@@ -66,7 +66,7 @@ Os tetos sobem com o horizonte, sobretudo o oráculo FedAvg-8 em α baixo. Valor
 - **Causa diagnosticada:** não é dependência do horizonte. Dois processos com configuração idêntica (15 rodadas, mesma ordem de sistemas) dão a mesma diferença de 4,15 p.p. no `dqn` e |Δ| = 0 nos demais.
 - O **DQN do GRADF é não-determinístico de um run para outro**, mesmo com a semente fixada (provavelmente estado ou operações não determinísticas do TF no treino online do seletor).
 - **Desvio declarado:** o plano (§6.1) previa refazer os horizontes como runs separados se o aninhamento falhasse. Isso não foi feito, porque a causa não é o aninhamento e runs separados não removeriam o não-determinismo.
-- **Consequência:** o `dqn` carrega ruído extra entre runs (alguns p.p.), absorvido na variância entre sementes. Os Δ do DQN (−9 a −13 p.p. em média) são muito maiores que esse ruído; a conclusão não muda.
+- **Consequência:** o `dqn` carrega ruído extra entre runs, absorvido na variância entre sementes. O D2 (`results/d2_variancia_p1/`) mediu esse ruído no código do P1: SD médio de 9,3 p.p. por célula × semente (amplitude de até 63 p.p.); no agregado de 21 células, SD de 1,8 p.p. Os Δ do DQN (−9 a −13 p.p. em média) são muito maiores que esse ruído; a conclusão não muda.
 
 **2. Reprodução em H = 15 contra os runs antigos:**
 - `td3_ref` e `fixed`: idênticos (80/80).
