@@ -1,0 +1,8 @@
+# B3.0 — código e artefatos no disparo (2026-10-04 12:29:35 -0300); regras em results/b31_medmnist_oficial/PREREGISTRO.md §3 (commit 315b880)
+91451db16a765b51197f8ec066912712cfbbb097df496b95069881ac9d0beb3b  scripts/passo2_oficial/bloodmnist_shim.py
+89a86ebef9ead31341426bc2a18cde05e6412e0eeeaf4ab094b3e9cc6e0655b8  scripts/passo2_oficial/run_b3.py
+bc727cffb530d6287dd5e66ea9798783e04dc70c7dcd58aaafa3718720b3367b  scripts/passo2_oficial/run_grid_b30.sh
+ea2648836da58842e93406dd499acd7d75099948f6e298a9b52dd960ba9f92b5  scripts/passo2_oficial/analisar_b30.py
+2253b777eff9b192964a80c6ff2b75b7055c148e720a8083458eccb4cae68451  scripts/passo2_oficial/treinar_extrator_bloodmnist.py
+3e154c823ed1a75ac125de4bc4ebc509934f783c5d2e3c42daa35403600b33a1  data/models/extract_feature_bloodmnist.pt
+062023e186f537e26b3c21ea3b2614ddfc475e8a14825dfd20663bbb7e37bddc  data/raw/medmnist/bloodmnist.npz
