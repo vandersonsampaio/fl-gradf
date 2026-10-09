@@ -1,0 +1,46 @@
+B3.1 + B3.2 — BloodMNIST, AdaAggRL oficial; ataques ['LMP', 'EB']; M = ±3.00 p.p.
+runs: 40 (esperado 40)
+
+== H1 (primaria): fixed − td3, n=20 ==
+  Δ=+0.13 p.p.  IC90=(-0.64, +0.90)  IC95=(-0.80, +1.06)  d=+0.07
+  TOST ±3.00 p.p.: p=0.0000   Wilcoxon: p=0.7012   VEREDITO: EQUIVALENTE (TOST)
+    LMP: n=10 Δ=-0.47 p.p. IC95=(-1.94, +1.00) d=-0.23 Wilcoxon p=0.6953 Holm=0.6953
+    EB: n=10 Δ=+0.73 p.p. IC95=(-0.57, +2.03) d=+0.40 Wilcoxon p=0.2754 Holm=0.5508
+
+== H1 (auc_1_500): fixed − tB3.1 + B3.2 — BloodMNIST, AdaAggRL oficial; ataques ['LMP', 'EB']; M = ±3.00 p.p.
+runs: 40 (esperado 40)
+
+== H1 (primaria): fixed − td3, n=20 ==
+  Δ=+0.13 p.p.  IC90=(-0.64, +0.90)  IC95=(-0.80, +1.06)  d=+0.07
+  TOST ±3.00 p.p.: p=0.0000   Wilcoxon: p=0.7012   VEREDITO: EQUIVALENTE (TOST)
+    LMP: n=10 Δ=-0.47 p.p. IC95=(-1.94, +1.00) d=-0.23 Wilcoxon p=0.6953 Holm=0.6953
+    EB: n=10 Δ=+0.73 p.p. IC95=(-0.57, +2.03) d=+0.40 Wilcoxon p=0.2754 Holm=0.5508
+
+== H1 (auc_1_500): fixed − td3, n=20 ==
+  Δ=+0.12 p.p.  IC90=(-0.30, +0.54)  IC95=(-0.39, +0.63)  d=+0.11
+  TOST ±3.00 p.p.: p=0.0000   Wilcoxon: p=0.4980   VEREDITO: EQUIVALENTE (TOST)
+    LMP: n=10 Δ=-0.12 p.p. IC95=(-1.10, +0.86) d=-0.08 Wilcoxon p=0.8457 Holm=0.8457
+    EB: n=10 Δ=+0.36 p.p. IC95=(-0.15, +0.87) d=+0.50 Wilcoxon p=0.1934 Holm=0.3867
+
+== H1 (auc_251_500): fixed − td3, n=20 ==
+  Δ=+0.09 p.p.  IC90=(-0.49, +0.68)  IC95=(-0.61, +0.80)  d=+0.06
+  TOST ±3.00 p.p.: p=0.0000   Wilcoxon: p=0.2943   VEREDITO: EQUIVALENTE (TOST)
+    LMP: n=10 Δ=-0.27 p.p. IC95=(-1.74, +1.20) d=-0.13 Wilcoxon p=0.8457 Holm=0.8457
+    EB: n=10 Δ=+0.45 p.p. IC95=(+0.09, +0.82) d=+0.88 Wilcoxon p=0.0273 Holm=0.0547
+
+Primária e AUCs concordam: EQUIVALENTE (TOST)
+
+Resets (contam como resultado):
+           resets_media  frac_reset_401_500  massa_atac
+condition                                              
+fixed             19.95                 1.0       0.016
+td3               21.05                 1.0       0.016
+  Wilcoxon pareado do nº de resets (descritivo): p=0.0437
+
+== B3.2 (Holm; σ_a = 0.0475) ==
+  H3 corr(ações entre ataques) > 0.9: mediana r=0.598  p=1.0000 Holm=1.0000 -> NÃO confirmada
+  H4 drift < σ_a: mediana=0.0122 máx=0.0189  p=0.0000 Holm=0.0000 -> CONFIRMADA
+  H5 S_swap < σ_a: mediana=0.0210  p=0.0000 Holm=0.0000 -> CONFIRMADA
+  descritivo: sd_estados mediana=0.0299; S_shuffle mediana=0.0177
+
+
