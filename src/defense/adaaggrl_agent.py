@@ -54,8 +54,8 @@ Implementation choices and documented deviations:
     not the paper's real performance. Kept unmodified so that floor result
     stays reproducible.
 
-  - ``PretrainedCNNFeatureExtractor`` (Passo Zero, see
-    ``references/1_roadmap_frentes_futuras.md``): the same architecture as
+  - ``PretrainedCNNFeatureExtractor`` (Step Zero; weights produced by
+    ``scripts/pretrain_adaaggrl_extractor.py``): the same architecture as
     ``src/fl/federated_learner.py::_CNNModel``, trained once as an ordinary
     classifier on the raw MNIST/CIFAR-10 test split (disjoint from the FL
     clients' data and the ``server_val`` root, so no leakage) and then
@@ -164,7 +164,7 @@ class RandomCNNFeatureExtractor:
 
 class PretrainedCNNFeatureExtractor:
     """REAL trained-then-frozen CNN feature extractor (see module docstring,
-    point 2c / Passo Zero) — replaces `RandomCNNFeatureExtractor`'s random
+    point 2c / Step Zero) — replaces `RandomCNNFeatureExtractor`'s random
     projection with actual learned image features, closing the documented
     gap between this reproduction and the AdaAggRL paper's "pre-trained
     CNN". Weights must already exist on disk (produced once by
@@ -189,8 +189,8 @@ class PretrainedCNNFeatureExtractor:
             raise FileNotFoundError(
                 f"Pretrained AdaAggRL feature extractor weights not found at '{weights_path}'. "
                 "Run `python -m scripts.pretrain_adaaggrl_extractor "
-                f"--dataset {dataset}` first (Passo Zero, "
-                "references/1_roadmap_frentes_futuras.md)."
+                f"--dataset {dataset}` first (Step Zero, "
+                "scripts/pretrain_adaaggrl_extractor.py)."
             )
 
         classifier = keras.Sequential([

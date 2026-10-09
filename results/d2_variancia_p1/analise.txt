@@ -1,7 +1,7 @@
-D2 — variância de execução do P1 (tag p1.0.0; sementes 42–44; 3 repetições + execução original)
-linhas: 1260 (esperado 1260)
+D2 — P1 run-to-run variance (tag p1.0.0; seeds 42–44; 3 repetitions + original execution)
+rows: 1260 (expected 1260)
 
-SD_exec por sistema (entre as 4 execuções, por célula × semente; média e máximo):
+SD_exec per system (across the 4 executions, per cell × seed; mean and max):
                        std         amplitude        
                       mean     max      mean     max
 system                                              
@@ -11,7 +11,7 @@ GRADF               0.0932  0.3104    0.1940  0.6295
 Oracle (decoupled)  0.0003  0.0118    0.0006  0.0230
 Random              0.0001  0.0022    0.0002  0.0048
 
-Δ agregado (sistema − Random, média das 21 células) por execução × semente:
+Aggregate Δ (system − Random, mean of the 21 cells) per execution × seed:
  seed  rep   GRADF  FedStrategist  AdaAggRL
    42    0 -0.0882        -0.0604    0.0499
    42    1 -0.0793        -0.0604    0.0497
@@ -26,10 +26,10 @@ Random              0.0001  0.0022    0.0002  0.0048
    44    2 -0.0287        -0.0506    0.0490
    44    3 -0.0335        -0.0503    0.0490
 
-SD_exec do Δ agregado (média nas 3 sementes): GRADF 0.0177, FedStrategist 0.0005, AdaAggRL 0.0001
-SD entre as 10 sementes do P1 original:      GRADF 0.0335, FedStrategist 0.0184, AdaAggRL 0.0271
-Δ publicado (Tabela 4):                       GRADF -0.042, FedStrategist -0.044, AdaAggRL +0.030
+SD_exec of the aggregate Δ (mean over the 3 seeds): GRADF 0.0177, FedStrategist 0.0005, AdaAggRL 0.0001
+SD across the 10 seeds of the original P1:   GRADF 0.0335, FedStrategist 0.0184, AdaAggRL 0.0271
+Published Δ (Table 4):                       GRADF -0.042, FedStrategist -0.044, AdaAggRL +0.030
 
-Sinais em todas as 12 combinações (GRADF<0, FedStrat<0, AdaAggRL>0): True
-SD_exec < ½|Δ publicado| nos três: True
-REGRA DE LEITURA (PLANO §4): CONCLUSÃO DO P1 ROBUSTA À VARIÂNCIA DE EXECUÇÃO
+Signs in all 12 combinations (GRADF<0, FedStrat<0, AdaAggRL>0): True
+SD_exec < ½|published Δ| for all three: True
+READING RULE (PLANO §4): P1 CONCLUSION ROBUST TO RUN-TO-RUN VARIANCE

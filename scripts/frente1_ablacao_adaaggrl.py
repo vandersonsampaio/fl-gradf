@@ -1,42 +1,41 @@
 """
-Frente 1 — ablação do AdaAggRL (segue `references/frente1_v0_sanidade_extrator.md`
-§4/§5 e o pré-registro em `results/frente1_ablacao_adaaggrl/PREREGISTRO.md`).
-Não altera nada em `src/`.
+Front 1 — AdaAggRL ablation (pre-registered in `results/frente1_ablacao_adaaggrl/PREREGISTRO.md`).
+Changes nothing in `src/`.
 
-`AdaAggRLAblationLearner` replica `AdaAggRLGridLearner._run_round`
-(src/experiments/exp10_selector_comparison.py) linha a linha, com `mode`:
+`AdaAggRLAblationLearner` replicates `AdaAggRLGridLearner._run_round`
+(src/experiments/exp10_selector_comparison.py) line by line, with `mode`:
 
-  td3          idêntico ao AdaAggRL de referência (TD3 escolhe A=(a,b)).
-  fixed        mesmo detector (inversão + 4 cues MMD, extrator random), mas
-               ação FIXA a=[.5,.5,.5,.5], b=.5 e sem TD3 (nem select, nem train).
-  sr_only      só o S_R da inversão de gradiente: a=[1,0,0,0], b=.5.
-               Pula extrator/MMD.
-  cosmed_only  sem inversão: o score por cliente é o cosseno do update até a
-               mediana coordenada-a-coordenada dos updates da rodada;
+  td3          identical to the reference AdaAggRL (TD3 chooses A=(a,b)).
+  fixed        same detector (inversion + 4 MMD cues, random extractor), but
+               FIXED action a=[.5,.5,.5,.5], b=.5 and no TD3 (neither select nor train).
+  sr_only      only S_R from gradient inversion: a=[1,0,0,0], b=.5.
+               Skips the extractor/MMD.
+  cosmed_only  no inversion: the per-client score is the cosine of the update to the
+               coordinate-wise median of the round's updates;
                a=[1,0,0,0], b=.5.
-  cosserver_only  EXPLORATÓRIO (escolhido após ver as AUCs do passo 1): score =
-               cosseno do update até o update do servidor no root (estilo
-               FLTrust), calculado com save/restore do np.random; a=[1,0,0,0], b=.5.
+  cosserver_only  EXPLORATORY (chosen after seeing the step-1 AUCs): score =
+               cosine of the update to the server update on the root (FLTrust
+               style), computed with save/restore of np.random; a=[1,0,0,0], b=.5.
 
-Nos 4 modos o resto do mecanismo é idêntico: min-max de w_hat, limiar
-delta=max(w_tilde)*b, contador h e penalidade lam**h (lam=2), agregação
-ponderada dos parâmetros completos theta_k = global + update_k.
+In the 4 modes the rest of the mechanism is identical: min-max of w_hat, threshold
+delta=max(w_tilde)*b, counter h and penalty lam**h (lam=2), weighted
+aggregation of the full parameters theta_k = global + update_k.
 
-O extrator `RandomCNNFeatureExtractor` é SEMPRE construído (mesmo quando não
-usado), porque seu __init__ chama keras.utils.set_random_seed(seed), que
-re-semeia o np.random global — omiti-lo mudaria o treino local e quebraria o
-pareamento por semente com a referência.
+The `RandomCNNFeatureExtractor` is ALWAYS built (even when not
+used), because its __init__ calls keras.utils.set_random_seed(seed), which
+re-seeds the global np.random — omitting it would change local training and break the
+pairing by seed with the reference.
 
-`record=True` grava, por rodada x cliente: is_byz, S_R e cues (se calculados)
-e detectores triviais — norma do update, cosseno e distância L2 até a
-mediana, cosseno até o update do servidor (root, estilo FLTrust; calculado
-com save/restore do estado do np.random para não perturbar a trajetória).
+`record=True` records, per round x client: is_byz, S_R and cues (if computed)
+and trivial detectors — update norm, cosine and L2 distance to the
+median, cosine to the server update (root, FLTrust style; computed
+with save/restore of the np.random state so as not to perturb the trajectory).
 
-Uso:
-  # passo 1: AUC dos triviais ao longo da trajetória de referência
+Usage:
+  # step 1: AUC of the trivial detectors along the reference trajectory
   python -m scripts.frente1_ablacao_adaaggrl run --mode td3 --record --seeds 42 --attack_types sign_flipping
   python -m scripts.frente1_ablacao_adaaggrl auc
-  # passo 3: grade
+  # step 3: grid
   python -m scripts.frente1_ablacao_adaaggrl run --mode fixed --seeds 42
   python -m scripts.frente1_ablacao_adaaggrl analyze
 """
@@ -71,7 +70,7 @@ def build_learner_cls():
 
     class AdaAggRLAblationLearner(AdaAggRLGridLearner):
         def __init__(self, *args, mode: str = "td3", record: bool = False, **kwargs):
-            kwargs["feature_extractor"] = "random"  # sempre construído — ver docstring do módulo
+            kwargs["feature_extractor"] = "random"  # always built — see the module docstring
             super().__init__(*args, **kwargs)
             if mode not in MODES:
                 raise ValueError(mode)
@@ -222,10 +221,10 @@ def run(mode: str, seeds: List[int], alphas: List[float], attack_types: Optional
 
 
 # ---------------------------------------------------------------------------
-# Passo 1 — AUC dos detectores
+# Step 1 — detector AUC
 # ---------------------------------------------------------------------------
 
-# direção pré-declarada: +1 = bizantino tem valor MAIOR; -1 = MENOR
+# pre-declared direction: +1 = Byzantine has a HIGHER value; -1 = LOWER
 DETECTORS = {"S_R": -1, "S_cl": -1, "S_cg": -1, "S_lg": -1,
              "norm": +1, "cos_median": -1, "l2_median": +1, "cos_server": -1}
 
@@ -251,16 +250,16 @@ def auc() -> None:
     piv = df.pivot_table(index=["attack_type", "alpha"], columns="detector", values="auc")
     piv = piv[list(DETECTORS)]
     pd.set_option("display.width", 200)
-    print("=== AUC por célula (direção pré-declarada; rodadas >= 2; seed 42) ===")
+    print("=== AUC per cell (pre-declared direction; rounds >= 2; seed 42) ===")
     print(piv.round(2).to_string())
-    print("\n=== média sobre as células ===")
+    print("\n=== mean over the cells ===")
     print(piv.mean().round(3).to_string())
-    print("\n=== nº de células com AUC >= 0.70 ===")
+    print("\n=== number of cells with AUC >= 0.70 ===")
     print((piv >= 0.70).sum().to_string())
 
 
 # ---------------------------------------------------------------------------
-# Passo 3 — análise pré-registrada
+# Step 3 — pre-registered analysis
 # ---------------------------------------------------------------------------
 
 MARGIN = 0.01
@@ -283,8 +282,8 @@ def _load_random() -> pd.DataFrame:
 
 
 def _tost_paired(diff: np.ndarray, margin: float):
-    """TOST pareado (t) sobre diferenças por semente: equivalente se o IC 90%
-    da média estiver dentro de ±margin. Retorna (p_tost, ic90_lo, ic90_hi)."""
+    """Paired TOST (t) on per-seed differences: equivalent if the 90% CI
+    of the mean lies within ±margin. Returns (p_tost, ic90_lo, ic90_hi)."""
     from scipy import stats
     n = len(diff)
     m, se = diff.mean(), diff.std(ddof=1) / np.sqrt(n)
@@ -321,8 +320,8 @@ def _cohen_d(diff: np.ndarray) -> float:
 
 
 def _headroom_count(sys_df: pd.DataFrame, fixed_raw: pd.DataFrame) -> int:
-    """Mesmo critério de exp9/Passo Zero: melhor regra fixa por célula (maior
-    média), headroom se (média_sistema - média_melhor_fixa) > std_sistema + std_fixa."""
+    """Same criterion as exp9/Step Zero: best fixed rule per cell (highest
+    mean), headroom if (system_mean - best_fixed_mean) > system_std + fixed_std."""
     fx = fixed_raw.groupby(["alpha", "attack_type", "strategy"])["accuracy"].agg(["mean", "std"]).reset_index()
     best = fx.loc[fx.groupby(["alpha", "attack_type"])["mean"].idxmax()]
     s = sys_df.groupby(["alpha", "attack_type"])["accuracy"].agg(["mean", "std"]).reset_index()
@@ -342,16 +341,16 @@ def analyze() -> None:
 
     lines = []
     summ = allsys.groupby("mode")["accuracy"].mean()
-    lines.append("=== acurácia média (210 células×seed) ===\n" + summ.round(4).to_string())
+    lines.append("=== mean accuracy (210 cells×seed) ===\n" + summ.round(4).to_string())
     hr = {m: _headroom_count(allsys[allsys["mode"] == m], fixed_raw) for m in allsys["mode"].unique()}
-    lines.append("\n=== células com headroom sobre a melhor regra fixa (de 21) ===\n" +
+    lines.append("\n=== cells with headroom over the best fixed rule (out of 21) ===\n" +
                  "\n".join(f"{k}: {v}" for k, v in hr.items()))
 
     pooled_rows, per_attack_rows = [], []
     comparisons = [("fixed", "td3_ref"), ("sr_only", "td3_ref"), ("cosmed_only", "td3_ref"),
                    ("cosmed_only", "sr_only"), ("fixed", "random"), ("sr_only", "random"),
                    ("cosmed_only", "random"),
-                   # exploratórias
+                   # exploratory
                    ("cosserver_only", "td3_ref"), ("cosserver_only", "sr_only"),
                    ("cosserver_only", "random")]
     wide = allsys.pivot_table(index=["alpha", "attack_type", "seed"], columns="mode", values="accuracy")
@@ -388,9 +387,9 @@ def analyze() -> None:
     pooled.to_csv(f"{OUT}/grade_pooled.csv", index=False)
     per_attack.to_csv(f"{OUT}/grade_por_ataque.csv", index=False)
     pd.set_option("display.width", 220)
-    lines.append("\n=== pooled (média por semente sobre as 21 células; TOST ±0.01 + Wilcoxon) ===\n" +
+    lines.append("\n=== pooled (mean per seed over the 21 cells; TOST ±0.01 + Wilcoxon) ===\n" +
                  pooled.round(4).to_string(index=False))
-    lines.append("\n=== por ataque (média por semente sobre 3 alphas; Holm sobre 7) ===\n" +
+    lines.append("\n=== per attack (mean per seed over 3 alphas; Holm over 7) ===\n" +
                  per_attack.round(4).to_string(index=False))
     text = "\n".join(lines)
     with open(f"{OUT}/grade_analise.txt", "w") as fh:

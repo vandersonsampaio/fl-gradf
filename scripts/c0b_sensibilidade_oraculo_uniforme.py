@@ -1,18 +1,18 @@
 """
-C0b — sensibilidade POST HOC (declarada em results/c0b_espaco_h150/VERIFICACOES.md §3):
-tetos com ponderação UNIFORME em vez de por tamanho de amostra.
+C0b — POST HOC sensitivity (declared in results/c0b_espaco_h150/VERIFICACOES.md §3):
+ceilings with UNIFORM weighting instead of sample-size weighting.
 
-Motivo: o `FedAvgStrategy` do framework pondera por tamanho de amostra; com α ≤ 0,1
-os tamanhos variam de ~10² a ~10⁴ por cliente e a métrica do C0/C0b é a média
-UNIFORME das acurácias nos test sets dos 10 clientes. O oráculo FedAvg-8 por amostra
-subestima o teto (~4,5 p.p. em α 0,1). Aqui:
-  teto_oraculo8_uniforme  FedAvg só nos 8 honestos, pesos iguais
-  teto_fedavg10_uniforme  FedAvg nos 10, sem ataque, pesos iguais
-Mesmo código do run_ceiling do B2.7/C0b (ressemeadura igual), só a ponderação muda
-(sample_sizes ignorado no FedAvgStrategy, neste processo). Sementes 72-81, α {0,05; 0,1; 0,5},
-H 15/50/150. Depois reaplica o critério do C0b (gap > 2 p.p., IC95 > 0) contra esses tetos.
+Motivation: the framework's `FedAvgStrategy` weights by sample size; with α ≤ 0.1
+the sizes range from ~10² to ~10⁴ per client, and the C0/C0b metric is the UNIFORM
+mean of the accuracies on the 10 clients' test sets. The sample-weighted FedAvg-8 oracle
+underestimates the ceiling (~4.5 p.p. at α 0.1). Here:
+  teto_oraculo8_uniforme  FedAvg on the 8 honest clients only, equal weights
+  teto_fedavg10_uniforme  FedAvg on all 10, no attack, equal weights
+Same code as the B2.7/C0b run_ceiling (same reseeding); only the weighting changes
+(sample_sizes ignored in FedAvgStrategy, in this process). Seeds 72-81, α {0.05; 0.1; 0.5},
+H 15/50/150. Then reapplies the C0b criterion (gap > 2 p.p., CI95 > 0) against these ceilings.
 
-Uso: CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.c0b_sensibilidade_oraculo_uniforme teto --alpha 0.1 --seed 72
+Usage: CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.c0b_sensibilidade_oraculo_uniforme teto --alpha 0.1 --seed 72
      venv/bin/python -m scripts.c0b_sensibilidade_oraculo_uniforme analisar
 """
 
@@ -50,7 +50,7 @@ def run_teto(alpha, seed, n_rounds=150):
         class _Ceil(AttackedFederatedLearner):
             def _run_round(self, round_num, ps, root_data):
                 rr = super()._run_round(round_num, ps, root_data)
-                if round_num in HORIZONS:  # round_num = nº de rodadas concluídas
+                if round_num in HORIZONS:  # round_num = number of completed rounds
                     m = self._make_model(parts[0].n_features)
                     m.set_params(self._global_params)
                     acc[round_num] = float(np.mean([m.accuracy(p.X_test, p.y_test) for p in parts]))
@@ -61,7 +61,7 @@ def run_teto(alpha, seed, n_rounds=150):
               aggregation="fedavg").train(clients, root_data=root, verbose=False)
         rows += [{"alpha": alpha, "seed": seed, "system": name, "H": H, "accuracy": a} for H, a in acc.items()]
     pd.DataFrame(rows).to_csv(path, index=False)
-    print(f"FIM {path}", flush=True)
+    print(f"END {path}", flush=True)
     return path
 
 
@@ -98,17 +98,17 @@ def analisar():
     res.to_csv(f"{OUT}/espaco_restante_oraculo_uniforme.csv", index=False)
     pd.set_option("display.width", 250)
     tab = pd.concat([tet, tet_old]).groupby(["alpha", "system", "H"])["accuracy"].mean().unstack("H")
-    lines = ["C0b — sensibilidade POST HOC: tetos com ponderação uniforme (VERIFICACOES.md §3)", "",
-             "Tetos por α × H (média de 10 sementes):", (100 * tab).round(2).to_string(), ""]
+    lines = ["C0b — POST HOC sensitivity: ceilings with uniform weighting (VERIFICACOES.md §3)", "",
+             "Ceilings per α × H (mean of 10 seeds):", (100 * tab).round(2).to_string(), ""]
     for H in HORIZONS:
         r = res[res.H == H]
-        lines.append(f"H={H:3d}: células com espaço contra o MELHOR EXISTENTE (oráculo-8 UNIFORME, gap > {THRESH_PP} p.p., "
-                     f"IC95 > 0) = {int(r.espaco_global_or8u.sum())}/{len(r)}; contra o esqueleto de referência = "
+        lines.append(f"H={H:3d}: cells with headroom vs. the BEST EXISTING (UNIFORM oracle-8, gap > {THRESH_PP} p.p., "
+                     f"CI95 > 0) = {int(r.espaco_global_or8u.sum())}/{len(r)}; vs. the reference skeleton = "
                      f"{int(r.espaco_esqref_or8u.sum())}/{len(r)}")
     cols = ["alpha", "attack_type", "melhor_existente", "acc_melhor", "gap_global_teto_oraculo8_uniforme_pp",
             "gap_global_teto_oraculo8_uniforme_lo", "gap_global_teto_oraculo8_uniforme_hi", "espaco_global_or8u",
             "gap_global_teto_fedavg10_uniforme_pp", "gap_esqueleto_ref_teto_oraculo8_uniforme_pp", "espaco_esqref_or8u"]
-    lines += ["", "Mapa em H = 150:", res[res.H == 150][cols].round(3).to_string(index=False)]
+    lines += ["", "Map at H = 150:", res[res.H == 150][cols].round(3).to_string(index=False)]
     text = "\n".join(lines) + "\n"
     open(f"{OUT}/analise.txt", "w").write(text)
     print(text)

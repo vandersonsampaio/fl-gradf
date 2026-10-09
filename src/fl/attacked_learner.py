@@ -117,8 +117,8 @@ class InformedAttackedFederatedLearner(AttackedFederatedLearner):
     2020, "Local Model Poisoning Attacks against Byzantine-robust Federated
     Learning") used specifically by the informed attack types in
     `AttackSimulator.INFORMED_ATTACK_TYPES` (`fltrust_aligned`,
-    `trim_attack`, `krum_collusion`, `low_mag_backdoor`) — see
-    `references/estrategia_B_recriar_headroom.md`.
+    `trim_attack`, `krum_collusion`, `low_mag_backdoor`) — introduced to
+    recreate headroom for adaptive defenses (severe non-IID + informed attacks).
 
     Deliberately stronger (worst-case) than `AttackedFederatedLearner` (a
     blind attacker that doesn't see other clients' updates) — used only for
@@ -255,8 +255,8 @@ class RotatingAttackedFederatedLearner(AttackedFederatedLearner):
     `exp4_adaptive.py`, which override `_run_round` more elaborately but
     reuse `attack_for_round`) and to generate selector pretraining
     experiences UNDER rotation (`generate_rotating_selector_experiences`),
-    reducing the mismatch between training (which previously only used
-    single, fixed-attack episodes) and the real deployment tested in Gate 1
+    reducing the mismatch between training on single, fixed-attack episodes
+    and the real deployment tested in Gate 1
     (`exp4_adaptive.py`)."""
 
     def __init__(

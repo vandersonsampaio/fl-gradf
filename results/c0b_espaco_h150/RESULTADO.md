@@ -1,110 +1,109 @@
-# Resultado — C0b: espaço restante em H = 150 contra o melhor método existente
+# Result — C0b: remaining headroom at H = 150 against the best existing method
 
-**Data:** 2026-10-04.
-- Plano: `PLANO.md`, commit `d676ec3`.
-- Adendo 1 (código, registro por cliente, verificações): commit `183a585`.
-- Grade: 190 jobs de célula (19 células × sementes 72–81 × 8 sistemas, horizontes 15/50/150 aninhados) + 30 tetos, de 03/10 09h25 a 04/10 16h58. Sem falhas.
-- Saídas: `analise.txt`, `espaco_restante.csv`, `grade_raw.csv`, `tetos_raw.csv`, `concordancia_sinais.csv`, `raw/` (inclui `scores_*.csv.gz`, com S_R, cos_server, máscara e peso por cliente e rodada).
+**Date:** 2026-10-04.
+- Plan: `PLANO.md` (English translation in `PLANO.en.md`), commit `d676ec3`.
+- Addendum 1 (code, per-client logging, checks; `ADENDO1.en.md`): commit `183a585`.
+- Grid: 190 cell jobs (19 cells × seeds 72–81 × 8 systems, nested horizons 15/50/150) + 30 ceilings, from 10/03 09:25 to 10/04 16:58. No failures.
+- Outputs: `analise.txt`, `espaco_restante.csv`, `grade_raw.csv`, `tetos_raw.csv`, `concordancia_sinais.csv`, `raw/` (includes `scores_*.csv.gz`, with S_R, cos_server, mask and weight per client and round).
 
-## (i) Mapa de espaço restante: **0/19 células com espaço contra o melhor existente, em qualquer horizonte**
+## (i) Remaining-headroom map: **0/19 cells with headroom against the best existing method, at every horizon**
 
-Critério do C0: gap ao oráculo FedAvg-8 > 2 p.p. com IC95 > 0.
+C0 criterion: gap to the FedAvg-8 oracle > 2 p.p. with CI95 > 0.
 
-| horizonte | contra o melhor existente (8 sistemas) | contra o esqueleto de referência (`sr_only`) |
+| horizon | against the best existing (8 systems) | against the reference skeleton (`sr_only`) |
 |---|---|---|
 | H = 15 | **0/19** | 6/19 |
 | H = 50 | **0/19** | 5/19 |
 | H = 150 | **0/19** | 5/19 |
 
-- **Nenhuma célula tem espaço contra o melhor método existente.** A única que chega perto é `label_flipping` α 0,05: o melhor é o FLTrust (85,1%), a +1,3 p.p. do oráculo (IC95 +0,7 a +1,9), abaixo do limiar de 2 p.p.
-- **Contra o esqueleto de referência, o espaço é grande** em 5 células, todas de rótulo ou backdoor:
-  - `label_flipping` α 0,05: +17,2 p.p.;
-  - `label_flipping` α 0,1: +5,9;
-  - `label_flipping` α 0,5: +20,5;
-  - `low_mag_backdoor` α 0,05: +3,3;
-  - `sign_flipping` α 0,05: +2,0.
-- **O oráculo FedAvg-8 (pré-registrado) subestima o teto de referência com α ≤ 0,1** (corrigido em 2026-10-04; ver a seção de sensibilidade e `VERIFICACOES.md`).
-  - Em 13 das 19 células (todas as 6 de α 0,1), o melhor existente fica acima dele; em α 0,1 a diferença é de 3,9 a 5,6 p.p.
-  - **Causa:** o `FedAvgStrategy` do framework pondera **por tamanho de amostra** (de ~10² a ~10⁴ exemplos por cliente com α 0,1), enquanto a métrica é a acurácia no **test set global do MNIST, IID e balanceado por classe** (dividido em partes iguais, 1000 exemplos por cliente; `data/download_datasets.py`; verificado no B2.8s) *(mecanismo corrigido em 2026-10-05)*. Com rótulos enviesados por cliente, a ponderação por amostra desbalanceia as classes do modelo agregado. O oráculo com ponderação uniforme dos 8 honestos reproduz o melhor método (ex.: `sr_bin` sob `gaussian_noise` α 0,1: 89,5% contra 89,5%).
-  - **Correção da leitura anterior:** o que leva ao teto é excluir os atacantes e **ponderar os honestos de forma uniforme**, não "ponderar os honestos melhor que a média uniforme", como estava escrito. Não é aproveitamento dos atacantes (massa ≈ 0 em 4 das 6 células de α 0,1; a exceção é `low_mag_backdoor`, `massa_atacantes_a0.1.csv`).
-  - Não há bug no código do oráculo: com a máscara toda em 1, ele reproduz exatamente o FedAvg-10 (`VERIFICACOES.md` §1).
-- **Portão C0 em H = 150:**
-  - pelo critério pré-registrado (oráculo por amostra), 0/19;
-  - pela sensibilidade com o oráculo uniforme, **1/19: `label_flipping` α 0,05**, com espaço de +2,8 p.p. (IC95 +2,2 a +3,4) contra o FLTrust.
-  - Fora essa célula, não sobra espaço contra o melhor existente. O diferencial do P3 fica em R3/R4/R5 (privacidade, custo, robustez adaptativa), com um alvo estreito de R1 em `label_flipping` α 0,05.
+- **No cell has headroom against the best existing method.** The only one that comes close is `label_flipping` α 0.05: the best is FLTrust (85.1%), +1.3 p.p. from the oracle (CI95 +0.7 to +1.9), below the 2 p.p. threshold.
+- **Against the reference skeleton, the headroom is large** in 5 cells, all label or backdoor attacks:
+  - `label_flipping` α 0.05: +17.2 p.p.;
+  - `label_flipping` α 0.1: +5.9;
+  - `label_flipping` α 0.5: +20.5;
+  - `low_mag_backdoor` α 0.05: +3.3;
+  - `sign_flipping` α 0.05: +2.0.
+- **The (pre-registered) FedAvg-8 oracle underestimates the reference ceiling at α ≤ 0.1** (corrected on 2026-10-04; see the sensitivity section and `VERIFICACOES.md`).
+  - In 13 of the 19 cells (all 6 at α 0.1), the best existing method is above it; at α 0.1 the difference is 3.9 to 5.6 p.p.
+  - **Cause:** the framework's `FedAvgStrategy` weights **by sample size** (from ~10² to ~10⁴ examples per client at α 0.1), while the metric is the accuracy on the **global MNIST test set, IID and class-balanced** (split into equal parts, 1000 examples per client; `data/download_datasets.py`; checked in B2.8s) *(mechanism corrected on 2026-10-05)*. With per-client label skew, sample-size weighting unbalances the classes of the aggregated model. The oracle with uniform weighting of the 8 honest clients reproduces the best method (e.g. `sr_bin` under `gaussian_noise` α 0.1: 89.5% vs. 89.5%).
+  - **Correction of the earlier reading:** what leads to the ceiling is excluding the attackers and **weighting the honest clients uniformly**, not "weighting the honest clients better than the uniform mean", as was written. It is not exploitation of the attackers (mass ≈ 0 in 4 of the 6 α 0.1 cells; the exception is `low_mag_backdoor`, `massa_atacantes_a0.1.csv`).
+  - There is no bug in the oracle code: with an all-ones mask, it exactly reproduces FedAvg-10 (`VERIFICACOES.md` §1).
+- **Gate C0 at H = 150:**
+  - by the pre-registered criterion (sample-weighted oracle), 0/19;
+  - by the sensitivity analysis with the uniform oracle, **1/19: `label_flipping` α 0.05**, with headroom of +2.8 p.p. (CI95 +2.2 to +3.4) against FLTrust.
+  - Apart from that cell, no headroom remains against the best existing method. P3's differentiator lies in R3/R4/R5 (privacy, cost, adaptive robustness), with a narrow R1 target on `label_flipping` α 0.05.
 
-## (iii) Melhor variante do esqueleto contra a melhor regra estática (H = 150)
+## (iii) Best skeleton variant vs. best static rule (H = 150)
 
-- **A variante vence em 12 das 19 células, com IC95 > 0,** por +0,14 a +2,7 p.p. São sobretudo os ataques de modelo (`gaussian_noise`, `krum_collusion`, `trim_attack` e `low_mag_backdoor` α 0,1). A melhor variante costuma ser `sr_b025` ou `sr_bin`.
-- **A regra vence em 1:** `trim_attack` α 0,1, Clustering, por −0,12 p.p.
-- **Empate (IC95 contém 0) em 6:** `label_flipping` α 0,05 e 0,1, `sign_flipping` α 0,05 e 0,5, `low_mag_backdoor` α 0,05 e `fltrust_aligned` α 0,5. Nos ataques de rótulo, a melhor regra (FLTrust ou Clustering) está à frente na média, sem significância.
-- **Leitura:** a granularidade por cliente, com a variante ajustada (limiar b = 0,25 ou máscara binária), é o melhor existente na maioria das células, mas por margens pequenas (≤ 2,7 p.p.). O FLTrust é praticamente igual ao melhor sinal na média geral: 87,35% contra 87,55% do `cosserver_only`.
+- **The variant wins in 12 of the 19 cells, with CI95 > 0,** by +0.14 to +2.7 p.p. These are mostly the model attacks (`gaussian_noise`, `krum_collusion`, `trim_attack` and `low_mag_backdoor` α 0.1). The best variant is usually `sr_b025` or `sr_bin`.
+- **The rule wins in 1:** `trim_attack` α 0.1, Clustering, by −0.12 p.p.
+- **Tie (CI95 contains 0) in 6:** `label_flipping` α 0.05 and 0.1, `sign_flipping` α 0.05 and 0.5, `low_mag_backdoor` α 0.05 and `fltrust_aligned` α 0.5. On the label attacks, the best rule (FLTrust or Clustering) is ahead on average, without significance.
+- **Reading:** per-client granularity, with the tuned variant (threshold b = 0.25 or binary mask), is the best existing method in most cells, but by small margins (≤ 2.7 p.p.). FLTrust is practically equal to the best signal on the overall mean: 87.35% vs. 87.55% for `cosserver_only`.
 
-## (ii) Teto da seleção de sinais em H = 150
+## (ii) Signal-selection ceiling at H = 150
 
-Média sobre as 19 células, por semente (n = 10), em %:
+Mean over the 19 cells, per seed (n = 10), in %:
 
-| estimativa | acurácia | IC95 |
+| estimate | accuracy | CI95 |
 |---|---|---|
-| máx. por semente (viesado) | 89,18 | 88,83–89,52 |
-| escolha do sinal por célula, in-sample | 88,92 | 88,48–89,36 |
-| **escolha por célula, LOSO (referência)** | **88,79** | 88,37–89,21 |
-| `cosserver_only` | 87,55 | 87,02–88,09 |
-| FLTrust | 87,35 | 87,16–87,55 |
-| `sr_b025` | 87,10 | 87,01–87,19 |
-| `sr_only` | 86,04 | 85,58–86,49 |
-| `sr_bin` | 85,39 | 84,83–85,96 |
-| Clustering / Trimmed-Mean / Median | 82,46 / 75,58 / 74,41 | — |
+| per-seed max. (biased) | 89.18 | 88.83–89.52 |
+| per-cell signal choice, in-sample | 88.92 | 88.48–89.36 |
+| **per-cell choice, LOSO (reference)** | **88.79** | 88.37–89.21 |
+| `cosserver_only` | 87.55 | 87.02–88.09 |
+| FLTrust | 87.35 | 87.16–87.55 |
+| `sr_b025` | 87.10 | 87.01–87.19 |
+| `sr_only` | 86.04 | 85.58–86.49 |
+| `sr_bin` | 85.39 | 84.83–85.96 |
+| Clustering / Trimmed-Mean / Median | 82.46 / 75.58 / 74.41 | — |
 
-- **Ganho da escolha por célula (LOSO) sobre o melhor sinal único por semente: +1,24 p.p. (IC95 +0,98 a +1,49).** Em 15 rodadas (A0, B2.6) era +1,75 p.p. **O headroom da direção 1 do P3 encolhe com o horizonte e é modesto.**
-- O cos_server é escolhido em 10/19 células (`label_flipping` e `sign_flipping` em todos os α, `low_mag_backdoor` com α ≤ 0,1, `krum_collusion` e `trim_attack` com α 0,05), e o S_R em 9 (ruído e ataques de modelo, sobretudo com α 0,1 e 0,5).
+- **Gain of the per-cell choice (LOSO) over the best single signal per seed: +1.24 p.p. (CI95 +0.98 to +1.49).** At 15 rounds (A0, B2.6) it was +1.75 p.p. **P3 direction 1's headroom shrinks with the horizon and is modest.**
+- cos_server is chosen in 10/19 cells (`label_flipping` and `sign_flipping` at every α, `low_mag_backdoor` at α ≤ 0.1, `krum_collusion` and `trim_attack` at α 0.05), and S_R in 9 (noise and model attacks, especially at α 0.1 and 0.5).
 
-## Concordância entre sinais por cliente (registro do `sr_only`, 10 sementes, rodadas ≥ 2)
+## Per-client agreement between signals (`sr_only` log, 10 seeds, rounds ≥ 2)
 
-Confirma o A0(c), que tinha 1 semente:
-- **Os sinais são quase ortogonais:** o Spearman médio por rodada entre S_R e cos_server vai de −0,13 a +0,40.
-- **As AUCs são complementares:**
-  - o **S_R** separa `gaussian_noise` (0,99–1,0), `krum_collusion` (0,86–0,94) e `trim_attack` (0,80–0,90);
-  - o **cos_server** separa `label_flipping` (0,81–0,98), `sign_flipping` (0,86–0,96), `trim_attack` (0,87–0,95) e `krum_collusion` (0,82–0,89);
-  - **nenhum dos dois separa `low_mag_backdoor`** (AUC ≤ 0,60);
-  - no `fltrust_aligned`, o cos_server é **invertido** (AUC 0,001), como esperado para um ataque desenhado contra o sinal do servidor (R5).
-- **Leitura:** um seletor não aprendido baseado na separação de cada sinal tem base empírica. O teto do item (ii) (~+1,2 p.p.) é o de **escolher um sinal por célula**. Ele **não limita uma combinação por cliente**, que usa os dois sinais com clientes diferentes na mesma rodada; essa combinação não foi medida aqui.
+Confirms A0(c), which had 1 seed:
+- **The signals are nearly orthogonal:** the mean per-round Spearman between S_R and cos_server ranges from −0.13 to +0.40.
+- **The AUCs are complementary:**
+  - **S_R** separates `gaussian_noise` (0.99–1.0), `krum_collusion` (0.86–0.94) and `trim_attack` (0.80–0.90);
+  - **cos_server** separates `label_flipping` (0.81–0.98), `sign_flipping` (0.86–0.96), `trim_attack` (0.87–0.95) and `krum_collusion` (0.82–0.89);
+  - **neither separates `low_mag_backdoor`** (AUC ≤ 0.60);
+  - on `fltrust_aligned`, cos_server is **inverted** (AUC 0.001), as expected for an attack designed against the server signal (R5).
+- **Reading:** a non-learned selector based on each signal's separation has empirical support. The item (ii) ceiling (~+1.2 p.p.) is that of **choosing one signal per cell**. It **does not bound a per-client combination**, which uses both signals with different clients in the same round; that combination was not measured here.
 
-## Implicações
+## Implications
 
-**Terminologia:** o oráculo-8 uniforme é um **teto de referência** (excluir os atacantes e ponderar os honestos por igual), **não um limite superior**: nada garante que outra ponderação dos honestos não o supere (por exemplo, balancear classes sob rótulos enviesados).
+**Terminology:** the uniform oracle-8 is a **reference ceiling** (exclude the attackers and weight the honest clients equally), **not an upper bound**: nothing guarantees that another weighting of the honest clients will not beat it (e.g. class balancing under label skew).
 
+1. **P2:** with a sufficient horizon, the best existing method closes the remaining headroom in almost every cell, including `label_flipping` α 0.1. The exception is `label_flipping` α 0.05: +2.8 p.p. against the uniform oracle (sensitivity). The headroom stays large against AdaAggRL and the reference skeleton on the label and backdoor attacks (9/19 cells against the uniform oracle).
+2. **P3 (R1, Gate C0b):** the accuracy target against the best global method is **narrow**: only `label_flipping` α 0.05 (~+2.8 p.p.). The main differentiator is privacy (both strong signals have a cost), computational cost and adaptive robustness (`fltrust_aligned` inverts cos_server; `low_mag_backdoor` escapes both signals).
+3. **The C0/B2.7/C0b ceiling at α ≤ 0.1:** the sample-weighted FedAvg-8 oracle should not be used as the ceiling. Use the uniform oracle in the next experiments. (A "sample-weighted" metric is not an alternative: the clients' test sets have the same size and are IID, so it coincides with the current one; B2.8s.)
+4. **Note for P2 (weighting × robustness):** under per-client label skew (α ≤ 0.1) and a balanced global test set, **standard FedAvg's sample-size weighting alone, without any attack, costs up to ~4.5 p.p.** relative to uniform weighting (oracle-8, α 0.1, H = 150: 85.0% × 89.5%; FedAvg-10: 1.0–1.8 p.p.). Tables that compare defenses with standard FedAvg (and B2.8's and B2.7's FedAvg/FedProx arms) must discount this effect, so as not to credit the defense's robustness with what is only weighting.
+5. **Direction 1 (signal selection):** the ceiling of choosing **one signal per cell** is small (+1.2 p.p.) and decreases with the horizon. A **per-client** combination is not bounded by that ceiling and remains open for P3. For the per-cell choice, a non-learned selector should suffice (R7).
 
-1. **P2:** com horizonte suficiente, o melhor método existente fecha o espaço restante em quase todas as células, inclusive `label_flipping` α 0,1. A exceção é `label_flipping` α 0,05: +2,8 p.p. contra o oráculo uniforme (sensibilidade). O espaço continua grande contra o AdaAggRL e o esqueleto de referência nos ataques de rótulo e backdoor (9/19 células contra o oráculo uniforme).
-2. **P3 (R1, Portão C0b):** o alvo de acurácia contra o melhor global é **estreito**: só `label_flipping` α 0,05 (~+2,8 p.p.). O diferencial principal é privacidade (os dois sinais fortes têm custo), custo computacional e robustez adaptativa (`fltrust_aligned` inverte o cos_server; `low_mag_backdoor` escapa dos dois sinais).
-3. **Teto do C0/B2.7/C0b em α ≤ 0,1:** o oráculo FedAvg-8 por amostra não deve ser usado como teto. Usar o oráculo uniforme nos próximos experimentos. (Uma métrica "ponderada por amostra" não é alternativa: os test sets dos clientes têm o mesmo tamanho e são IID, então ela coincide com a atual; B2.8s.)
-4. **Nota para o P2 (ponderação × robustez):** Sob rótulos enviesados por cliente (α ≤ 0,1) e teste global balanceado, **a ponderação por tamanho de amostra do FedAvg padrão custa, sozinha e sem ataque, até ~4,5 p.p.** em relação à ponderação uniforme (oráculo-8, α 0,1, H = 150: 85,0% × 89,5%; FedAvg-10: 1,0–1,8 p.p.). Tabelas que comparam defesas com o FedAvg padrão (e os braços FedAvg/FedProx do B2.8 e do B2.7) devem descontar esse efeito, para não atribuir à robustez da defesa o que é só ponderação.
-5. **Direção 1 (seleção de sinais):** o teto de escolher **um sinal por célula** é pequeno (+1,2 p.p.) e decresce com o horizonte. Uma combinação **por cliente** não é limitada por esse teto e fica em aberto para o P3. Para a escolha por célula, um seletor não aprendido deve bastar (R7).
+## Post hoc sensitivity: ceilings with uniform weighting (2026-10-04)
 
-## Sensibilidade post hoc: tetos com ponderação uniforme (2026-10-04)
+Declared as post hoc in `VERIFICACOES.md` §3. Script `scripts/c0b_sensibilidade_oraculo_uniforme.py`, outputs in `sensibilidade_oraculo_uniforme/`. It is the same code as `run_ceiling`, with FedAvg's weighting made uniform, on seeds 72–81.
 
-Declarada como post hoc em `VERIFICACOES.md` §3. Script `scripts/c0b_sensibilidade_oraculo_uniforme.py`, saídas em `sensibilidade_oraculo_uniforme/`. É o mesmo código do `run_ceiling`, com a ponderação do FedAvg uniforme, nas sementes 72–81.
-
-| α | oráculo-8 por amostra (pré-reg.) | **oráculo-8 uniforme** | FedAvg-10 por amostra | FedAvg-10 uniforme |
+| α | sample-weighted oracle-8 (pre-reg.) | **uniform oracle-8** | sample-weighted FedAvg-10 | uniform FedAvg-10 |
 |---|---|---|---|---|
-| 0,05 | 86,46% | **87,92%** | 89,47% | 90,44% |
-| 0,1 | 84,99% | **89,46%** | 89,39% | 91,23% |
-| 0,5 | 91,67% | **91,74%** | 91,93% | 92,07% |
+| 0.05 | 86.46% | **87.92%** | 89.47% | 90.44% |
+| 0.1 | 84.99% | **89.46%** | 89.39% | 91.23% |
+| 0.5 | 91.67% | **91.74%** | 91.93% | 92.07% |
 
 (H = 150.)
 
-| critério do C0 (gap > 2 p.p., IC95 > 0) | H = 15 | H = 50 | H = 150 |
+| C0 criterion (gap > 2 p.p., CI95 > 0) | H = 15 | H = 50 | H = 150 |
 |---|---|---|---|
-| espaço contra o **melhor existente** (oráculo uniforme) | 0/19 | 1/19 | **1/19** (`label_flipping` α 0,05: +2,79 p.p., IC95 +2,19 a +3,39) |
-| espaço contra o **esqueleto de referência** (oráculo uniforme) | 7/19 | 9/19 | 9/19 |
+| headroom against the **best existing** (uniform oracle) | 0/19 | 1/19 | **1/19** (`label_flipping` α 0.05: +2.79 p.p., CI95 +2.19 to +3.39) |
+| headroom against the **reference skeleton** (uniform oracle) | 7/19 | 9/19 | 9/19 |
 
-- **Em α 0,1, o melhor existente atinge o oráculo uniforme** em todas as células (gaps de −1,1 a +0,6 p.p.): excluir os atacantes e ponderar os honestos por igual é exatamente o que os melhores métodos fazem.
-- **Em α 0,05, a única célula aberta é `label_flipping`**, em que o melhor existente (FLTrust, 85,1%) fica 2,8 p.p. abaixo do oráculo uniforme (87,9%).
-- O FedAvg-10 uniforme fica 0,7–5,3 p.p. acima do melhor existente em α ≤ 0,1. É o ganho de usar também os dados dos 2 clientes que são atacantes, o que nenhuma defesa pode recuperar sem aproveitar os atacantes. Por isso ele não é o teto relevante para o critério.
+- **At α 0.1, the best existing method reaches the uniform oracle** in every cell (gaps from −1.1 to +0.6 p.p.): excluding the attackers and weighting the honest clients equally is exactly what the best methods do.
+- **At α 0.05, the only open cell is `label_flipping`**, in which the best existing method (FLTrust, 85.1%) is 2.8 p.p. below the uniform oracle (87.9%).
+- The uniform FedAvg-10 is 0.7–5.3 p.p. above the best existing method at α ≤ 0.1. That is the gain from also using the data of the 2 clients who are attackers, which no defense can recover without exploiting the attackers. That is why it is not the relevant ceiling for the criterion.
 
-## Ressalvas
+## Caveats
 
-- Descritivo; o melhor existente e o melhor sinal por célula são escolhidos em retrospecto (otimista para o existente, ou seja, conservador para "espaço").
-- MNIST logístico, 10 clientes, 2 bizantinos, root 100; as regras estáticas são aplicadas como no B2.7.
-- O teto pré-registrado (oráculo por amostra) subestima o teto de referência (oráculo uniforme) em α ≤ 0,1; o oráculo uniforme também não é limite superior (ver Terminologia). A sensibilidade com o oráculo uniforme é post hoc, motivada por uma verificação feita depois dos resultados.
-- Antes da grade houve exposição de acurácias de uma célula da semente 72 em H = 15 (declarada no ADENDO1).
+- Descriptive; the best existing method and the best signal per cell are chosen in hindsight (optimistic for the existing methods, i.e. conservative for "headroom").
+- Logistic MNIST, 10 clients, 2 Byzantine, root 100; the static rules are applied as in B2.7.
+- The pre-registered ceiling (sample-weighted oracle) underestimates the reference ceiling (uniform oracle) at α ≤ 0.1; the uniform oracle is not an upper bound either (see Terminology). The sensitivity analysis with the uniform oracle is post hoc, motivated by a check done after the results.
+- Before the grid, accuracies of one cell for seed 72 at H = 15 were exposed (declared in ADENDO1).

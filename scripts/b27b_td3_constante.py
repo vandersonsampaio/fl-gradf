@@ -1,20 +1,20 @@
 """
-B2.7a/b (results/b27b_td3_constante/PLANO.md). Exploratório.
+B2.7a/b (results/b27b_td3_constante/PLANO.md). Exploratory.
 
-B2.7a: roda de novo o `td3_ref` do B2.7 (learner da ablação, modo td3) nas 3
-células com inclinação positiva, H = 150, sementes 42-51, e registra por rodada
-o estado médio que entra na política e a ação executada, além dos parâmetros do
-ator (W_actor, b_actor) no início das rodadas 0, 50 e 100 e ao fim da rodada 150.
-O registro só envolve `agent.select_action` e `_run_round` (cópias, sem consumir
-RNG), então a trajetória é a do B2.7. A análise confere isso (|Δacc| < 1e-9).
+B2.7a: re-runs B2.7's `td3_ref` (the ablation learner, td3 mode) on the 3
+cells with a positive trend, H = 150, seeds 42-51, and records per round
+the mean state fed to the policy and the executed action, plus the actor
+parameters (W_actor, b_actor) at the start of rounds 0, 50 and 100 and at the end of round 150.
+The logging only wraps `agent.select_action` and `_run_round` (copies, without consuming
+RNG), so the trajectory is B2.7's. The analysis checks this (|Δacc| < 1e-9).
 
-Medidas (estados das rodadas 101-150, π determinística = sigmoid(s·W + b)):
-  drift      média |π150(s) − π0(s)|
-  sd_estados média sobre as 5 dims do desvio-padrão de π150(s) entre estados
-  a_TD3      média de π150(s) nesses estados (vetor de 5), e distância ao centro 0,5
-σ_a = 0,15 (exploration_sigma do agente TD3 do framework próprio).
+Measures (states of rounds 101-150, deterministic π = sigmoid(s·W + b)):
+  drift      mean |π150(s) − π0(s)|
+  sd_estados mean over the 5 dims of the standard deviation of π150(s) across states
+  a_TD3      mean of π150(s) over those states (5-vector), and distance to the center 0.5
+σ_a = 0.15 (exploration_sigma of the in-house framework's TD3 agent).
 
-Uso (CPU, sem GPU):
+Usage (CPU, no GPU):
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.b27b_td3_constante b27a --alpha 0.05 --attack label_flipping --seed 42
   venv/bin/python -m scripts.b27b_td3_constante analisar_b27a
 """
@@ -32,7 +32,7 @@ CELLS = [(0.05, "label_flipping"), (0.1, "label_flipping"), (0.05, "low_mag_back
 SEEDS = list(range(42, 52))
 HORIZONS = [15, 50, 150]
 H_MAX = 150
-SNAP_ROUNDS = [0, 50, 100]  # nº de rodadas já concluídas no snapshot; 150 = fim da última
+SNAP_ROUNDS = [0, 50, 100]  # number of rounds already completed at the snapshot; 150 = end of the last one
 SIGMA_A = 0.15
 CENTER = 0.5
 B27_RAW = "results/b27_horizonte/grade_raw.csv"
@@ -57,11 +57,11 @@ def run_b27a(alpha, attack, seed, out_dir=None):
     tag = f"td3_{attack}_a{alpha}_seed{seed}"
     path = f"{out_dir}/{tag}.npz"
     if os.path.exists(path):
-        print(f"já existe: {path}", flush=True)
+        print(f"already exists: {path}", flush=True)
         return path
     Ablation = build_learner_cls()
     participants, root = load_dataset_participants("mnist", _split_name(alpha), 10, root_size=100, root_seed=seed)
-    _reseed(seed)  # como no B2.7, antes de cada sistema
+    _reseed(seed)  # as in B2.7, before each system
     learner = Ablation(input_shape=INPUT_SHAPE, dataset="mnist", mode="td3", n_rounds=H_MAX, n_classes=10,
                        attack_type=attack, byzantine_ids=BYZ, seed=seed)
     agent = learner.agent
@@ -78,7 +78,7 @@ def run_b27a(alpha, attack, seed, out_dir=None):
     orig_round = learner._run_round
 
     def recording_round(round_num, parts, root_data):
-        done = round_num - 1  # o train numera as rodadas a partir de 1
+        done = round_num - 1  # train numbers rounds starting from 1
         if done in SNAP_ROUNDS:
             snaps[done] = (agent.W_actor.copy(), agent.b_actor.copy())
         return orig_round(round_num, parts, root_data)
@@ -92,7 +92,7 @@ def run_b27a(alpha, attack, seed, out_dir=None):
              **{f"W{r}": snaps[r][0] for r in snaps}, **{f"b{r}": snaps[r][1] for r in snaps},
              acc=np.array([accs[H] for H in HORIZONS]), horizons=np.array(HORIZONS))
     os.replace(path + ".tmp.npz", path)
-    print(f"FIM {tag} ({time.time() - t0:.0f}s)", flush=True)
+    print(f"END {tag} ({time.time() - t0:.0f}s)", flush=True)
     return path
 
 
@@ -125,14 +125,14 @@ def analisar_b27a():
     ok = df["max_dacc_vs_b27"].max() < 1e-9
     med = df.groupby(["alpha", "attack_type"])[["drift", "sd_estados", "sd_estados_pi0", "dist_centro"]].median()
     cond1 = int((med["sd_estados"] > SIGMA_A).sum())
-    lines = ["B2.7a — mecanismo do TD3 em H = 150 (descritivo)", f"runs: {len(df)} (esperado 30)",
-             f"Verificação contra o B2.7: máx |Δacc| = {df['max_dacc_vs_b27'].max():.2e} -> "
-             + ("REPRODUZ" if ok else "NÃO REPRODUZ: B2.7a invalidado"), "",
-             f"Mediana entre sementes (σ_a = {SIGMA_A}):", med.round(4).to_string(), "",
-             "a_TD3 médio por célula (média entre sementes; dims a1..a4, b):",
+    lines = ["B2.7a — TD3 mechanism at H = 150 (descriptive)", f"runs: {len(df)} (expected 30)",
+             f"Check against B2.7: max |Δacc| = {df['max_dacc_vs_b27'].max():.2e} -> "
+             + ("REPRODUCES" if ok else "DOES NOT REPRODUCE: B2.7a invalidated"), "",
+             f"Median across seeds (σ_a = {SIGMA_A}):", med.round(4).to_string(), "",
+             "Mean a_TD3 per cell (mean across seeds; dims a1..a4, b):",
              df.groupby(["alpha", "attack_type"])[[f"a_td3_{i}" for i in range(5)]].mean().round(3).to_string(), "",
-             f"Condição 1 do B2.7c (mediana de sd_estados > σ_a em ≥ 2/3 células): {cond1}/3 -> "
-             + ("ATENDIDA" if cond1 >= 2 else "NÃO atendida")]
+             f"B2.7c condition 1 (median sd_estados > σ_a in ≥ 2/3 cells): {cond1}/3 -> "
+             + ("MET" if cond1 >= 2 else "NOT met")]
     text = "\n".join(lines) + "\n"
     open(f"{OUT}/b27a_analise.txt", "w").write(text)
     print(text)

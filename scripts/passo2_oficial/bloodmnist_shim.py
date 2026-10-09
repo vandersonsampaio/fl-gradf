@@ -1,23 +1,23 @@
 """
-Adaptação mínima do AdaAggRL oficial ao BloodMNIST (B3.0/B3.1;
-results/b31_medmnist_oficial/PREREGISTRO.md §2). É um ACRÉSCIMO: o caminho MNIST
-oficial continua intacto. Nada em external/AdaAggRL é editado; os monkeypatches só
-são aplicados por `install(E, dataset)` quando dataset == "BloodMNIST" (para
-"MNIST" a função não faz nada), depois de `import exp_environments as E`.
+Minimal adaptation of the official AdaAggRL to BloodMNIST (B3.0/B3.1;
+results/b31_medmnist_oficial/PREREGISTRO.md §2). It is an ADDITION: the official MNIST
+path stays intact. Nothing in external/AdaAggRL is edited; the monkeypatches are only
+applied by `install(E, dataset)` when dataset == "BloodMNIST" (for
+"MNIST" the function does nothing), after `import exp_environments as E`.
 
-Peças:
-  - BloodMNIST lido do .npz oficial do MedMNIST v2 (Zenodo, record 10519652),
-    data/raw/medmnist/bloodmnist.npz; splits oficiais de treino e teste.
-    Transformações como no ramo MNIST oficial: ToTensor + Normalize (média/desvio
-    por canal do treino) e, no treino, RandomCrop(28, padding=4) + RandomHorizontalFlip.
-  - `BloodClassifier`: o MNISTClassifier oficial com conv1 de 3 canais e fc1 de 8
-    saídas (mesma arquitetura e inicialização).
-  - Extrator: o `torch.load('extract_feature.pt')` do __init__ do ambiente é
-    redirecionado para o extrator treinado no B3.0 (EXTRACTOR_PATH).
-  - Regime: 8 classes → o código oficial cria int(num_clients / num_class) clientes
-    por grupo de classe; com 100 clientes daria 12 × 8 = 96 e os ids sorteados em
-    range(100) estourariam. Por isso num_clients = 96 (12 por grupo) e
-    subsample_rate = 10/96 (10 clientes por rodada, como no oficial); 20 atacantes.
+Pieces:
+  - BloodMNIST read from the official MedMNIST v2 .npz (Zenodo, record 10519652),
+    expected at data/raw/medmnist/bloodmnist.npz (downloaded, not versioned); official
+    train and test splits. Transforms as in the official MNIST branch: ToTensor + Normalize
+    (per-channel mean/std of the training split) and, for training, RandomCrop(28, padding=4) + RandomHorizontalFlip.
+  - `BloodClassifier`: the official MNISTClassifier with a 3-channel conv1 and an 8-output
+    fc1 (same architecture and initialization).
+  - Extractor: the environment __init__'s `torch.load('extract_feature.pt')` is
+    redirected to the extractor trained in B3.0 (EXTRACTOR_PATH).
+  - Regime: 8 classes → the official code creates int(num_clients / num_class) clients
+    per class group; with 100 clients this gives 12 × 8 = 96, and ids sampled from
+    range(100) would overflow. Hence num_clients = 96 (12 per group) and
+    subsample_rate = 10/96 (10 clients per round, as in the official code); 20 attackers.
 """
 
 import os
@@ -76,8 +76,8 @@ def make_classifier_cls(MNISTClassifier):
 
 
 def install(E, dataset):
-    """Aplica os monkeypatches no módulo exp_environments já importado, SÓ para o
-    BloodMNIST. Para qualquer outro dataset (MNIST incluído) não altera nada."""
+    """Applies the monkeypatches to the already imported exp_environments module, ONLY for
+    BloodMNIST. For any other dataset (MNIST included) it changes nothing."""
     if dataset != "BloodMNIST":
         return E
     orig_cd = E.construct_dataloaders
@@ -97,7 +97,7 @@ def install(E, dataset):
             k.setdefault("map_location", "cpu")
             return orig_load(EXTRACTOR_PATH, *a, **k)
         return orig_load(path, *a, **k)
-    E.torch.load = load  # vale só neste processo
+    E.torch.load = load  # applies to this process only
     return E
 
 

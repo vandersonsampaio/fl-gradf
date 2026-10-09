@@ -1,15 +1,15 @@
-B2.7 — verificações
+B2.7 — checks
 
-(1) aninhamento H=15: 8 sistemas, máx |Δ| = 4.15e-02  -> DIFERENTE: dqn
-(1) aninhamento H=50: 8 sistemas, máx |Δ| = 3.74e-02  -> DIFERENTE: dqn
+(1) nesting H=15: 8 systems, max |Δ| = 4.15e-02  -> DIFFERENT: dqn
+(1) nesting H=50: 8 systems, max |Δ| = 3.74e-02  -> DIFFERENT: dqn
 
-(2) reprodução em H=15 contra os runs antigos (descritivo; exp9 usa outro caminho de agregação):
-  td3_ref                n= 80  máx |Δ|=0.0000  média |Δ|=0.0000  idênticos=80
-  linucb                 n= 80  máx |Δ|=0.2359  média |Δ|=0.0092  idênticos=1
-  dqn                    n= 80  máx |Δ|=0.6190  média |Δ|=0.1736  idênticos=0
-  rand_gradf             n= 80  máx |Δ|=0.0765  média |Δ|=0.0160  idênticos=0
-  fixed                  n= 80  máx |Δ|=0.0000  média |Δ|=0.0000  idênticos=80
-  arm_rule_fltrust       n= 80  máx |Δ|=0.0428  média |Δ|=0.0091  idênticos=1
-  arm_rule_median        n= 80  máx |Δ|=0.0030  média |Δ|=0.0009  idênticos=5
-  arm_rule_trimmed_mean  n= 80  máx |Δ|=0.0019  média |Δ|=0.0007  idênticos=4
-  arm_rule_krum          n= 80  máx |Δ|=0.1975  média |Δ|=0.0217  idênticos=10
+(2) reproduction at H=15 against the earlier runs (descriptive; exp9 uses another aggregation path):
+  td3_ref                n= 80  max |Δ|=0.0000  mean |Δ|=0.0000  identical=80
+  linucb                 n= 80  max |Δ|=0.2359  mean |Δ|=0.0092  identical=1
+  dqn                    n= 80  max |Δ|=0.6190  mean |Δ|=0.1736  identical=0
+  rand_gradf             n= 80  max |Δ|=0.0765  mean |Δ|=0.0160  identical=0
+  fixed                  n= 80  max |Δ|=0.0000  mean |Δ|=0.0000  identical=80
+  arm_rule_fltrust       n= 80  max |Δ|=0.0428  mean |Δ|=0.0091  identical=1
+  arm_rule_median        n= 80  max |Δ|=0.0030  mean |Δ|=0.0009  identical=5
+  arm_rule_trimmed_mean  n= 80  max |Δ|=0.0019  mean |Δ|=0.0007  identical=4
+  arm_rule_krum          n= 80  max |Δ|=0.1975  mean |Δ|=0.0217  identical=10

@@ -1,17 +1,17 @@
 """
-B3.0 / B3.1 (results/b31_medmnist_oficial/PREREGISTRO.md): AdaAggRL oficial em
-MNIST (inalterado) ou BloodMNIST (acréscimo via bloodmnist_shim; para MNIST o shim
-não faz nada).
+B3.0 / B3.1 (results/b31_medmnist_oficial/PREREGISTRO.md): official AdaAggRL on
+MNIST (unchanged) or BloodMNIST (addition via bloodmnist_shim; for MNIST the shim
+does nothing).
 
-Condições:
-  fedavg   agregação uniforme (troca de `aggeregate` por `average` neste processo,
-           como no B2.5) — só B3.0
-  fixed    ação [0,475]*5 (centro, como no B2.1)
-  td3      TD3 como no main.py oficial (via run_b21: estados e checkpoints do ator)
-Ataques: none (atacantes sorteados como no oficial e esvaziados, para preservar o
-RNG; como no B2.5), LMP e EB (oficiais, sem alteração).
+Conditions:
+  fedavg   uniform aggregation (replaces `aggeregate` with `average` in this process,
+           as in B2.5) — B3.0 only
+  fixed    action [0.475]*5 (center, as in B2.1)
+  td3      TD3 as in the official main.py (via run_b21: states and actor checkpoints)
+Attacks: none (attackers sampled as in the official code and then emptied, to preserve the
+RNG; as in B2.5), LMP and EB (official, unchanged).
 
-Uso (venv oficial):
+Usage (official venv):
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_b3.py --dataset BloodMNIST --attack none --condition fedavg --seed 130 --out_dir results/b30_medmnist_sanity/raw
 """
 
@@ -47,7 +47,7 @@ def run(dataset, attack, condition, seed, rounds, out_dir, q=0.5):
     tag = f"{dataset}_{attack}_q{q}_{condition}_seed{seed}_R{rounds}"
     out_path = os.path.join(out_dir, f"{tag}.json")
     if os.path.exists(out_path):
-        print(f"já existe: {out_path}")
+        print(f"already exists: {out_path}")
         return out_path
     partial_path = os.path.join(out_dir, f"{tag}.partial.json")
     log_path = os.path.join(out_dir, f"{tag}.stdout.log")
@@ -57,11 +57,11 @@ def run(dataset, attack, condition, seed, rounds, out_dir, q=0.5):
     try:
         import exp_environments as E
         E.SummaryWriter = R._NoOpWriter
-        BS.install(E, dataset)  # no-op para MNIST
+        BS.install(E, dataset)  # no-op for MNIST
         if condition == "fedavg":
             E.aggeregate = lambda new_weights, fractions: E.average(new_weights)
             R._preview_weights = _uniform_preview
-        args = BS.adapt_args(R._official_args(dataset, ENV_ATTACK[attack], q))  # no-op para MNIST
+        args = BS.adapt_args(R._official_args(dataset, ENV_ATTACK[attack], q))  # no-op for MNIST
 
         t_start = time.perf_counter()
         with open(log_path, "w", buffering=1) as log_stream:

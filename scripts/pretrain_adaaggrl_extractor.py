@@ -1,5 +1,5 @@
 """
-Passo Zero (`references/1_roadmap_frentes_futuras.md`): pretrains the REAL
+Step Zero: pretrains the REAL
 CNN feature extractor for AdaAggRL's environmental cues
 (`src/defense/adaaggrl_agent.py::PretrainedCNNFeatureExtractor`), replacing
 the frozen-random-weights `RandomCNNFeatureExtractor` documented as a floor,

@@ -1,96 +1,95 @@
-# Resultado — B3.1 + B3.2: fixed contra TD3 no AdaAggRL oficial, BloodMNIST
+# Result — B3.1 + B3.2: fixed vs. TD3 in the official AdaAggRL, BloodMNIST
 
-**Data:** 2026-10-09
-**Pré-registro:** `PREREGISTRO.md` (`315b880`), com os adendos 0, 1 e 2. `analisar_b31.py` conferido contra o hash do Adendo 1 antes da execução (`dff2220a…`, idêntico).
-**Grade:** 40/40 runs (sementes 135–144 × LMP/EB × fixed/td3; BloodMNIST, q = 0,5, 500 rodadas), de 2026-10-05 17h27 a 2026-10-09 01h46. Fila intercalada, 6 processos na GPU.
-- **Execução:** nenhuma falha e **nenhum run repetido** (§6 do pré-registro).
-- **Pausas:** a janela 7h–18h seg–sex foi aplicada pelo controlador. As exceções do autor (retomadas manuais em 05–08/10) estão registradas em `results/janela_execucao.log`. Pausar com SIGSTOP não altera a trajetória de um run, só o relógio.
+**Date:** 2026-10-09
+**Pre-registration:** `PREREGISTRO.md` (`315b880`; English translation in `PREREGISTRO.en.md`), with addenda 0, 1 and 2 (English translations in `*.en.md`). `analisar_b31.py` checked against Addendum 1's hash before running (`dff2220a…`, identical).
+**Grid:** 40/40 runs (seeds 135–144 × LMP/EB × fixed/td3; BloodMNIST, q = 0.5, 500 rounds), from 2026-10-05 17:27 to 2026-10-09 01:46. Interleaved queue, 6 processes on the GPU.
+- **Execution:** no failures and **no run repeated** (pre-registration §6).
+- **Pauses:** the 7h–18h Mon–Fri window was applied by the controller. The author's exceptions (manual resumes on 10/05–10/08) were logged. Pausing with SIGSTOP does not change a run's trajectory, only the wall clock.
 
-**Análise:** `scripts/passo2_oficial/analisar_b31.py --margem 3.0 --ataques LMP EB`, rodada uma única vez com a grade completa. Ela gerou `analise.txt`, `resumo_runs.csv` e `mecanismo.csv`.
+**Analysis:** `scripts/passo2_oficial/analisar_b31.py --margem 3.0 --ataques LMP EB`, run once with the complete grid. It produced `analise.txt`, `resumo_runs.csv` and `mecanismo.csv`.
 
 ---
 
-## 1. B3.1 — resultado confirmatório
+## 1. B3.1 — confirmatory result
 
-**Métrica primária:** mediana da acurácia nas rodadas 401–500. D = fixed − td3, n = 20 pares (ataque × semente), margem M = ±3,00 p.p. (Adendo 1; **equivalência fraca**, pela regra do §3).
+**Primary metric:** median accuracy over rounds 401–500. D = fixed − td3, n = 20 pairs (attack × seed), margin M = ±3.00 p.p. (Addendum 1; **weak equivalence**, by the §3 rule).
 
-| métrica | Δ (p.p.) | IC90 | IC95 | d | TOST ±3,0 | Wilcoxon | veredito |
+| metric | Δ (p.p.) | CI90 | CI95 | d | TOST ±3.0 | Wilcoxon | verdict |
 |---|---|---|---|---|---|---|---|
-| **primária (mediana 401–500)** | **+0,13** | (−0,64; +0,90) | (−0,80; +1,06) | +0,07 | **p < 0,0001** | p = 0,70 | **EQUIVALENTE** |
-| AUC 1–500 | +0,12 | (−0,30; +0,54) | (−0,39; +0,63) | +0,11 | p < 0,0001 | p = 0,50 | EQUIVALENTE |
-| AUC 251–500 | +0,09 | (−0,49; +0,68) | (−0,61; +0,80) | +0,06 | p < 0,0001 | p = 0,29 | EQUIVALENTE |
+| **primary (median 401–500)** | **+0.13** | (−0.64; +0.90) | (−0.80; +1.06) | +0.07 | **p < 0.0001** | p = 0.70 | **EQUIVALENT** |
+| AUC 1–500 | +0.12 | (−0.30; +0.54) | (−0.39; +0.63) | +0.11 | p < 0.0001 | p = 0.50 | EQUIVALENT |
+| AUC 251–500 | +0.09 | (−0.49; +0.68) | (−0.61; +0.80) | +0.06 | p < 0.0001 | p = 0.29 | EQUIVALENT |
 
-A primária e as duas AUCs concordam, então o resultado **não** é "sensível a resets".
+The primary and both AUCs agree, so the result is **not** "reset-sensitive".
 
-**Por ataque (descritivo, Holm):**
+**Per attack (descriptive, Holm):**
 
-| ataque | métrica | Δ (p.p.) | IC95 | d | Wilcoxon (Holm) |
+| attack | metric | Δ (p.p.) | CI95 | d | Wilcoxon (Holm) |
 |---|---|---|---|---|---|
-| LMP | primária | −0,47 | (−1,94; +1,00) | −0,23 | 0,70 (0,70) |
-| EB | primária | +0,73 | (−0,57; +2,03) | +0,40 | 0,28 (0,55) |
-| LMP | AUC 251–500 | −0,27 | (−1,74; +1,20) | −0,13 | 0,85 (0,85) |
-| EB | AUC 251–500 | +0,45 | (+0,09; +0,82) | +0,88 | 0,027 (0,055) |
+| LMP | primary | −0.47 | (−1.94; +1.00) | −0.23 | 0.70 (0.70) |
+| EB | primary | +0.73 | (−0.57; +2.03) | +0.40 | 0.28 (0.55) |
+| LMP | AUC 251–500 | −0.27 | (−1.74; +1.20) | −0.13 | 0.85 (0.85) |
+| EB | AUC 251–500 | +0.45 | (+0.09; +0.82) | +0.88 | 0.027 (0.055) |
 
-→ **VEREDITO PRÉ-REGISTRADO: EQUIVALÊNCIA CONFIRMADA** (M = ±3,0 p.p.).
-- O IC90 da primária fica **bem dentro de ±1 p.p.** Ou seja, a equivalência também valeria com a margem do MNIST, embora isso não seja o teste pré-registrado.
-- Nenhuma diferença por ataque é significativa depois do Holm. O caso mais próximo (EB, AUC 251–500, Holm 0,055) aponta para a fixa e é descritivo.
+→ **PRE-REGISTERED VERDICT: EQUIVALENCE CONFIRMED** (M = ±3.0 p.p.).
+- The primary's CI90 lies **well within ±1 p.p.** That is, equivalence would also hold with the MNIST margin, although that is not the pre-registered test.
+- No per-attack difference is significant after Holm. The closest case (EB, AUC 251–500, Holm 0.055) points towards the fixed action and is descriptive.
 
-## 2. B3.2 — hipóteses mecanísticas (Holm sobre H3–H5, σ_a = 0,0475)
+## 2. B3.2 — mechanistic hypotheses (Holm over H3–H5, σ_a = 0.0475)
 
-| hipótese | estatística | resultado |
+| hypothesis | statistic | result |
 |---|---|---|
-| **H3** corr. das ações EB × LMP > 0,9 | mediana r = 0,598 (por semente: 0,657 · 0,558 · 0,555 · 0,454 · 0,551 · 0,643 · 0,621 · 0,575 · 0,629 · 0,665) | Holm p = 1,00 → **NÃO confirmada** |
-| **H4** drift \|π₅₀₀ − π₀\| < σ_a | mediana 0,0122; máx. 0,0189 (≈ 1/4 do ruído) | Holm p < 0,001 → **CONFIRMADA** |
-| **H5** S_swap \|π₅₀₀(s) − π₅₀₀(s′)\| < σ_a | mediana 0,0210; máx. 0,0290 | Holm p < 0,001 → **CONFIRMADA** |
+| **H3** corr. of EB × LMP actions > 0.9 | median r = 0.598 (per seed: 0.657 · 0.558 · 0.555 · 0.454 · 0.551 · 0.643 · 0.621 · 0.575 · 0.629 · 0.665) | Holm p = 1.00 → **NOT confirmed** |
+| **H4** drift \|π₅₀₀ − π₀\| < σ_a | median 0.0122; max. 0.0189 (≈ 1/4 of the noise) | Holm p < 0.001 → **CONFIRMED** |
+| **H5** S_swap \|π₅₀₀(s) − π₅₀₀(s′)\| < σ_a | median 0.0210; max. 0.0290 | Holm p < 0.001 → **CONFIRMED** |
 
-**Descritivo:**
+**Descriptive:**
 
-| ataque | drift | sd_estados | S_swap | S_shuffle |
+| attack | drift | sd_estados | S_swap | S_shuffle |
 |---|---|---|---|---|
-| EB | 0,0124 | 0,0676 | 0,0208 | 0,0284 |
-| LMP | 0,0120 | 0,0095 | 0,0210 | 0,0110 |
+| EB | 0.0124 | 0.0676 | 0.0208 | 0.0284 |
+| LMP | 0.0120 | 0.0095 | 0.0210 | 0.0110 |
 
-sd_estados é o desvio da saída de π₅₀₀ entre os estados das rodadas 401–500. No MNIST (B2.2): drift 0,0097, S_swap 0,0055, S_shuffle 0,0061.
+sd_estados is the standard deviation of π₅₀₀'s output across the states of rounds 401–500. On MNIST (B2.2): drift 0.0097, S_swap 0.0055, S_shuffle 0.0061.
 
-**Leitura:**
-- **H4 se repete:** em 500 rodadas a política se afasta da inicialização cerca de 1/4 do próprio ruído de exploração, uma ordem parecida com a do MNIST.
-- **H5 se repete na regra pré-registrada:** trocar a observação pela do outro ataque muda a ação bem menos que σ_a. Em valor absoluto, porém, o S_swap é ~4× o do MNIST (0,021 contra 0,0055).
-- **Sob EB, π₅₀₀ varia mais entre estados (sd 0,068 > σ_a)** que sob LMP (0,0095). A explicação mais provável está no §3: com resets a cada ~23 rodadas, os estados observados mudam muito ao longo do run e a mesma rede quase parada produz saídas mais espalhadas. Isso é exploratório. A variação ainda não vira diferença de desempenho (§1).
-- **H3 falha:** as ações executadas sob EB e LMP com a mesma semente correlacionam ~0,6, contra ~0,99 no MNIST. No B2.1 já se notava que essa correlação vem da **sequência de ruído compartilhada** e cai quando os runs têm histórias de reset diferentes (s110, r = 0,899). No BloodMNIST os resets são ~20 por run, contra 0,2–2,2 no MNIST (§3), e é isso que dessincroniza os runs. Essa interpretação é exploratória: o resultado confirmatório é só que H3 não se repete.
+**Reading:**
+- **H4 repeats:** in 500 rounds the policy moves away from its initialization by about 1/4 of its own exploration noise, of a similar order to MNIST.
+- **H5 repeats under the pre-registered rule:** replacing the observation with the other attack's changes the action by much less than σ_a. In absolute terms, however, S_swap is ~4× MNIST's (0.021 vs. 0.0055).
+- **Under EB, π₅₀₀ varies more across states (sd 0.068 > σ_a)** than under LMP (0.0095). The most likely explanation is in §3: with resets every ~23 rounds, the observed states change a lot over the run and the same almost-static network produces more spread-out outputs. This is exploratory. The variation still does not turn into a performance difference (§1).
+- **H3 fails:** the actions executed under EB and LMP with the same seed correlate ~0.6, vs. ~0.99 on MNIST. B2.1 already noted that this correlation comes from the **shared noise sequence** and drops when the runs have different reset histories (s110, r = 0.899). On BloodMNIST there are ~20 resets per run, vs. 0.2–2.2 on MNIST (§3), and that is what desynchronizes the runs. This interpretation is exploratory: the confirmatory result is only that H3 does not repeat.
 
-## 3. Achados exploratórios (não confirmatórios): regime de resets periódicos
+## 3. Exploratory findings (not confirmatory): periodic-reset regime
 
-- **Todos os 40 runs ficam num regime de resets periódicos.**
-  - Média de resets por run: ~20 (fixed 19,95; td3 21,05).
-  - O intervalo mediano entre resets é de **23–24 rodadas**, igual nas quatro células.
-  - **100% dos runs** têm reset dentro da janela 401–500.
-  - No MNIST (B2.1), a média era de 0,2–2,2 resets por run.
-- **Nível de acurácia** (média da primária):
+- **All 40 runs are in a periodic-reset regime.**
+  - Mean resets per run: ~20 (fixed 19.95; td3 21.05).
+  - The median interval between resets is **23–24 rounds**, the same in the four cells.
+  - **100% of the runs** have a reset inside the 401–500 window.
+  - On MNIST (B2.1), the mean was 0.2–2.2 resets per run.
+- **Accuracy level** (mean of the primary):
 
-  | condição | EB | LMP |
+  | condition | EB | LMP |
   |---|---|---|
-  | fixed | 32,7% | 30,9% |
-  | td3 | 31,9% | 31,3% |
+  | fixed | 32.7% | 30.9% |
+  | td3 | 31.9% | 31.3% |
 
-  Isso fica acima do FedAvg sob ataque no B3.0 (17–21%), mas muito abaixo do FedAvg sem ataque (77,8%). **A equivalência do §1 é entre dois sistemas que operam no mesmo regime degradado:** nem a fixa nem o TD3 seguram o BloodMNIST sob LMP ou EB no ambiente oficial.
-- **Relação com o Adendo 2:** a escala de recompensa é ~3× menor no BloodMNIST, e o limiar de reset (−80) foi mantido. O que se observa não é ausência de resets, mas resets regulares nas duas condições. O mecanismo exato (por que o ciclo tem ~23 rodadas) não foi investigado.
-- **td3 contra fixed em resets:** ~1 reset a mais por run no td3 (Wilcoxon pareado descritivo p = 0,044). A diferença é pequena diante do regime comum e não aparece na acurácia.
-- **Massa de peso nos atacantes:** mediana ~0,016 nas quatro células, contra ≤ 0,0001 no MNIST. O esqueleto de agregação deixa passar um pouco de peso aos atacantes no BloodMNIST, e de forma igual com ou sem TD3.
+  This is above FedAvg under attack in B3.0 (17–21%), but far below FedAvg without attack (77.8%). **The §1 equivalence is between two systems operating in the same degraded regime:** neither the fixed action nor TD3 holds BloodMNIST under LMP or EB in the official environment.
+- **Relation to Addendum 2:** the reward scale is ~3× smaller on BloodMNIST, and the reset threshold (−80) was kept. What is observed is not an absence of resets, but regular resets in both conditions. The exact mechanism (why the cycle is ~23 rounds) was not investigated.
+- **td3 vs. fixed in resets:** ~1 more reset per run for td3 (descriptive paired Wilcoxon p = 0.044). The difference is small compared with the common regime and does not show up in accuracy.
+- **Weight mass on attackers:** median ~0.016 in the four cells, vs. ≤ 0.0001 on MNIST. The aggregation skeleton lets a little weight through to the attackers on BloodMNIST, equally with or without TD3.
 
-## 4. Consequências (Portão B′, roadmap e pré-registro §7)
+## 4. Consequences (Gate B′, pre-registration §7)
 
-- **Portão B′: a regra é atendida.** A equivalência (H1) e o mecanismo (H4, H5) se repetem.
-  - O P2 pode afirmar, em dois datasets (um deles de saúde), que o TD3 do AdaAggRL publicado é equivalente a uma ação fixa e que a política não se afasta da inicialização nem passa a depender da entrada.
-- **Ressalvas obrigatórias ao citar o B3.1:**
-  1. A margem de ±3,0 p.p. é uma **equivalência fraca** (Adendo 1), embora o IC90 observado fique dentro de ±1 p.p.
-  2. A equivalência acontece num **regime degradado e de resets periódicos** (~31% de acurácia, um reset a cada ~23 rodadas). Ela diz que o TD3 não acrescenta nada à fixa, **não** que algum dos dois defende bem o BloodMNIST no ambiente oficial.
-  3. **H3 não se repete.** A identidade quase perfeita das ações entre ataques, vista no MNIST, é específica do regime com poucos resets e não deve ser apresentada como propriedade geral.
-- **Não altera** as conclusões do P2 no MNIST (B2.1–B2.8). Estende o escopo do achado principal a um dataset médico.
+- **Gate B′: the rule is met.** Equivalence (H1) and the mechanism (H4, H5) repeat.
+  - P2 can state, on two datasets (one of them a health dataset), that the published AdaAggRL's TD3 is equivalent to a fixed action and that the policy neither moves away from its initialization nor comes to depend on its input.
+- **Mandatory caveats when citing B3.1:**
+  1. The ±3.0 p.p. margin is a **weak equivalence** (Addendum 1), although the observed CI90 lies within ±1 p.p.
+  2. The equivalence happens in a **degraded, periodic-reset regime** (~31% accuracy, one reset every ~23 rounds). It says that TD3 adds nothing to the fixed action, **not** that either of them defends BloodMNIST well in the official environment.
+  3. **H3 does not repeat.** The near-perfect identity of actions across attacks seen on MNIST is specific to the low-reset regime and should not be presented as a general property.
+- It **does not change** the P2 conclusions on MNIST (B2.1–B2.8). It extends the scope of the main finding to a medical dataset.
 
-## 5. Arquivos
+## 5. Files
 
-- `analise.txt`: saída integral da análise pré-registrada.
-- `resumo_runs.csv`: por run, a primária, as AUCs, os resets, o reset em 401–500 e a massa nos atacantes.
-- `mecanismo.csv`: por run td3, drift, sd_estados, S_swap e S_shuffle.
-- `raw/`: os 40 JSONs, as `obs` e os checkpoints do ator. Os checkpoints intermediários não são versionados (pré-registro §8).
-- Os eventos da janela de execução ficam em `results/janela_execucao.log`.
+- `analise.txt`: full output of the pre-registered analysis.
+- `resumo_runs.csv`: per run, the primary, the AUCs, the resets, the reset in 401–500 and the mass on attackers.
+- `mecanismo.csv`: per td3 run, drift, sd_estados, S_swap and S_shuffle.
+- `raw/`: the 40 JSONs, the `obs` and the actor checkpoints. Intermediate checkpoints are not versioned (pre-registration §8).

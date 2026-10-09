@@ -1,13 +1,13 @@
-# Registro de execução — B2.3
+# Execution log — B2.3
 
-Mudanças de **agendamento** (não de desenho) em relação ao `PLANO.md`. O plano, os 10 runs, o runner (`run_b23.py`), a configuração do steelman e a análise continuam os mesmos e com os hashes de `PLANO.sha256`.
+**Scheduling** changes (not design changes) relative to `PLANO.md`. The plan, the 10 runs, the runner (`run_b23.py`), the steelman configuration and the analysis remain the same, with the hashes in `PLANO.sha256`.
 
-## 2026-09-29 21:01 — antecipação de 2 runs
+## 2026-09-29 21:01 — 2 runs started early
 
-- **Motivo:** o B2.1 entrou na última semente com só 4 processos, deixando 2 vagas de GPU ociosas por ~8 h. Aproveitá-las encurta o B2.3.
-- **O que mudou:**
-  - o disparador `run_grid_b23.sh --after-b21` (PID 1185960, armado em 2026-09-28 08:19) foi encerrado antes de iniciar qualquer run;
-  - novo escalonador `scripts/passo2_oficial/run_b23_escalonado.sh` (arquivo novo; `run_grid_b23.sh` não foi alterado): roda **LMP e EB da semente 100 imediatamente** e, após o GRID_END do B2.1, os **8 restantes com 4 em paralelo**.
-- **Por que não afeta o resultado:** a ordem de execução não entra no desenho; cada run é determinado pelo ambiente oficial e pela semente. O paralelismo muda só o tempo de relógio.
-- **Efeito colateral declarado:** durante a sobreposição, os 4 últimos runs do B2.1 ficam um pouco mais lentos (GPU compartilhada por 6 processos, como no resto da grade).
-- **Nenhum resultado foi olhado** antes desta mudança (B2.1: só saúde e progresso; B2.3: nenhum run iniciado até então).
+- **Reason:** B2.1 entered its last seed with only 4 processes, leaving 2 GPU slots idle for ~8 h. Using them shortens B2.3.
+- **What changed:**
+  - the `run_grid_b23.sh --after-b21` launcher (armed on 2026-09-28 08:19) was stopped before starting any run;
+  - new scheduler `scripts/passo2_oficial/run_b23_escalonado.sh` (new file; `run_grid_b23.sh` was not changed): runs **LMP and EB for seed 100 immediately** and, after the B2.1 GRID_END, the **remaining 8 with 4 in parallel**.
+- **Why it does not affect the result:** the execution order is not part of the design; each run is determined by the official environment and the seed. Parallelism only changes wall-clock time.
+- **Declared side effect:** during the overlap, the last 4 B2.1 runs are a bit slower (GPU shared by 6 processes, as in the rest of the grid).
+- **No result was looked at** before this change (B2.1: health and progress only; B2.3: no run had started yet).

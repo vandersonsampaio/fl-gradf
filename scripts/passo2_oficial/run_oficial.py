@@ -1,39 +1,38 @@
 """
-Passo 2 (references/proximos_passos_pos_ablacao.md): o TD3 contribui no
-AdaAggRL oficial, no horizonte oficial?
+Step 2 (results/frente1_passo2_oficial/): does TD3 contribute in the official
+AdaAggRL, at the official horizon?
 
-Roda o código publicado (external/AdaAggRL, commit 27b9c18) SEM editar nenhum
-arquivo dele, em três condições:
+Runs the published code (external/AdaAggRL, commit 27b9c18) WITHOUT editing any
+of its files, under three conditions:
 
-  td3     TD3 do SB3 exatamente como em main.py (MlpPolicy [256,128], lr 1e-5,
-          buffer 1000, batch 64, train_freq 3, ruído N(0, 0.1), gamma 0.99,
-          learning_starts padrão = 100).
-  fixed   ação constante no centro do Box oficial: [0.475]*5. a[:4] constante
-          -> softmax uniforme; a5 = 0.475 = média das ações do TD3 na fase
-          aleatória (rodadas 1-100).
-  random  ação uniforme em [0, 0.95]^5 durante toda a execução (o que o TD3
-          executa nas primeiras 100 rodadas).
+  td3     SB3 TD3 exactly as in main.py (MlpPolicy [256,128], lr 1e-5,
+          buffer 1000, batch 64, train_freq 3, noise N(0, 0.1), gamma 0.99,
+          default learning_starts = 100).
+  fixed   constant action at the center of the official Box: [0.475]*5. Constant a[:4]
+          -> uniform softmax; a5 = 0.475 = mean of the TD3 actions in the random
+          phase (rounds 1-100).
+  random  uniform action in [0, 0.95]^5 for the whole run (what TD3
+          executes in the first 100 rounds).
 
-Ajustes mínimos de ambiente, todos por fora do código oficial
-(ver references/auditoria_fidelidade_adaaggrl.md, §5):
+Minimal environment adjustments, all outside the official code:
 
-  1. `inversefed.data.consts` (não distribuído) -> shim/ com as constantes
-     originais de Geiping.
-  2. API gym 0.26 antiga (step com 4 valores, reset sem seed) -> adaptador
-     Gymnasium `OfficialEnvAdapter`; o SB3 2.3.2 não aceita o ambiente cru.
-  3. Sementes: o __init__ oficial faz random.seed(150), o que fixa atacantes e
-     partição e é mantido. Depois dele, `set_random_seed(seed)` do SB3 (random,
-     numpy, torch) é chamado em TODAS as condições, então a sequência de
-     clientes amostrados (random.sample) é pareada entre condições até o
-     primeiro reset.
-  4. SummaryWriter -> no-op; tensorboard_log e CheckpointCallback do main.py
-     removidos (só logging).
-  5. --dataset MNIST (o padrão do main.py é CIFAR10).
+  1. `inversefed.data.consts` (not distributed) -> shim/ with Geiping's original
+     constants.
+  2. Old gym 0.26 API (4-value step, reset without seed) -> Gymnasium adapter
+     `OfficialEnvAdapter`; SB3 2.3.2 does not accept the raw environment.
+  3. Seeds: the official __init__ calls random.seed(150), which fixes attackers and
+     partition and is kept. After it, SB3's `set_random_seed(seed)` (random,
+     numpy, torch) is called in ALL conditions, so the sequence of
+     sampled clients (random.sample) is paired across conditions until the
+     first reset.
+  4. SummaryWriter -> no-op; main.py's tensorboard_log and CheckpointCallback
+     removed (logging only).
+  5. --dataset MNIST (main.py's default is CIFAR10).
 
-Nada muda na lógica do ambiente, dos ataques, da recompensa (inclusive o uso do
-testloader, §2.1 da auditoria) ou do TD3.
+Nothing changes in the logic of the environment, the attacks, the reward (including the use
+of the testloader) or TD3.
 
-Uso (sempre com o venv isolado):
+Usage (always with the isolated venv):
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_oficial.py \
       --attack LMP --condition td3 --seed 100 --rounds 500 --q 0.5
 """
@@ -72,7 +71,7 @@ class _NoOpWriter:
 
 
 def _official_args(dataset: str, attack: str, q: float) -> Namespace:
-    """Mesmos padrões de main.py::get_args, exceto dataset/attack/q."""
+    """Same defaults as main.py::get_args, except dataset/attack/q."""
     return Namespace(
         batch_size=64, q=q, num_clients=100, subsample_rate=0.1, num_attacker=20,
         num_class=10, fl_epoch=500, lr=0.05, dataset=dataset, dummy_batch_size=16,
@@ -81,8 +80,8 @@ def _official_args(dataset: str, attack: str, q: float) -> Namespace:
 
 
 def _preview_weights(env, action):
-    """Replica, SEM mutar estado, exp_environments.py:122-137 para registrar
-    quanto peso a ação dá aos atacantes na agregação que o step vai fazer."""
+    """Replicates exp_environments.py:122-137, WITHOUT mutating state, to record
+    how much weight the action gives to attackers in the aggregation the step is about to do."""
     old_state = np.asarray(env.old_state, dtype=np.float64)
     a0 = torch.softmax(torch.tensor(np.asarray(action[:4], dtype=np.float32)), dim=0).numpy()
     k = torch.tensor(np.dot(old_state, a0))
@@ -104,8 +103,8 @@ def _preview_weights(env, action):
 
 
 class OfficialEnvAdapter(gymnasium.Env):
-    """Adaptador Gymnasium para exp_environments.FL_mnist. Repassa step/reset
-    sem alterar nada e registra o que o Passo 2 precisa."""
+    """Gymnasium adapter for exp_environments.FL_mnist. Forwards step/reset
+    without changing anything and records what the experiment needs."""
 
     metadata = {"render_modes": []}
 
@@ -122,15 +121,15 @@ class OfficialEnvAdapter(gymnasium.Env):
         )
         self.steps = []
         self.resets = []
-        self._real_att = set()  # atacantes que de fato atacaram nos updates pendentes
+        self._real_att = set()  # attackers that actually attacked in the pending updates
         self._t = 0
-        self.on_step = None  # callback de checkpoint (só logging)
+        self.on_step = None  # checkpoint callback (logging only)
 
     def reset(self, seed=None, options=None):
         with contextlib.redirect_stdout(self.log_stream):
             obs = self.inner.reset()
         self.resets.append({"env_step": self._t, "acc": float(self.inner.acc), "loss": float(self.inner.loss)})
-        self._real_att = set()  # o reset oficial treina todos honestamente
+        self._real_att = set()  # the official reset trains every client honestly
         return np.asarray(obs, dtype=np.float32), {}
 
     def step(self, action):
@@ -196,7 +195,7 @@ def _dump(record, path):
 
 
 def run(attack: str, condition: str, seed: int, rounds: int, q: float, dataset: str, out_dir: str) -> str:
-    out_dir = os.path.abspath(out_dir)  # o chdir abaixo quebraria caminhos relativos
+    out_dir = os.path.abspath(out_dir)  # the chdir below would break relative paths
     os.makedirs(out_dir, exist_ok=True)
     tag = f"{dataset}_{attack}_q{q}_{condition}_seed{seed}_R{rounds}"
     out_path = os.path.join(out_dir, f"{tag}.json")
@@ -204,20 +203,20 @@ def run(attack: str, condition: str, seed: int, rounds: int, q: float, dataset: 
     log_path = os.path.join(out_dir, f"{tag}.stdout.log")
 
     cwd = os.getcwd()
-    os.chdir(OFICIAL)  # o código oficial lê ./extract_feature.pt e ./data
+    os.chdir(OFICIAL)  # the official code reads ./extract_feature.pt and ./data
     try:
         import exp_environments as E
         E.SummaryWriter = _NoOpWriter
 
         t_start = time.perf_counter()
-        with open(log_path, "w", buffering=1) as log_stream:  # line-buffered: progresso visível
+        with open(log_path, "w", buffering=1) as log_stream:  # line-buffered: visible progress
             with contextlib.redirect_stdout(log_stream):
-                inner = E.FL_mnist(_official_args(dataset, attack, q))  # faz random.seed(150)
+                inner = E.FL_mnist(_official_args(dataset, attack, q))  # calls random.seed(150)
             set_random_seed(seed, using_cuda=torch.cuda.is_available())
             env = OfficialEnvAdapter(inner, log_stream)
             env.action_space.seed(seed)
 
-            def _checkpoint(t):  # só logging: salva o parcial para não perder um run que cair
+            def _checkpoint(t):  # logging only: saves the partial so a crashed run is not lost
                 if t % CHECKPOINT_EVERY == 0:
                     rec = _record(inner, env, E, attack, condition, seed, rounds, q, dataset,
                                   time.perf_counter() - t_start)

@@ -1,13 +1,13 @@
 """
-D2 (results/d2_variancia_p1/PLANO.md): variância de execução dos números do P1.
+D2 (results/d2_variancia_p1/PLANO.md): run-to-run variance of the P1 numbers.
 
-`run --seed S --rep R --worktree DIR`: roda, num processo novo, o exp10 da tag p1.0.0
-(worktree DIR, sem alterações) com a mesma chamada do P1 (variant b, root 100, 5 sistemas,
-21 células) e salva o CSV em results/d2_variancia_p1/raw/rep{R}_seed{S}.csv.
-`analisar`: compara as 3 repetições + a execução original do P1 (CSV da tag).
+`run --seed S --rep R --worktree DIR`: runs, in a new process, exp10 from tag p1.0.0
+(worktree DIR, unmodified) with the same call as P1 (variant b, root 100, 5 systems,
+21 cells) and saves the CSV to results/d2_variancia_p1/raw/rep{R}_seed{S}.csv.
+`analisar`: compares the 3 repetitions + the original P1 execution (CSV from the tag).
 
-Uso:
-  CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python scripts/d2_variancia_p1.py run --seed 42 --rep 1 --worktree /caminho/p1_worktree
+Usage:
+  CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python scripts/d2_variancia_p1.py run --seed 42 --rep 1 --worktree /path/to/p1_worktree
   venv/bin/python scripts/d2_variancia_p1.py analisar
 """
 
@@ -28,7 +28,7 @@ PUBLICADO = {"GRADF": -0.042, "FedStrategist": -0.044, "AdaAggRL": 0.030}
 def run(seed, rep, worktree):
     path = os.path.join(OUT, "raw", f"rep{rep}_seed{seed}.csv")
     if os.path.exists(path):
-        print(f"já existe: {path}")
+        print(f"already exists: {path}")
         return
     os.makedirs(os.path.dirname(path), exist_ok=True)
     os.chdir(worktree)
@@ -39,7 +39,7 @@ def run(seed, rep, worktree):
     df["rep"] = rep
     df.to_csv(path + ".tmp", index=False)
     os.replace(path + ".tmp", path)
-    print(f"FIM {path}")
+    print(f"END {path}")
 
 
 def analisar():
@@ -76,19 +76,19 @@ def analisar():
 
     sinais_ok = bool((ag["GRADF"] < 0).all() and (ag["FedStrategist"] < 0).all() and (ag["AdaAggRL"] > 0).all())
     sd_ok = bool(all(sd_exec[s] < 0.5 * abs(PUBLICADO[s]) for s in PUBLICADO))
-    veredito = ("CONCLUSÃO DO P1 ROBUSTA À VARIÂNCIA DE EXECUÇÃO" if sinais_ok and sd_ok
-                else "A VARIÂNCIA DE EXECUÇÃO É DA ORDEM DO EFEITO (nota de limitação com magnitudes)")
+    veredito = ("P1 CONCLUSION ROBUST TO RUN-TO-RUN VARIANCE" if sinais_ok and sd_ok
+                else "RUN-TO-RUN VARIANCE IS OF THE ORDER OF THE EFFECT (limitation note with magnitudes)")
     pd.set_option("display.width", 220)
-    lines = ["D2 — variância de execução do P1 (tag p1.0.0; sementes 42–44; 3 repetições + execução original)",
-             f"linhas: {len(d)} (esperado {21 * 5 * 3 * 4})", "",
-             "SD_exec por sistema (entre as 4 execuções, por célula × semente; média e máximo):", por_sis.round(4).to_string(), "",
-             "Δ agregado (sistema − Random, média das 21 células) por execução × semente:", ag.round(4).to_string(index=False), "",
-             "SD_exec do Δ agregado (média nas 3 sementes): " + ", ".join(f"{s} {sd_exec[s]:.4f}" for s in PUBLICADO),
-             "SD entre as 10 sementes do P1 original:      " + ", ".join(f"{s} {sd_sem[s]:.4f}" for s in PUBLICADO),
-             "Δ publicado (Tabela 4):                       " + ", ".join(f"{s} {v:+.3f}" for s, v in PUBLICADO.items()), "",
-             f"Sinais em todas as 12 combinações (GRADF<0, FedStrat<0, AdaAggRL>0): {sinais_ok}",
-             f"SD_exec < ½|Δ publicado| nos três: {sd_ok}",
-             f"REGRA DE LEITURA (PLANO §4): {veredito}"]
+    lines = ["D2 — P1 run-to-run variance (tag p1.0.0; seeds 42–44; 3 repetitions + original execution)",
+             f"rows: {len(d)} (expected {21 * 5 * 3 * 4})", "",
+             "SD_exec per system (across the 4 executions, per cell × seed; mean and max):", por_sis.round(4).to_string(), "",
+             "Aggregate Δ (system − Random, mean of the 21 cells) per execution × seed:", ag.round(4).to_string(index=False), "",
+             "SD_exec of the aggregate Δ (mean over the 3 seeds): " + ", ".join(f"{s} {sd_exec[s]:.4f}" for s in PUBLICADO),
+             "SD across the 10 seeds of the original P1:   " + ", ".join(f"{s} {sd_sem[s]:.4f}" for s in PUBLICADO),
+             "Published Δ (Table 4):                       " + ", ".join(f"{s} {v:+.3f}" for s, v in PUBLICADO.items()), "",
+             f"Signs in all 12 combinations (GRADF<0, FedStrat<0, AdaAggRL>0): {sinais_ok}",
+             f"SD_exec < ½|published Δ| for all three: {sd_ok}",
+             f"READING RULE (PLANO §4): {veredito}"]
     text = "\n".join(lines) + "\n"
     open(os.path.join(OUT, "analise.txt"), "w").write(text)
     print(text)

@@ -1,13 +1,13 @@
-B2.7 — horizonte 15/50/150 (exploratório; sementes 42–51; 8 células)
-Critério: o aprendizado se paga em H se Δ(agente − fixo) > 0 com IC95 > 0 em ≥ 3 das 8 células.
-Referência fixa do LinUCB e do DQN = melhor braço em retrospecto por célula e H (OTIMISTA para o fixo).
-Sem correção de multiplicidade (3 agentes × 3 horizontes), declarado no plano.
+B2.7 — horizon 15/50/150 (exploratory; seeds 42–51; 8 cells)
+Criterion: learning pays off at H if Δ(agent − fixed) > 0 with CI95 > 0 in ≥ 3 of the 8 cells.
+Fixed reference for LinUCB and DQN = best arm in hindsight per cell and H (OPTIMISTIC for the fixed side).
+No multiplicity correction (3 agents × 3 horizons), declared in the plan.
 
 == td3_ref ==
-  H= 15: células com Δ>0 e IC95>0 = 0/8 -> não se paga;  Δ médio sobre as células = -1.65 p.p.
-  H= 50: células com Δ>0 e IC95>0 = 0/8 -> não se paga;  Δ médio sobre as células = -1.12 p.p.
-  H=150: células com Δ>0 e IC95>0 = 1/8 -> não se paga;  Δ médio sobre as células = +1.33 p.p.
-  Δ (p.p.) por célula × H, e inclinação por log(H):
+  H= 15: cells with Δ>0 and CI95>0 = 0/8 -> does not pay off;  mean Δ over the cells = -1.65 p.p.
+  H= 50: cells with Δ>0 and CI95>0 = 0/8 -> does not pay off;  mean Δ over the cells = -1.12 p.p.
+  H=150: cells with Δ>0 and CI95>0 = 1/8 -> does not pay off;  mean Δ over the cells = +1.33 p.p.
+  Δ (p.p.) per cell × H, and slope per log(H):
 H                         15    50   150  inclinacao_logH
 alpha attack_type                                        
 0.05  gaussian_noise   -0.09  0.00 -0.01             0.04
@@ -45,10 +45,10 @@ alpha attack_type
   0.50      trim_attack 150    fixed      0.9141   0.9135     0.061     -0.0558      0.1778    False                 0.518                        0.271                    NaN
 
 == linucb ==
-  H= 15: células com Δ>0 e IC95>0 = 0/8 -> não se paga;  Δ médio sobre as células = -11.55 p.p.
-  H= 50: células com Δ>0 e IC95>0 = 0/8 -> não se paga;  Δ médio sobre as células = -8.23 p.p.
-  H=150: células com Δ>0 e IC95>0 = 0/8 -> não se paga;  Δ médio sobre as células = -8.62 p.p.
-  Δ (p.p.) por célula × H, e inclinação por log(H):
+  H= 15: cells with Δ>0 and CI95>0 = 0/8 -> does not pay off;  mean Δ over the cells = -11.55 p.p.
+  H= 50: cells with Δ>0 and CI95>0 = 0/8 -> does not pay off;  mean Δ over the cells = -8.23 p.p.
+  H=150: cells with Δ>0 and CI95>0 = 0/8 -> does not pay off;  mean Δ over the cells = -8.62 p.p.
+  Δ (p.p.) per cell × H, and slope per log(H):
 H                          15     50    150  inclinacao_logH
 alpha attack_type                                           
 0.05  gaussian_noise   -21.05 -13.11 -12.01             3.97
@@ -86,10 +86,10 @@ alpha attack_type
   0.50      trim_attack 150   arm_rule_clustering      0.8746   0.9092    -3.456     -4.8183     -2.0937    False                 4.464                        4.217                 -0.597
 
 == dqn ==
-  H= 15: células com Δ>0 e IC95>0 = 0/8 -> não se paga;  Δ médio sobre as células = -13.27 p.p.
-  H= 50: células com Δ>0 e IC95>0 = 0/8 -> não se paga;  Δ médio sobre as células = -11.61 p.p.
-  H=150: células com Δ>0 e IC95>0 = 0/8 -> não se paga;  Δ médio sobre as células = -9.54 p.p.
-  Δ (p.p.) por célula × H, e inclinação por log(H):
+  H= 15: cells with Δ>0 and CI95>0 = 0/8 -> does not pay off;  mean Δ over the cells = -13.27 p.p.
+  H= 50: cells with Δ>0 and CI95>0 = 0/8 -> does not pay off;  mean Δ over the cells = -11.61 p.p.
+  H=150: cells with Δ>0 and CI95>0 = 0/8 -> does not pay off;  mean Δ over the cells = -9.54 p.p.
+  Δ (p.p.) per cell × H, and slope per log(H):
 H                          15     50    150  inclinacao_logH
 alpha attack_type                                           
 0.05  gaussian_noise    -7.96  -5.34  -4.69             1.43
@@ -126,7 +126,7 @@ alpha attack_type
   0.50      trim_attack  50   arm_gradf_clustering      0.8337   0.9039    -7.017    -11.5865     -2.4475    False                 8.180                        7.689                 -2.932
   0.50      trim_attack 150   arm_gradf_clustering      0.8236   0.9075    -8.395    -14.6143     -2.1757    False                 9.570                        9.323                 -5.145
 
-Tetos por α × H (média de 10 sementes):
+Ceilings per α × H (mean of 10 seeds):
 H                              15      50      150
 alpha system                                      
 0.05  teto_fedavg10         0.8534  0.8854  0.8948

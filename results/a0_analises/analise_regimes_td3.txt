@@ -1,8 +1,8 @@
-A0 (d) — três regimes do TD3: mediana entre runs por checkpoint (σ_a = 0,0475)
-runs por regime: B2.3: lr 1e-3, recompensa bruta: 10, B2.3b: lr 1e-4, recompensa normalizada: 10, publicado (B2.1): 20
+A0 (d) — three TD3 regimes: median across runs per checkpoint (σ_a = 0.0475)
+runs per regime: B2.3: lr 1e-3, raw reward: 10, B2.3b: lr 1e-4, normalized reward: 10, published (B2.1): 20
 
                                  drift                                                                              sd_estados                                                        
-regime B2.3: lr 1e-3, recompensa bruta B2.3b: lr 1e-4, recompensa normalizada publicado (B2.1) B2.3: lr 1e-3, recompensa bruta B2.3b: lr 1e-4, recompensa normalizada publicado (B2.1)
+regime B2.3: lr 1e-3, raw reward B2.3b: lr 1e-4, normalized reward published (B2.1) B2.3: lr 1e-3, raw reward B2.3b: lr 1e-4, normalized reward published (B2.1)
 step                                                                                                                                                                                  
 0                               0.0000                                 0.0000           0.0000                          0.0047                                 0.0045           0.0046
 50                              0.0978                                 0.0090           0.0000                          0.0091                                 0.0045           0.0046

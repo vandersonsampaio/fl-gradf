@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# C0b-iii (results/c0b_iii_metrica/PLANO.md): 12 células α ≤ 0,1 × sementes 72-81 (8 sistemas) + 20 tetos. Retomável.
-# Uso: bash scripts/run_grid_c0b_iii.sh [n_procs]
+# C0b-iii (results/c0b_iii_metrica/PLANO.md): 12 cells α ≤ 0.1 × seeds 72-81 (8 systems) + 20 ceilings. Resumable.
+# Usage: bash scripts/run_grid_c0b_iii.sh [n_procs]
 set -u
 cd "$(dirname "$0")/.."
 P=${1:-12}

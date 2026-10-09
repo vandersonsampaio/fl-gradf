@@ -1,8 +1,8 @@
-A0 — análises baratas (roadmap v4 §4.2)
+A0 — cheap analyses
 
-(a) Verificação: 48 runs; máx |acc A0 − acc B2.6| = 0.00e+00 (REPRODUZ o B2.6)
+(a) Check: 48 runs; max |acc A0 − acc B2.6| = 0.00e+00 (REPRODUCES B2.6)
 
-(a) Massa média nos atacantes por rodada (FedAvg uniforme daria 0,2):
+(a) Mean mass on attackers per round (uniform FedAvg would give 0.2):
                                   mean     min     max
 variant alpha attack_type                             
 sr_bin  0.05  gaussian_noise    0.0000  0.0000  0.0000
@@ -22,23 +22,23 @@ sr_only 0.05  gaussian_noise    0.0000  0.0000  0.0000
               sign_flipping     0.0564  0.0562  0.0566
               trim_attack       0.0000  0.0000  0.0000
 
-    sr_only: células com massa ≥ 0.05: 2/8 -> sem aproveitamento relevante (direção 6 não explicada por aproveitamento)
-    sr_bin: células com massa ≥ 0.05: 2/8 -> sem aproveitamento relevante (direção 6 não explicada por aproveitamento)
+    sr_only: cells with mass ≥ 0.05: 2/8 -> no relevant exploitation (the attacker-exploitation direction is not explained by exploitation)
+    sr_bin: cells with mass ≥ 0.05: 2/8 -> no relevant exploitation (the attacker-exploitation direction is not explained by exploitation)
 
-(b) Teto da seleção de sinais (B2.6, 19 células, média por semente; %):
-    max por semente (viesado)                       84.30  IC95=(83.72, 84.88)
-    escolha por célula (in-sample)                  83.59  IC95=(82.82, 84.36)
-    escolha por célula (deixa a semente de fora)    83.24  IC95=(82.61, 83.87)
-    sr_only                                         80.90  IC95=(80.51, 81.28)
-    cosserver_only                                  81.32  IC95=(80.48, 82.16)
-    sr_cosserver                                    82.11  IC95=(81.01, 83.21)
-    sr_bin                                          81.92  IC95=(81.52, 82.32)
-    sr_b025                                         82.47  IC95=(82.40, 82.53)
-    ganho de max por semente sobre o melhor sinal único por semente: +2.81 p.p. IC95=(+2.30, +3.32)
-    ganho de escolha por célula (LOSO) sobre o melhor sinal único por semente: +1.75 p.p. IC95=(+1.31, +2.19)
-    Sinal escolhido por célula (in-sample): gaussian_noise α=0.05: sr_only; krum_collusion α=0.05: sr_only; label_flipping α=0.05: cosserver_only; low_mag_backdoor α=0.05: cosserver_only; sign_flipping α=0.05: cosserver_only; trim_attack α=0.05: sr_only; gaussian_noise α=0.1: sr_only; krum_collusion α=0.1: cosserver_only; label_flipping α=0.1: cosserver_only; low_mag_backdoor α=0.1: cosserver_only; sign_flipping α=0.1: cosserver_only; trim_attack α=0.1: cosserver_only; fltrust_aligned α=0.5: sr_only; gaussian_noise α=0.5: sr_only; krum_collusion α=0.5: sr_only; label_flipping α=0.5: cosserver_only; low_mag_backdoor α=0.5: sr_only; sign_flipping α=0.5: cosserver_only; trim_attack α=0.5: sr_only
+(b) Signal-selection ceiling (B2.6, 19 cells, mean per seed; %):
+    max per seed (biased)                           84.30  CI95=(83.72, 84.88)
+    per-cell choice (in-sample)                     83.59  CI95=(82.82, 84.36)
+    per-cell choice (leave the seed out)            83.24  CI95=(82.61, 83.87)
+    sr_only                                         80.90  CI95=(80.51, 81.28)
+    cosserver_only                                  81.32  CI95=(80.48, 82.16)
+    sr_cosserver                                    82.11  CI95=(81.01, 83.21)
+    sr_bin                                          81.92  CI95=(81.52, 82.32)
+    sr_b025                                         82.47  CI95=(82.40, 82.53)
+    gain of max per seed over the best single signal per seed: +2.81 p.p. CI95=(+2.30, +3.32)
+    gain of per-cell choice (LOSO) over the best single signal per seed: +1.75 p.p. CI95=(+1.31, +2.19)
+    Signal chosen per cell (in-sample): gaussian_noise α=0.05: sr_only; krum_collusion α=0.05: sr_only; label_flipping α=0.05: cosserver_only; low_mag_backdoor α=0.05: cosserver_only; sign_flipping α=0.05: cosserver_only; trim_attack α=0.05: sr_only; gaussian_noise α=0.1: sr_only; krum_collusion α=0.1: cosserver_only; label_flipping α=0.1: cosserver_only; low_mag_backdoor α=0.1: cosserver_only; sign_flipping α=0.1: cosserver_only; trim_attack α=0.1: cosserver_only; fltrust_aligned α=0.5: sr_only; gaussian_noise α=0.5: sr_only; krum_collusion α=0.5: sr_only; label_flipping α=0.5: cosserver_only; low_mag_backdoor α=0.5: sr_only; sign_flipping α=0.5: cosserver_only; trim_attack α=0.5: sr_only
 
-(c) Concordância por cliente entre S_R e cos_server (registro da ablação: trajetória td3, só semente 42; PRELIMINAR) e AUC de cada sinal para separar atacantes (1 = separa perfeitamente):
+(c) Per-client agreement between S_R and cos_server (ablation log: td3 trajectory, seed 42 only; PRELIMINARY) and AUC of each signal at separating attackers (1 = perfect separation):
  alpha      attack_type  spearman_medio  AUC_S_R  AUC_cos_server
   0.05  fltrust_aligned          -0.363    0.701           0.000
   0.05   gaussian_noise           0.043    1.000           0.713

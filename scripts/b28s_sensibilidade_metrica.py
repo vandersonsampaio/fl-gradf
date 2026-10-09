@@ -1,14 +1,14 @@
 """
-B2.8s (results/b28s_sensibilidade_metrica/PLANO.md): o veredito da granularidade
-do B2.8 depende da métrica (média uniforme × média ponderada pelo tamanho do test set)?
+B2.8s (results/b28s_sensibilidade_metrica/PLANO.md): does B2.8's granularity verdict
+depend on the metric (uniform mean × mean weighted by test-set size)?
 
-Um job por célula × semente roda 9 sistemas, com `_reseed(seed)` antes de cada um, e
-grava as acurácias por cliente do modelo final (rodada 15):
-  oracle_u, oracle_w   oráculo guloso por rodada (B2.8) escolhendo pela métrica uniforme / ponderada
-  fixed, sr_only, td3_ref   esqueleto (learner da ablação)
-  fltrust, krum, median, trimmed_mean   regras estáticas como no exp9
+One job per cell × seed runs 9 systems, with `_reseed(seed)` before each one, and
+saves the per-client accuracies of the final model (round 15):
+  oracle_u, oracle_w   greedy per-round oracle (B2.8) choosing by the uniform / weighted metric
+  fixed, sr_only, td3_ref   skeleton (the ablation learner)
+  fltrust, krum, median, trimmed_mean   static rules as in exp9
 
-Uso (CPU):
+Usage (CPU):
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.b28s_sensibilidade_metrica celula --alpha 0.1 --attack sign_flipping --seed 42
   venv/bin/python -m scripts.b28s_sensibilidade_metrica analisar
 """
@@ -51,14 +51,14 @@ def run_cell(alpha, attack, seed, out_dir=RAW):
     os.makedirs(out_dir, exist_ok=True)
     path = f"{out_dir}/celula_{attack}_a{alpha}_seed{seed}.csv"
     if os.path.exists(path):
-        print(f"já existe: {path}", flush=True)
+        print(f"already exists: {path}", flush=True)
         return path
     Oracle, _ = build_oracle()
     Ablation = build_ablation()
     parts, root = load_dataset_participants("mnist", _split_name(alpha), 10, root_size=100, root_seed=seed)
     n_test = np.array([len(p.y_test) for p in parts], dtype=float)
 
-    class OracleW(Oracle):  # escolhe pela métrica ponderada
+    class OracleW(Oracle):  # chooses by the weighted metric
         def _eval(self, participants):
             accs = np.array([self._make_model(p.n_features).accuracy(p.X_test, p.y_test) for p in participants])
             n = np.array([len(p.y_test) for p in participants], dtype=float)
@@ -90,7 +90,7 @@ def run_cell(alpha, attack, seed, out_dir=RAW):
         print(f"alpha={alpha} attack={attack} seed={seed} {system} ({time.time() - t0:.0f}s)", flush=True)
     pd.DataFrame(rows).to_csv(path + ".tmp", index=False)
     os.replace(path + ".tmp", path)
-    print(f"FIM {path}", flush=True)
+    print(f"END {path}", flush=True)
     return path
 
 
@@ -123,13 +123,13 @@ def _veredito(df, metric, oracle):
     half = len(alvo) / 2
     below, above = (alvo.sinal_Q == "abaixo").sum(), (alvo.sinal_Q == "acima").sum()
     if len(alvo) == 0:
-        v = "SEM CÉLULAS-ALVO"
+        v = "NO TARGET CELLS"
     elif below >= half:
-        v = "A GRANULARIDADE EXPLICA"
+        v = "GRANULARITY EXPLAINS"
     elif above >= half:
-        v = "A GRANULARIDADE NÃO EXPLICA"
+        v = "GRANULARITY DOES NOT EXPLAIN"
     else:
-        v = "INCONCLUSIVO"
+        v = "INCONCLUSIVE"
     return r, alvo, v
 
 
@@ -144,27 +144,27 @@ def analisar():
     comuns = au.merge(aw, on=["alpha", "attack_type"], suffixes=("_u", "_w"))
     conc = float((comuns.sinal_Q_u == comuns.sinal_Q_w).mean()) if len(comuns) else float("nan")
     if vu != vw:
-        crit = "DEPENDE DA MÉTRICA (veredito muda)"
+        crit = "DEPENDS ON THE METRIC (verdict changes)"
     elif len(comuns) and conc >= 0.75:
-        crit = "GRANULARIDADE BLINDADA (veredito igual e ≥ 75% de concordância de sinal nas células-alvo comuns)"
+        crit = "GRANULARITY ROBUST (same verdict and ≥ 75% sign agreement in the common target cells)"
     else:
-        crit = "BLINDADA NO VEREDITO, SENSÍVEL POR CÉLULA"
+        crit = "ROBUST IN THE VERDICT, SENSITIVE PER CELL"
     cols = ["alpha", "attack_type", "melhor_esqueleto", "melhor_estatica", "Q_pp", "Q_lo", "Q_hi", "W_pp", "W_lo", "G_pp",
             "escolhas_oraculo"]
     b28 = pd.read_csv("results/b28_oraculo_por_regra/oraculo_por_celula.csv")
-    lines = [f"B2.8s — sensibilidade da métrica; {len(df)} linhas (esperado {9 * 21 * 10})", "",
-             "== Métrica UNIFORME (oracle_u) ==", ru[cols].round(3).to_string(index=False),
-             f"células-alvo: {len(au)}; abaixo {int((au.sinal_Q == 'abaixo').sum())}, acima {int((au.sinal_Q == 'acima').sum())} "
-             f"-> VEREDITO: {vu}", "",
-             "== Métrica PONDERADA por tamanho do test set (oracle_w) ==", rw[cols].round(3).to_string(index=False),
-             f"células-alvo: {len(aw)}; abaixo {int((aw.sinal_Q == 'abaixo').sum())}, acima {int((aw.sinal_Q == 'acima').sum())} "
-             f"-> VEREDITO: {vw}", "",
-             f"Células-alvo comuns: {len(comuns)}; concordância do sinal de Q: {conc:.0%}",
-             "Diferenças: " + "; ".join(f"{r.attack_type} α={r.alpha}: {r.sinal_Q_u}→{r.sinal_Q_w}"
+    lines = [f"B2.8s — metric sensitivity; {len(df)} rows (expected {9 * 21 * 10})", "",
+             "== UNIFORM metric (oracle_u) ==", ru[cols].round(3).to_string(index=False),
+             f"target cells: {len(au)}; below {int((au.sinal_Q == 'abaixo').sum())}, above {int((au.sinal_Q == 'acima').sum())} "
+             f"-> VERDICT: {vu}", "",
+             "== Metric WEIGHTED by test-set size (oracle_w) ==", rw[cols].round(3).to_string(index=False),
+             f"target cells: {len(aw)}; below {int((aw.sinal_Q == 'abaixo').sum())}, above {int((aw.sinal_Q == 'acima').sum())} "
+             f"-> VERDICT: {vw}", "",
+             f"Common target cells: {len(comuns)}; sign agreement of Q: {conc:.0%}",
+             "Differences: " + "; ".join(f"{r.attack_type} α={r.alpha}: {r.sinal_Q_u}→{r.sinal_Q_w}"
                                         for r in comuns.itertuples() if r.sinal_Q_u != r.sinal_Q_w), "",
-             f"CRITÉRIO DA SENSIBILIDADE (PLANO §3): {crit}", "",
-             f"(Descritivo) veredito do B2.8 original: 8/14 células-alvo abaixo -> 'a granularidade explica'; "
-             f"nesta grade, métrica uniforme: {vu}"]
+             f"SENSITIVITY CRITERION (PLANO §3): {crit}", "",
+             f"(Descriptive) original B2.8 verdict: 8/14 target cells below -> 'granularity explains'; "
+             f"in this grid, uniform metric: {vu}"]
     text = "\n".join(lines) + "\n"
     open(f"{OUT}/analise.txt", "w").write(text)
     print(text)

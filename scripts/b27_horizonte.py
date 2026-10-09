@@ -1,27 +1,27 @@
 """
-B2.7 (references/roadmap_tese_gradf_v4.md §4.1): horizonte 15/50/150.
-Plano em results/b27_horizonte/PLANO.md. Exploratório, sementes 42-51.
+B2.7: horizon 15/50/150.
+Plan in results/b27_horizonte/PLANO.md. Exploratory, seeds 42-51.
 
-Pergunta: o ganho de cada agente sobre a versão fixa NO MESMO ESPAÇO DE AÇÃO
-(mesmo sinal, granularidade e memória) cresce com o horizonte?
+Question: does each agent's gain over the fixed version IN THE SAME ACTION SPACE
+(same signal, granularity and memory) grow with the horizon?
 
-  agente                       versão fixa                            referência extra
-  td3_ref (AdaAggRL, ablação)  fixed (mesmo esqueleto, ação no centro)  —
-  linucb (FedStrategist b)     arm_rule_<r>: a regra r aplicada como o  rand_rule: regra uniforme
-                               LinUCB aplica (mesmo round, sem bandit)  por rodada
-  dqn (GRADF v1)               arm_gradf_<r>: pipeline do GRADF com     rand_gradf: RandomSelector
-                               FixedActionSelector(r)                   (como no exp10)
-  r ∈ arsenal de 7 regras (FULL_ARSENAL do exp10).
+  agent                        fixed version                            extra reference
+  td3_ref (AdaAggRL, ablation) fixed (same skeleton, action at center)  —
+  linucb (FedStrategist b)     arm_rule_<r>: rule r applied the way     rand_rule: uniform rule
+                               LinUCB applies it (same round, no bandit) per round
+  dqn (GRADF v1)               arm_gradf_<r>: GRADF pipeline with       rand_gradf: RandomSelector
+                               FixedActionSelector(r)                   (as in exp10)
+  r ∈ arsenal of 7 rules (exp10's FULL_ARSENAL).
 
-Horizontes ANINHADOS: cada sistema roda 150 rodadas e a acurácia nos
-horizontes H ∈ {15, 50, 150} é a do modelo global ao fim da rodada H. Nada nos
-learners depende de n_rounds (só o laço de treino), então é idêntico a rodar
-H rodadas; o subcomando `verificar` confirma isso numa célula×semente.
+NESTED horizons: each system runs 150 rounds and the accuracy at the
+horizons H ∈ {15, 50, 150} is that of the global model at the end of round H. Nothing in the
+learners depends on n_rounds (only the training loop), so this is identical to running
+H rounds; the `verificar` subcommand confirms it on one cell×seed.
 
-Tetos por α×semente×H: FedAvg-10 sem ataque (como no C.0) e oráculo FedAvg-8
-(só os 8 honestos, avaliado nos test sets dos 10, como no c0_teto_oraculo).
+Ceilings per α×seed×H: FedAvg-10 without attack (as in C.0) and the FedAvg-8 oracle
+(only the 8 honest clients, evaluated on the 10 test sets, as in c0_teto_oraculo).
 
-Uso (CPU, sem GPU):
+Usage (CPU, no GPU):
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.b27_horizonte celula --alpha 0.05 --attack label_flipping --seed 42
   ... -m scripts.b27_horizonte teto --alpha 0.05 --seed 42
   ... -m scripts.b27_horizonte verificar
@@ -49,15 +49,15 @@ CELLS = [
 ]
 BYZ = [0, 1]
 INPUT_SHAPE = (28, 28, 1)
-TETO_DIR = f"{OUT}/raw_teto_corrigido"  # tetos refeitos após a correção do _Oracle8 (raw/teto_* = versão com o bug)
-MIN_CELLS = 3  # "o aprendizado se paga em H": Δ > 0 com IC95 > 0 em ≥ 3 das 8 células
+TETO_DIR = f"{OUT}/raw_teto_corrigido"  # ceilings re-run after the _Oracle8 fix (raw/teto_* = the version with the bug)
+MIN_CELLS = 3  # "learning pays off at H": Δ > 0 with CI95 > 0 in ≥ 3 of the 8 cells
 
 
 def _reseed(seed):
-    """O `seed` dos learners não semeia o np.random global (permutação do treino
-    local, ruído DP), então sem isto cada sistema herdaria o estado deixado pelo
-    anterior no mesmo processo. Ressemeia python/numpy/TF antes de cada sistema
-    (o mesmo que o extrator do td3_ref/fixed já faz no __init__)."""
+    """The learners' `seed` does not seed the global np.random (local training
+    permutation, DP noise), so without this each system would inherit the state left by the
+    previous one in the same process. Reseeds python/numpy/TF before each system
+    (the same as the td3_ref/fixed extractor already does in __init__)."""
     import keras
     keras.utils.set_random_seed(seed)
 
@@ -67,17 +67,17 @@ def _accs(results):
 
 
 def build_plain_rule_learner():
-    """Regra fixa (ou aleatória por rodada) aplicada exatamente como o
-    FedStrategistGridLearner aplica a regra escolhida: mesmos updates
-    (compute_param_updates_auto), server_update ajustado no root a cada rodada,
-    _make_arsenal_strategy(regra, n_byz). Só sem detecção e sem bandit."""
+    """Fixed rule (or random per round) applied exactly as
+    FedStrategistGridLearner applies the chosen rule: same updates
+    (compute_param_updates_auto), server_update fitted on the root every round,
+    _make_arsenal_strategy(rule, n_byz). Only without detection and without the bandit."""
     from src.experiments.exp10_selector_comparison import FULL_ARSENAL, _make_arsenal_strategy
     from src.fl.attacked_learner import AttackedFederatedLearner, compute_param_updates_auto
     from src.fl.federated_learner import RoundResult
 
     class PlainRuleLearner(AttackedFederatedLearner):
         def __init__(self, *args, rule: str = "fedavg", random_seed=None, **kwargs):
-            kwargs.setdefault("aggregation", "fedavg")  # placeholder; a regra vem de `rule`
+            kwargs.setdefault("aggregation", "fedavg")  # placeholder; the rule comes from `rule`
             super().__init__(*args, **kwargs)
             self.rule = rule
             self._rng = None if random_seed is None else np.random.RandomState(random_seed)
@@ -115,7 +115,7 @@ def run_cell(alpha, attack, seed, n_rounds=H_MAX, systems=None, out_dir=None):
     os.makedirs(out_dir, exist_ok=True)
     path = f"{out_dir}/celula_{attack}_a{alpha}_seed{seed}_R{n_rounds}.csv"
     if os.path.exists(path):
-        print(f"já existe: {path}", flush=True)
+        print(f"already exists: {path}", flush=True)
         return path
     Ablation = build_learner_cls()
     PlainRule, arsenal = build_plain_rule_learner()
@@ -167,7 +167,7 @@ def run_cell(alpha, attack, seed, n_rounds=H_MAX, systems=None, out_dir=None):
     df = pd.DataFrame(rows).assign(pretrain_sec=t_pre)
     df.to_csv(path + ".tmp", index=False)
     os.replace(path + ".tmp", path)
-    print(f"FIM {path} ({time.time() - t_all:.0f}s)", flush=True)
+    print(f"END {path} ({time.time() - t_all:.0f}s)", flush=True)
     return path
 
 
@@ -180,7 +180,7 @@ def run_ceiling(alpha, seed, n_rounds=H_MAX, out_dir=None):
     os.makedirs(out_dir, exist_ok=True)
     path = f"{out_dir}/teto_a{alpha}_seed{seed}_R{n_rounds}.csv"
     if os.path.exists(path):
-        print(f"já existe: {path}", flush=True)
+        print(f"already exists: {path}", flush=True)
         return path
     participants, root = load_dataset_participants("mnist", _split_name(alpha), 10, root_size=100, root_seed=seed)
     rows = []
@@ -197,8 +197,8 @@ def run_ceiling(alpha, seed, n_rounds=H_MAX, out_dir=None):
     class _Oracle8(AttackedFederatedLearner):
         def _run_round(self, round_num, parts, root_data):
             rr = super()._run_round(round_num, parts, root_data)
-            # o train numera as rodadas a partir de 1: round_num = nº de rodadas concluídas
-            # (correção de 2026-10-02; antes gravava após H−1 rodadas, ver CORRECAO_TETO.md)
+            # train numbers rounds starting from 1: round_num = number of completed rounds
+            # (so the ceiling is recorded after H rounds, not H−1)
             if round_num in HORIZONS:
                 m = self._make_model(participants[0].n_features)
                 m.set_params(self._global_params)
@@ -211,15 +211,15 @@ def run_ceiling(alpha, seed, n_rounds=H_MAX, out_dir=None):
     for H, acc in acc10.items():
         rows.append({"alpha": alpha, "seed": seed, "system": "teto_oraculo_fedavg8", "H": H, "accuracy": acc})
     pd.DataFrame(rows).to_csv(path, index=False)
-    print(f"FIM {path}", flush=True)
+    print(f"END {path}", flush=True)
     return path
 
 
 def verificar():
-    """(1) aninhamento: na célula (0.05, label_flipping), semente 42, rodar com
-    n_rounds=15 e 50 deve dar exatamente a acurácia do run de 150 em H=15 e 50;
-    (2) reprodução em H=15 contra os runs antigos (descritivo)."""
-    lines = ["B2.7 — verificações", ""]
+    """(1) nesting: on cell (0.05, label_flipping), seed 42, running with
+    n_rounds=15 and 50 must give exactly the accuracy of the 150-round run at H=15 and 50;
+    (2) reproduction at H=15 against the earlier runs (descriptive)."""
+    lines = ["B2.7 — checks", ""]
     tmp = f"{OUT}/verificacao"
     full = f"{OUT}/raw/celula_label_flipping_a0.05_seed42_R{H_MAX}.csv"
     if os.path.exists(full):
@@ -231,10 +231,10 @@ def verificar():
             short = pd.read_csv(p)
             m = short.merge(ref[ref.H == n], on=["system", "H"], suffixes=("_curto", "_150"))
             d = (m["accuracy_curto"] - m["accuracy_150"]).abs()
-            lines.append(f"(1) aninhamento H={n}: {len(m)} sistemas, máx |Δ| = {d.max():.2e}  "
-                         f"-> {'OK' if d.max() < 1e-9 else 'DIFERENTE: ' + ', '.join(m.loc[d >= 1e-9, 'system'])}")
+            lines.append(f"(1) nesting H={n}: {len(m)} systems, max |Δ| = {d.max():.2e}  "
+                         f"-> {'OK' if d.max() < 1e-9 else 'DIFFERENT: ' + ', '.join(m.loc[d >= 1e-9, 'system'])}")
     else:
-        lines.append(f"(1) aninhamento: falta {full}")
+        lines.append(f"(1) nesting: missing {full}")
 
     raw = pd.concat([pd.read_csv(f) for f in glob.glob(f"{OUT}/raw/celula_*_R{H_MAX}.csv")])
     r15 = raw[raw.H == 15]
@@ -245,14 +245,14 @@ def verificar():
             ("dqn", e10[e10.system == "GRADF"]), ("rand_gradf", e10[e10.system == "Random"]),
             ("fixed", abl)]
     refs += [(f"arm_rule_{r}", ex9[ex9.strategy == r]) for r in ["fltrust", "median", "trimmed_mean", "krum"]]
-    lines += ["", "(2) reprodução em H=15 contra os runs antigos (descritivo; exp9 usa outro caminho de agregação):"]
+    lines += ["", "(2) reproduction at H=15 against the earlier runs (descriptive; exp9 uses another aggregation path):"]
     for sysname, old in refs:
         m = r15[r15.system == sysname].merge(old[["alpha", "attack_type", "seed", "accuracy"]],
                                               on=["alpha", "attack_type", "seed"], suffixes=("", "_antigo"))
         if len(m):
             d = (m["accuracy"] - m["accuracy_antigo"]).abs()
-            lines.append(f"  {sysname:22s} n={len(m):3d}  máx |Δ|={d.max():.4f}  média |Δ|={d.mean():.4f}  "
-                         f"idênticos={int((d < 1e-9).sum())}")
+            lines.append(f"  {sysname:22s} n={len(m):3d}  max |Δ|={d.max():.4f}  mean |Δ|={d.mean():.4f}  "
+                         f"identical={int((d < 1e-9).sum())}")
     text = "\n".join(lines) + "\n"
     os.makedirs(OUT, exist_ok=True)
     open(f"{OUT}/verificacao.txt", "w").write(text)
@@ -285,7 +285,7 @@ def analisar():
                 if arms is None:
                     ref_name = "fixed"
                 else:
-                    ref_name = w[arms].mean().idxmax()  # melhor braço em retrospecto (referência otimista)
+                    ref_name = w[arms].mean().idxmax()  # best arm in hindsight (optimistic reference)
                 d = (w[agent] - w[ref_name]).dropna().to_numpy()
                 m, lo, hi = _ci95(d)
                 row = {"alpha": alpha, "attack_type": attack, "H": H, "agente": agent, "ref_fixa": ref_name,
@@ -308,10 +308,10 @@ def analisar():
     res.to_csv(f"{OUT}/delta_por_celula.csv", index=False)
 
     pd.set_option("display.width", 250)
-    lines = ["B2.7 — horizonte 15/50/150 (exploratório; sementes 42–51; 8 células)",
-             "Critério: o aprendizado se paga em H se Δ(agente − fixo) > 0 com IC95 > 0 em ≥ 3 das 8 células.",
-             "Referência fixa do LinUCB e do DQN = melhor braço em retrospecto por célula e H (OTIMISTA para o fixo).",
-             "Sem correção de multiplicidade (3 agentes × 3 horizontes), declarado no plano.", ""]
+    lines = ["B2.7 — horizon 15/50/150 (exploratory; seeds 42–51; 8 cells)",
+             "Criterion: learning pays off at H if Δ(agent − fixed) > 0 with CI95 > 0 in ≥ 3 of the 8 cells.",
+             "Fixed reference for LinUCB and DQN = best arm in hindsight per cell and H (OPTIMISTIC for the fixed side).",
+             "No multiplicity correction (3 agents × 3 horizons), declared in the plan.", ""]
     for agent, _, _ in agents:
         a = res[res.agente == agent]
         if not len(a):
@@ -320,18 +320,18 @@ def analisar():
         for H in HORIZONS:
             ah = a[a.H == H]
             k = int(ah.se_paga.sum())
-            lines.append(f"  H={H:3d}: células com Δ>0 e IC95>0 = {k}/{len(ah)} -> "
-                         f"{'SE PAGA' if k >= MIN_CELLS else 'não se paga'};  Δ médio sobre as células = "
+            lines.append(f"  H={H:3d}: cells with Δ>0 and CI95>0 = {k}/{len(ah)} -> "
+                         f"{'PAYS OFF' if k >= MIN_CELLS else 'does not pay off'};  mean Δ over the cells = "
                          f"{ah.delta_pp.mean():+.2f} p.p.")
         piv = a.pivot_table(index=["alpha", "attack_type"], columns="H", values="delta_pp")
         slope = piv.apply(lambda r: np.polyfit(np.log(HORIZONS), r.values, 1)[0], axis=1)
-        lines.append("  Δ (p.p.) por célula × H, e inclinação por log(H):")
+        lines.append("  Δ (p.p.) per cell × H, and slope per log(H):")
         lines.append((piv.assign(inclinacao_logH=slope)).round(2).to_string())
         cols = ["alpha", "attack_type", "H", "ref_fixa", "acc_agente", "acc_ref", "delta_pp", "ic95_lo_pp",
                 "ic95_hi_pp", "se_paga"] + [c for c in a.columns if c.startswith("delta_vs") or c.startswith("gap_")]
         lines.append(a[cols].round(4).to_string(index=False))
         lines.append("")
-    lines.append("Tetos por α × H (média de 10 sementes):")
+    lines.append("Ceilings per α × H (mean of 10 seeds):")
     lines.append(tetos.groupby(["alpha", "system", "H"])["accuracy"].mean().unstack("H").round(4).to_string())
     text = "\n".join(lines) + "\n"
     open(f"{OUT}/analise.txt", "w").write(text)

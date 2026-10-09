@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Grade confirmatória do B2.1 + B2.2 (results/b21_replicacao_oficial/PREREGISTRO.md §4).
-# 40 runs: sementes 105-114 x {LMP, EB} x {td3, fixed}. Retomável: pula runs cujo JSON já existe.
-# Uso: bash scripts/passo2_oficial/run_grid_b21.sh
+# Confirmatory B2.1 + B2.2 grid (results/b21_replicacao_oficial/PREREGISTRO.md §4).
+# 40 runs: seeds 105-114 x {LMP, EB} x {td3, fixed}. Resumable: skips runs whose JSON already exists.
+# Usage: bash scripts/passo2_oficial/run_grid_b21.sh
 set -u
 cd "$(dirname "$0")/../.."
 PY=external/.venv_adaaggrl/bin/python

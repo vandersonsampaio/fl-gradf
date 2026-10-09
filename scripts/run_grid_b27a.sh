@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# B2.7a (results/b27b_td3_constante/PLANO.md): td3_ref com registro, 3 células × sementes 42-51, H = 150.
-# Retomável: pula jobs cujo .npz já existe. Uso: bash scripts/run_grid_b27a.sh [n_procs]
+# B2.7a (results/b27b_td3_constante/PLANO.md): td3_ref with logging, 3 cells × seeds 42-51, H = 150.
+# Resumable: skips jobs whose .npz already exists. Usage: bash scripts/run_grid_b27a.sh [n_procs]
 set -u
 cd "$(dirname "$0")/.."
 P=${1:-10}

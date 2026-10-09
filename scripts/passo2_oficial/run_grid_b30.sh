@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# B3.0 (results/b31_medmnist_oficial/PREREGISTRO.md §3): FedAvg uniforme, 500 rodadas, sementes 130-132:
-# BloodMNIST sem ataque, LMP e EB; MNIST sem ataque (referência da margem). 12 runs. Retomável.
-# Uso: bash scripts/passo2_oficial/run_grid_b30.sh
+# B3.0 (results/b31_medmnist_oficial/PREREGISTRO.md §3): uniform FedAvg, 500 rounds, seeds 130-132:
+# BloodMNIST without attack, LMP and EB; MNIST without attack (margin reference). 12 runs. Resumable.
+# Usage: bash scripts/passo2_oficial/run_grid_b30.sh
 set -u
 cd "$(dirname "$0")/../.."
 PY=external/.venv_adaaggrl/bin/python

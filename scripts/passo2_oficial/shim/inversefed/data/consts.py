@@ -1,8 +1,8 @@
-"""Shim para `from inversefed.data.consts import *` em
-external/AdaAggRL/data/data_processing.py. O pacote `inversefed` não vem no
-repositório oficial nem no requirements.txt. Valores copiados sem alteração de
-github.com/JonasGeiping/invertinggradients (branch master, inversefed/consts.py),
-a fonte que o README do AdaAggRL cita."""
+"""Shim for `from inversefed.data.consts import *` in
+external/AdaAggRL/data/data_processing.py. The `inversefed` package is not shipped in the
+official repository nor in its requirements.txt. Values copied unchanged from
+github.com/JonasGeiping/invertinggradients (master branch, inversefed/consts.py),
+the source cited by the AdaAggRL README."""
 
 PIN_MEMORY = True
 NON_BLOCKING = False

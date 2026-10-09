@@ -1,13 +1,13 @@
-B3.0 — sanity BloodMNIST (FedAvg uniforme, 500 rodadas, sementes 130–132)
+B3.0 — BloodMNIST sanity (uniform FedAvg, 500 rounds, seeds 130–132)
 
-BloodMNIST none: T por semente = [77.39, 77.83, 78.26]%, média 77.83%; resets [0, 0, 0]; s/rodada 57.4
-BloodMNIST LMP : T por semente = [23.75, 19.55, 19.6]%, média 20.97%; resets [108, 101, 113]; s/rodada 83.8
-BloodMNIST EB  : T por semente = [21.79, 7.13, 22.29]%, média 17.07%; resets [113, 14, 114]; s/rodada 76.9
-MNIST      none: T por semente = [96.84, 96.85, 97.05]%, média 96.92%; resets [0, 0, 0]; s/rodada 92.4
+BloodMNIST none: T per seed = [77.39, 77.83, 78.26]%, mean 77.83%; resets [0, 0, 0]; s/round 57.4
+BloodMNIST LMP : T per seed = [23.75, 19.55, 19.6]%, mean 20.97%; resets [108, 101, 113]; s/round 83.8
+BloodMNIST EB  : T per seed = [21.79, 7.13, 22.29]%, mean 17.07%; resets [113, 14, 114]; s/round 76.9
+MNIST      none: T per seed = [96.84, 96.85, 97.05]%, mean 96.92%; resets [0, 0, 0]; s/round 92.4
 
-Convergência: T_Blood = 77.83% (≥ 50%?) e média 451–500 − 401–450 = +1.79 p.p. (|·| < 2?) -> CONVERGE
-Inclusão LMP: queda = +56.86 p.p. (≥ 5?) -> ENTRA
-Inclusão EB: queda = +60.76 p.p. (≥ 5?) -> ENTRA
-Margem: T_MNIST = 96.92%; M bruta = 7.188 p.p. -> M = 3.00 p.p. (limitada a 3,0: equivalência fraca)
+Convergence: T_Blood = 77.83% (≥ 50%?) and mean 451–500 − 401–450 = +1.79 p.p. (|·| < 2?) -> CONVERGES
+Inclusion LMP: drop = +56.86 p.p. (≥ 5?) -> INCLUDED
+Inclusion EB: drop = +60.76 p.p. (≥ 5?) -> INCLUDED
+Margin: T_MNIST = 96.92%; raw M = 7.188 p.p. -> M = 3.00 p.p. (capped at 3.0: weak equivalence)
 
-DECISÃO: B3.1 com ataques ['LMP', 'EB'] e margem ±3.00 p.p.
+DECISION: B3.1 with attacks ['LMP', 'EB'] and margin ±3.00 p.p.

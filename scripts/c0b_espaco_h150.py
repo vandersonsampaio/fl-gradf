@@ -1,20 +1,20 @@
 """
-C0b (results/c0b_espaco_h150/PLANO.md + ADENDO1.md): espaço restante em H = 150
-contra o melhor método existente. 19 células, sementes 72-81, horizontes
-aninhados 15/50/150.
+C0b (results/c0b_espaco_h150/PLANO.md + ADENDO1.md): remaining headroom at H = 150
+against the best existing method. 19 cells, seeds 72-81, nested horizons
+15/50/150.
 
-Sistemas (8), um job por célula × semente, `_reseed(seed)` antes de cada um:
-  variantes do esqueleto (learner do B2.6): sr_only, sr_bin, sr_b025, cosserver_only
-  regras estáticas (PlainRuleLearner do B2.7): fltrust, trimmed_mean, clustering, median
-Tetos por α × semente (run_ceiling do B2.7, já com a correção do oráculo FedAvg-8).
+Systems (8), one job per cell × seed, `_reseed(seed)` before each one:
+  skeleton variants (the B2.6 learner): sr_only, sr_bin, sr_b025, cosserver_only
+  static rules (B2.7's PlainRuleLearner): fltrust, trimmed_mean, clustering, median
+Ceilings per α × seed (B2.7's run_ceiling, already with the FedAvg-8 oracle fix).
 
-Registro por cliente nas 4 variantes (para o A0 de concordância e o teto da seleção
-de sinais sem rodar de novo): por rodada × cliente, is_byz, S_R (nas variantes que já
-calculam a inversão; NaN no cosserver_only, para não pagar a inversão),
-cos_server (calculado SEMPRE, com save/restore do np.random, como no B2.6, então a
-trajetória não muda), máscara (cliente incluído: peso > 0) e peso normalizado.
+Per-client logging in the 4 variants (for the A0 agreement analysis and the signal-selection
+ceiling without re-running): per round × client, is_byz, S_R (in the variants that already
+compute the inversion; NaN in cosserver_only, to avoid paying for the inversion),
+cos_server (ALWAYS computed, with save/restore of np.random, as in B2.6, so the
+trajectory does not change), mask (client included: weight > 0) and normalized weight.
 
-Uso (CPU, sem GPU):
+Usage (CPU, no GPU):
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.c0b_espaco_h150 celula --alpha 0.05 --attack label_flipping --seed 72
   ... -m scripts.c0b_espaco_h150 teto --alpha 0.05 --seed 72
   ... -m scripts.c0b_espaco_h150 analisar
@@ -48,7 +48,7 @@ def cells():
 
 
 def build_logging_learner():
-    """DecompLearner do B2.6 com o _run_round copiado e só acrescido de registro."""
+    """B2.6 DecompLearner with _run_round copied and only logging added."""
     from scripts.b26_decomposicao import NEEDS_SR, _cos, build_learner_cls, weights_for
     from src.defense.adaaggrl_agent import reconstruct_client_distribution
     from src.fl.attacked_learner import compute_param_updates_auto
@@ -78,7 +78,7 @@ def build_logging_learner():
                         W, b, u, self.local_lr, n_feat, K,
                         num_images=self.num_images, max_iters=self.max_iters, seed=round_num,
                     )
-            # cos_server sempre (registro); save/restore do np.random como no B2.6
+            # cos_server always (logging); save/restore of np.random as in B2.6
             rng_state = np.random.get_state()
             root = root_data or self._carve_root(participants[0])
             srv_update = self._make_model(n_feat).fit(root["X"], root["y"])
@@ -120,7 +120,7 @@ def run_cell(alpha, attack, seed, n_rounds=H_MAX, systems=None, out_dir=RAW, log
     os.makedirs(out_dir, exist_ok=True)
     path = f"{out_dir}/celula_{attack}_a{alpha}_seed{seed}_R{n_rounds}.csv"
     if os.path.exists(path):
-        print(f"já existe: {path}", flush=True)
+        print(f"already exists: {path}", flush=True)
         return path
     Variant = build_logging_learner() if log else build_learner_cls()
     PlainRule, _ = build_plain_rule_learner()
@@ -149,7 +149,7 @@ def run_cell(alpha, attack, seed, n_rounds=H_MAX, systems=None, out_dir=RAW, log
         os.replace(lp + ".tmp.gz", lp)
     pd.DataFrame(rows).to_csv(path + ".tmp", index=False)
     os.replace(path + ".tmp", path)
-    print(f"FIM {path}", flush=True)
+    print(f"END {path}", flush=True)
     return path
 
 
@@ -159,7 +159,7 @@ def run_teto(alpha, seed):
 
 
 # ---------------------------------------------------------------------------
-# Análise pré-escrita
+# Pre-written analysis
 # ---------------------------------------------------------------------------
 
 def _ci95(x):
@@ -173,7 +173,7 @@ def _auc(y, s):
     y = np.asarray(y, int)
     if len(np.unique(y)) < 2:
         return np.nan
-    r = stats.rankdata(-np.asarray(s))  # score alto = honesto
+    r = stats.rankdata(-np.asarray(s))  # high score = honest
     pos = r[y == 1]
     return float((pos.sum() - len(pos) * (len(pos) + 1) / 2) / (len(pos) * (len(y) - len(pos))))
 
@@ -184,10 +184,10 @@ def analisar():
     raw.to_csv(f"{OUT}/grade_raw.csv", index=False)
     tet.to_csv(f"{OUT}/tetos_raw.csv", index=False)
     pd.set_option("display.width", 250)
-    lines = ["C0b — espaço restante em H = 150 (descritivo; critério do C0); sementes 72–81; 19 células",
-             f"linhas: {len(raw)} (esperado {19 * 10 * 8 * 3}); tetos: {len(tet)} (esperado {3 * 10 * 2 * 3})", ""]
+    lines = ["C0b — remaining headroom at H = 150 (descriptive; C0 criterion); seeds 72–81; 19 cells",
+             f"rows: {len(raw)} (expected {19 * 10 * 8 * 3}); ceilings: {len(tet)} (expected {3 * 10 * 2 * 3})", ""]
 
-    # (i) mapa de espaço restante
+    # (i) remaining-headroom map
     rows = []
     for (alpha, attack), g in raw.groupby(["alpha", "attack_type"]):
         for H, gh in g.groupby("H"):
@@ -215,19 +215,19 @@ def analisar():
     res.to_csv(f"{OUT}/espaco_restante.csv", index=False)
     for H in HORIZONS:
         r = res[res.H == H]
-        lines.append(f"H={H:3d}: células com espaço contra o MELHOR EXISTENTE (oráculo FedAvg-8, gap > {THRESH_PP} p.p., "
-                     f"IC95 > 0) = {int(r.espaco_global.sum())}/{len(r)}; contra o esqueleto de referência (sr_only) = "
+        lines.append(f"H={H:3d}: cells with headroom vs. the BEST EXISTING (FedAvg-8 oracle, gap > {THRESH_PP} p.p., "
+                     f"CI95 > 0) = {int(r.espaco_global.sum())}/{len(r)}; vs. the reference skeleton (sr_only) = "
                      f"{int(r.espaco_vs_esqueleto_ref.sum())}/{len(r)}")
-    lines += ["", "(i) Mapa em H = 150:",
+    lines += ["", "(i) Map at H = 150:",
               res[res.H == H_MAX][["alpha", "attack_type", "melhor_existente", "acc_melhor", "gap_global_oraculo8_pp",
                                    "gap_global_oraculo8_lo", "gap_global_oraculo8_hi", "espaco_global",
                                    "gap_global_fedavg10_pp", "gap_esqueleto_ref_oraculo8_pp", "espaco_vs_esqueleto_ref"]]
               .round(3).to_string(index=False), "",
-              "(iii) Melhor variante do esqueleto − melhor regra estática (p.p., IC95), H = 150:",
+              "(iii) Best skeleton variant − best static rule (p.p., CI95), H = 150:",
               res[res.H == H_MAX][["alpha", "attack_type", "melhor_variante", "melhor_regra", "var_menos_regra_pp",
                                    "var_menos_regra_lo", "var_menos_regra_hi"]].round(3).to_string(index=False), ""]
 
-    # (ii) teto da seleção de sinais em H = 150 (mesma lógica do A0 b)
+    # (ii) signal-selection ceiling at H = 150 (same logic as A0 b)
     w = raw[raw.H == H_MAX].pivot_table(index=["alpha", "attack_type", "seed"], columns="system", values="accuracy")
     sr, cs = w["sr_only"], w["cosserver_only"]
     by_seed_max = np.maximum(sr, cs).groupby("seed").mean()
@@ -240,20 +240,20 @@ def analisar():
         te = w[w.index.get_level_values("seed") == s]
         loso.append(np.mean([te.loc[i, pk[i[:2]]] for i in te.index]))
     loso = pd.Series(loso, index=SEEDS)
-    lines.append("(ii) Teto da seleção de sinais em H = 150 (19 células, média por semente; %):")
-    for name, ser in ([("max por semente (viesado)", by_seed_max), ("escolha por célula (in-sample)", chosen),
-                       ("escolha por célula (LOSO, referência)", loso)]
+    lines.append("(ii) Signal-selection ceiling at H = 150 (19 cells, mean per seed; %):")
+    for name, ser in ([("max per seed (biased)", by_seed_max), ("per-cell choice (in-sample)", chosen),
+                       ("per-cell choice (LOSO, reference)", loso)]
                       + [(sname, w[sname].groupby("seed").mean()) for sname in SYSTEMS if sname in w]):
         m, lo, hi = _ci95(100 * ser.to_numpy())
-        lines.append(f"    {name:<42} {m:6.2f}  IC95=({lo:.2f}, {hi:.2f})")
+        lines.append(f"    {name:<42} {m:6.2f}  CI95=({lo:.2f}, {hi:.2f})")
     best_single = np.maximum(sr.groupby("seed").mean(), cs.groupby("seed").mean())
-    for name, ser in [("max por semente", by_seed_max), ("escolha por célula (LOSO)", loso)]:
+    for name, ser in [("max per seed", by_seed_max), ("per-cell choice (LOSO)", loso)]:
         m, lo, hi = _ci95(100 * (ser.to_numpy() - best_single.to_numpy()))
-        lines.append(f"    ganho de {name} sobre o melhor sinal único por semente: {m:+.2f} p.p. IC95=({lo:+.2f}, {hi:+.2f})")
-    lines.append("    Sinal escolhido por célula (in-sample): " + "; ".join(f"{t} α={a}: {pick[(a, t)]}" for a, t in pick.index))
+        lines.append(f"    gain of {name} over the best single signal per seed: {m:+.2f} p.p. CI95=({lo:+.2f}, {hi:+.2f})")
+    lines.append("    Signal chosen per cell (in-sample): " + "; ".join(f"{t} α={a}: {pick[(a, t)]}" for a, t in pick.index))
     lines.append("")
 
-    # concordância S_R × cos_server e AUC por sinal (registro do sr_only, 10 sementes) — descritivo
+    # S_R × cos_server agreement and AUC per signal (sr_only log, 10 seeds) — descriptive
     rows = []
     for f in sorted(glob.glob(f"{RAW}/scores_*_R{H_MAX}.csv.gz")):
         base = os.path.basename(f)[len("scores_"):-len(f"_R{H_MAX}.csv.gz")]
@@ -269,7 +269,7 @@ def analisar():
     if rows:
         c = pd.DataFrame(rows)
         c.to_csv(f"{OUT}/concordancia_sinais.csv", index=False)
-        lines += ["Concordância por cliente (trajetória sr_only, rodadas ≥ 2, média de 10 sementes; descritivo):",
+        lines += ["Per-client agreement (sr_only trajectory, rounds ≥ 2, mean of 10 seeds; descriptive):",
                   c.groupby(["alpha", "attack_type"])[["spearman_medio", "AUC_S_R", "AUC_cos_server"]].mean()
                   .round(3).to_string(), ""]
     text = "\n".join(lines) + "\n"

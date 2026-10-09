@@ -1,6 +1,6 @@
-C0b — sensibilidade POST HOC: tetos com ponderação uniforme (VERIFICACOES.md §3)
+C0b — POST HOC sensitivity: ceilings with uniform weighting (VERIFICACOES.md §3)
 
-Tetos por α × H (média de 10 sementes):
+Ceilings per α × H (mean of 10 seeds):
 H                               15     50     150
 alpha system                                     
 0.05  teto_fedavg10           85.34  88.56  89.47
@@ -16,11 +16,11 @@ alpha system
       teto_oraculo8_uniforme  89.65  90.96  91.74
       teto_oraculo_fedavg8    89.86  91.10  91.67
 
-H= 15: células com espaço contra o MELHOR EXISTENTE (oráculo-8 UNIFORME, gap > 2.0 p.p., IC95 > 0) = 0/19; contra o esqueleto de referência = 7/19
-H= 50: células com espaço contra o MELHOR EXISTENTE (oráculo-8 UNIFORME, gap > 2.0 p.p., IC95 > 0) = 1/19; contra o esqueleto de referência = 9/19
-H=150: células com espaço contra o MELHOR EXISTENTE (oráculo-8 UNIFORME, gap > 2.0 p.p., IC95 > 0) = 1/19; contra o esqueleto de referência = 9/19
+H= 15: cells with headroom vs. the BEST EXISTING (UNIFORM oracle-8, gap > 2.0 p.p., CI95 > 0) = 0/19; vs. the reference skeleton = 7/19
+H= 50: cells with headroom vs. the BEST EXISTING (UNIFORM oracle-8, gap > 2.0 p.p., CI95 > 0) = 1/19; vs. the reference skeleton = 9/19
+H=150: cells with headroom vs. the BEST EXISTING (UNIFORM oracle-8, gap > 2.0 p.p., CI95 > 0) = 1/19; vs. the reference skeleton = 9/19
 
-Mapa em H = 150:
+Map at H = 150:
  alpha      attack_type melhor_existente  acc_melhor  gap_global_teto_oraculo8_uniforme_pp  gap_global_teto_oraculo8_uniforme_lo  gap_global_teto_oraculo8_uniforme_hi  espaco_global_or8u  gap_global_teto_fedavg10_uniforme_pp  gap_esqueleto_ref_teto_oraculo8_uniforme_pp  espaco_esqref_or8u
   0.05   gaussian_noise           sr_bin       0.880                                -0.027                                -0.051                                -0.003               False                                 2.486                                        0.061               False
   0.05   krum_collusion          sr_b025       0.872                                 0.743                                 0.682                                 0.804               False                                 3.256                                        2.440                True

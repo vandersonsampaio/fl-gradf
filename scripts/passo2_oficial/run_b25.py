@@ -1,29 +1,29 @@
 """
-B2.5 (references/roadmap_tese_gradf_v4.md §4.1): ataque IPM no AdaAggRL oficial.
-Plano em results/b25_ipm_oficial/PLANO.md.
+B2.5: IPM attack in the official AdaAggRL.
+Plan in results/b25_ipm_oficial/PLANO.md.
 
-O IPM do código oficial é um update NULO: IPM_attack chama
-craft(old_weights, get_parameters(net), 5, -1) com a rede já posta em
-old_weights, então weight_diff = 0 e o atacante envia o próprio modelo global
-(auditoria §2.2). Aqui:
-  IPM_oficial   o ataque do repositório, sem mudança (para documentar a nulidade)
-  IPM_real      IPM de Xie et al.: delta forjado = −ε × média dos deltas honestos
-                da rodada (atacante onisciente); peso enviado = old + delta forjado
-  none          sem ataque (mesma partição: os atacantes são sorteados como no
-                oficial e depois esvaziados, para preservar o RNG)
+The official code's IPM is a NULL update: IPM_attack calls
+craft(old_weights, get_parameters(net), 5, -1) with the network already set to
+old_weights, so weight_diff = 0 and the attacker sends the global model itself.
+Here:
+  IPM_oficial   the repository's attack, unchanged (to document that it is null)
+  IPM_real      Xie et al.'s IPM: crafted delta = −ε × mean of the round's honest deltas
+                (omniscient attacker); sent weights = old + crafted delta
+  none          no attack (same partition: attackers are sampled as in the
+                official code and then emptied, to preserve the RNG)
 
-Implementação, sem editar o código oficial: o `IPM_attack` oficial não recebe os
-updates honestos, mas o `LMP_attack` recebe (a lista de pesos honestos já
-calculados na rodada). Para o IPM_real, o ambiente roda no caminho do LMP e, neste
-processo, `exp_environments.LMP_attack` é trocado pela função de IPM real. O JSON
-registra o ataque efetivo (`attack_label`) e o ε.
+Implementation, without editing the official code: the official `IPM_attack` does not receive the
+honest updates, but `LMP_attack` does (the list of honest weights already
+computed in the round). For IPM_real, the environment runs on the LMP path and, in this
+process, `exp_environments.LMP_attack` is replaced by the real-IPM function. The JSON
+records the effective attack (`attack_label`) and ε.
 
-Condições:
-  td3      TD3 como no main.py oficial (via run_b21: estados e checkpoints do ator)
-  fixed    ação [0,475]*5 (centro do Box), como no B2.1
-  fedavg   agregação uniforme (sem o filtro oficial; só para o sanity check)
+Conditions:
+  td3      TD3 as in the official main.py (via run_b21: states and actor checkpoints)
+  fixed    action [0.475]*5 (center of the Box), as in B2.1
+  fedavg   uniform aggregation (without the official filter; for the sanity check only)
 
-Uso (venv oficial):
+Usage (official venv):
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_b25.py --attack IPM_real --eps 10 --condition fixed --seed 100 --rounds 100
 """
 
@@ -48,9 +48,9 @@ ENV_ATTACK = {"IPM_real": "LMP", "IPM_oficial": "IPM", "none": "LMP"}
 
 
 def ipm_real_attack(eps: float):
-    """Devolve uma função com a assinatura do LMP_attack oficial que implementa o IPM real."""
+    """Returns a function with the official LMP_attack signature that implements the real IPM."""
     def _attack(net, old_weights, cids, att_ids, trainloaders, weights_lis):
-        print(f"----------IPM real (B2.5, eps={eps:g}) Attack--------------")
+        print(f"----------Real IPM (B2.5, eps={eps:g}) Attack--------------")
         n_layers = len(old_weights)
         mean_delta = [np.mean([np.asarray(w[i], dtype=np.float64) - old_weights[i] for w in weights_lis], axis=0)
                       for i in range(n_layers)]
@@ -91,7 +91,7 @@ def run(attack_label: str, eps: float, condition: str, seed: int, rounds: int, o
             with contextlib.redirect_stdout(log_stream):
                 inner = E.FL_mnist(R._official_args(dataset, ENV_ATTACK[attack_label], q))  # random.seed(150)
             if attack_label == "none":
-                inner.att_ids = []  # sorteio feito (RNG preservado), atacantes esvaziados
+                inner.att_ids = []  # sampling done (RNG preserved), attackers emptied
             set_random_seed(seed, using_cuda=torch.cuda.is_available())
             env = B21.ObsRecordingAdapter(inner, log_stream)
             env.action_space.seed(seed)
@@ -140,7 +140,7 @@ def main():
     p.add_argument("--out_dir", default=DEFAULT_OUT)
     a = p.parse_args()
     if a.attack == "IPM_real" and a.eps is None:
-        p.error("--eps é obrigatório para IPM_real")
+        p.error("--eps is required for IPM_real")
     print(run(a.attack, a.eps, a.condition, a.seed, a.rounds, a.out_dir))
 
 

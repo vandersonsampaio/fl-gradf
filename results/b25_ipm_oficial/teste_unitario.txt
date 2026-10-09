@@ -1,18 +1,18 @@
-1a. IPM real, pesos sintéticos
-----------IPM real (B2.5, eps=2) Attack--------------
-  sintético ε=2 cid=7: cos=-1.000000 razão=2.000000
-  sintético ε=2 cid=9: cos=-1.000000 razão=2.000000
-----------IPM real (B2.5, eps=10) Attack--------------
-  sintético ε=10 cid=7: cos=-1.000000 razão=10.000000
-  sintético ε=10 cid=9: cos=-1.000000 razão=10.000000
-1b. IPM real, MNISTClassifier do código oficial
-----------IPM real (B2.5, eps=2) Attack--------------
-  MNISTClassifier ε=2 cid=7: cos=-1.000000 razão=2.000000
-  MNISTClassifier ε=2 cid=9: cos=-1.000000 razão=2.000000
-----------IPM real (B2.5, eps=10) Attack--------------
-  MNISTClassifier ε=10 cid=7: cos=-1.000000 razão=10.000000
-  MNISTClassifier ε=10 cid=9: cos=-1.000000 razão=10.000000
-2. IPM oficial (como chamado em exp_environments.step: rede posta em old_weights antes)
+1a. Real IPM, synthetic weights
+----------Real IPM (B2.5, eps=2) Attack--------------
+  synthetic ε=2 cid=7: cos=-1.000000 ratio=2.000000
+  synthetic ε=2 cid=9: cos=-1.000000 ratio=2.000000
+----------Real IPM (B2.5, eps=10) Attack--------------
+  synthetic ε=10 cid=7: cos=-1.000000 ratio=10.000000
+  synthetic ε=10 cid=9: cos=-1.000000 ratio=10.000000
+1b. Real IPM, MNISTClassifier from the official code
+----------Real IPM (B2.5, eps=2) Attack--------------
+  MNISTClassifier ε=2 cid=7: cos=-1.000000 ratio=2.000000
+  MNISTClassifier ε=2 cid=9: cos=-1.000000 ratio=2.000000
+----------Real IPM (B2.5, eps=10) Attack--------------
+  MNISTClassifier ε=10 cid=7: cos=-1.000000 ratio=10.000000
+  MNISTClassifier ε=10 cid=9: cos=-1.000000 ratio=10.000000
+2. Official IPM (as called in exp_environments.step: network set to old_weights first)
 ----------IPM Attack--------------
-  norma do update forjado = 0.000e+00
+  norm of the crafted update = 0.000e+00
 OK

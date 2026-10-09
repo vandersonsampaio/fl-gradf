@@ -1,18 +1,18 @@
 """
-C.0 com teto ORÁCULO (references/c0_fechamento.md, Passos 2-3). Complementa
-scripts/c0_espaco_restante.py e scripts/c0_teto_corrigido.py sem alterá-los.
+C.0 with an ORACLE ceiling. Complements
+scripts/c0_espaco_restante.py and scripts/c0_teto_corrigido.py without changing them.
 
-Teto oráculo: FedAvg sem ataque agregando só os 8 clientes honestos (índices
-2-9 da lista de participantes; os bizantinos são os índices 0 e 1 em
-byzantine_ids), com as MESMAS partições do C.0 (nada é reparticionado).
-Métrica idêntica à do C.0: acurácia do modelo global final média sobre os
-X_test dos 10 clientes.
+Oracle ceiling: FedAvg without attack aggregating only the 8 honest clients (indices
+2-9 of the participant list; the Byzantine ones are indices 0 and 1 in
+byzantine_ids), with the SAME partitions as C.0 (nothing is repartitioned).
+Metric identical to C.0's: accuracy of the final global model averaged over the
+10 clients' X_test.
 
-Critério (NOTAS.md §5, congelado com hash antes deste script rodar):
-  célula com espaço = gap global > 2 p.p. com IC95 inteiro acima de 0,
-  sobre as 19 células válidas (fltrust_aligned em alpha 0,05 e 0,1 excluídas).
+Criterion (results/c0_espaco_restante/NOTAS.md §5, frozen with a hash before this script ran):
+  cell with headroom = global gap > 2 p.p. with the whole CI95 above 0,
+  over the 19 valid cells (fltrust_aligned at alpha 0.05 and 0.1 excluded).
 
-Uso (CPU, baixa prioridade, sem GPU):
+Usage (CPU, low priority, no GPU):
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.c0_teto_oraculo
 """
 
@@ -57,7 +57,7 @@ def oracle_ceiling() -> pd.DataFrame:
             model.set_params(learner._global_params)
             acc10 = float(np.mean([model.accuracy(p.X_test, p.y_test) for p in participants]))
             rows.append({"alpha": alpha, "seed": seed, "accuracy": acc10, "accuracy_8_honestos": acc8})
-            print(f"oráculo alpha={alpha} seed={seed} acc(10 test sets)={acc10:.4f} acc(8)={acc8:.4f}", flush=True)
+            print(f"oracle alpha={alpha} seed={seed} acc(10 test sets)={acc10:.4f} acc(8)={acc8:.4f}", flush=True)
     df = pd.DataFrame(rows)
     df.to_csv(path, index=False)
     return df
@@ -101,17 +101,17 @@ def main():
 
     cmp_ = ora.groupby("alpha")[["accuracy", "accuracy_8_honestos"]].mean().join(
         fa.groupby("alpha")["accuracy"].mean().rename("fedavg_10_sem_ataque"))
-    lines = ["C.0 — teto ORÁCULO = FedAvg sem ataque só com os 8 honestos (mesmas partições; métrica sobre os 10 test sets)", "",
-             "Teto por alpha (média de 10 sementes):", cmp_.round(4).to_string(), "",
+    lines = ["C.0 — ORACLE ceiling = FedAvg without attack with the 8 honest clients only (same partitions; metric over the 10 test sets)", "",
+             "Ceiling per alpha (mean of 10 seeds):", cmp_.round(4).to_string(), "",
              res[["alpha", "attack_type", "teto_oraculo", "melhor_esqueleto", "gap_esqueleto_pp",
                   "melhor_global", "acc_melhor_global", "gap_global_pp", "gap_glob_ic95_lo",
                   "gap_glob_ic95_hi", "com_espaco"]].round(3).to_string(index=False), "",
-             f"Critério (NOTAS.md §5): gap global > {THRESH_PP:.0f} p.p. com IC95 > 0, 19 células válidas",
-             f"  células COM espaço: {int(res.com_espaco.sum())}/{len(res)}",
+             f"Criterion (NOTAS.md §5): global gap > {THRESH_PP:.0f} p.p. with CI95 > 0, 19 valid cells",
+             f"  cells WITH headroom: {int(res.com_espaco.sum())}/{len(res)}",
              "    " + "; ".join(f"{r.attack_type} α={r.alpha}" for r in res[res.com_espaco].itertuples()),
-             f"  células SEM espaço: {int((~res.com_espaco).sum())}/{len(res)}",
+             f"  cells WITHOUT headroom: {int((~res.com_espaco).sum())}/{len(res)}",
              "    " + "; ".join(f"{r.attack_type} α={r.alpha}" for r in res[~res.com_espaco].itertuples()),
-             f"  esqueleto perde para regra fixa em: " + "; ".join(
+             f"  skeleton loses to a fixed rule in: " + "; ".join(
                  f"{r.attack_type} α={r.alpha} ({r.melhor_global})" for r in res[res.esqueleto_perde_p_regra_fixa].itertuples())]
     text = "\n".join(lines)
     open(os.path.join(OUT, "analise_teto_oraculo.txt"), "w").write(text + "\n")

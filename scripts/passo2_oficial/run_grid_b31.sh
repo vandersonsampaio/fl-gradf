@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # B3.1 + B3.2 (results/b31_medmnist_oficial/PREREGISTRO.md §4 + ADENDO1.md): BloodMNIST, fixed × td3,
-# ataques do Adendo 1, sementes 135-144, 500 rodadas. Fila INTERCALADA (td3 e fixed alternados por semente e ataque).
-# Uso: setsid bash scripts/passo2_oficial/run_grid_b31.sh "LMP EB" [n_procs] & ; depois
-#      bash scripts/janela_execucao.sh $(cat results/b31_medmnist_oficial/raw/grid.pgid) B3.1 &  (nada roda 7h-18h seg-sex). Retomável.
+# attacks from Addendum 1, seeds 135-144, 500 rounds. INTERLEAVED queue (td3 and fixed alternate by seed and attack).
+# Usage: setsid bash scripts/passo2_oficial/run_grid_b31.sh "LMP EB" [n_procs] & ; then
+#      bash scripts/janela_execucao.sh $(cat results/b31_medmnist_oficial/raw/grid.pgid) B3.1 &  (optional execution window). Resumable.
 set -u
 cd "$(dirname "$0")/../.."
-ATAQUES=${1:?ataques do Adendo 1}
+ATAQUES=${1:?attacks from Addendum 1}
 P=${2:-6}
 PY=external/.venv_adaaggrl/bin/python
 OUT=results/b31_medmnist_oficial/raw
 mkdir -p "$OUT"
-echo $$ > "$OUT/grid.pgid"  # PGID (lançado com setsid) para o controlador da janela (scripts/janela_execucao.sh)
+echo $$ > "$OUT/grid.pgid"  # PGID (launched with setsid) for the execution-window controller (scripts/janela_execucao.sh)
 jobs() {
   for s in 135 136 137 138 139 140 141 142 143 144; do for a in $ATAQUES; do for c in td3 fixed; do
     [ -f "$OUT/BloodMNIST_${a}_q0.5_${c}_seed${s}_R500.json" ] || echo "$a $c $s"

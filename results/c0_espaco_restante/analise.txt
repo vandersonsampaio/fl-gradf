@@ -1,6 +1,6 @@
-C.0 — espaço restante (teto = FedAvg sem ataque; melhor entre fixed, sr_only, AdaAggRL)
+C.0 — remaining headroom (ceiling = FedAvg without attack; best of fixed, sr_only, AdaAggRL)
 
-Teto por alpha (média de 10 sementes): α=0.5: 0.9051, α=0.1: 0.8554, α=0.05: 0.8535
+Ceiling per alpha (mean of 10 seeds): α=0.5: 0.9051, α=0.1: 0.8554, α=0.05: 0.8535
 
  alpha      attack_type melhor_metodo  melhor_acc  teto_fedavg_sem_ataque  gap_pp  gap_ic95_lo_pp  gap_ic95_hi_pp melhor_regra_fixa_exp9  acc_melhor_regra_fixa_exp9
   0.10   label_flipping         fixed      0.7095                  0.8554  14.589         10.5521         18.6259                fltrust                      0.6238
@@ -25,7 +25,7 @@ Teto por alpha (média de 10 sementes): α=0.5: 0.9051, α=0.1: 0.8554, α=0.05:
   0.50      trim_attack       sr_only      0.8966                  0.9051   0.849          0.8289          0.8691           trimmed_mean                      0.8691
   0.50 low_mag_backdoor         fixed      0.8967                  0.9051   0.833          0.5991          1.0669           trimmed_mean                      0.8986
 
-células com gap > 1 p.p.: 17/21
-células com gap > 2 p.p.: 13/21
-células com gap > 5 p.p.: 8/21
-células com IC95 do gap acima de 0 (espaço estatisticamente > 0): 21/21
+cells with gap > 1 p.p.: 17/21
+cells with gap > 2 p.p.: 13/21
+cells with gap > 5 p.p.: 8/21
+cells with gap CI95 above 0 (headroom statistically > 0): 21/21

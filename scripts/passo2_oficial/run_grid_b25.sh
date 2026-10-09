@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# B2.5 (results/b25_ipm_oficial/PLANO.md). Retomável: pula runs cujo JSON já existe.
-#   sanity:  5 runs, semente 100, 100 rodadas (fedavg sem ataque; fedavg e fixed com ε ∈ {2, 10})
-#   grade:   20 runs, sementes 105-114 x {td3, fixed}, 500 rodadas, ε escolhido no sanity
-# Uso: bash scripts/passo2_oficial/run_grid_b25.sh sanity
+# B2.5 (results/b25_ipm_oficial/PLANO.md). Resumable: skips runs whose JSON already exists.
+#   sanity:  5 runs, seed 100, 100 rounds (fedavg without attack; fedavg and fixed with ε ∈ {2, 10})
+#   grade:   20 runs (the full grid), seeds 105-114 x {td3, fixed}, 500 rounds, ε chosen in the sanity check
+# Usage: bash scripts/passo2_oficial/run_grid_b25.sh sanity
 #      bash scripts/passo2_oficial/run_grid_b25.sh grade <eps>
 set -u
 cd "$(dirname "$0")/../.."
 PY=external/.venv_adaaggrl/bin/python
-MODE=${1:?modo: sanity | grade <eps>}
+MODE=${1:?mode: sanity | grade <eps>}
 if [ "$MODE" = sanity ]; then
   OUT=results/b25_ipm_oficial/sanity; R=100
   jobs() {
@@ -19,7 +19,7 @@ if [ "$MODE" = sanity ]; then
   }
   P=5
 else
-  EPS=${2:?ε obrigatório}
+  EPS=${2:?ε required}
   OUT=results/b25_ipm_oficial/raw; R=500
   jobs() {
     for s in 105 106 107 108 109 110 111 112 113 114; do for c in td3 fixed; do

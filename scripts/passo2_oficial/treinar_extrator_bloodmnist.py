@@ -1,14 +1,14 @@
 """
-B3.0: treina o extrator de features do BloodMNIST para o AdaAggRL oficial
-(results/b31_medmnist_oficial/PREREGISTRO.md §2). O `extract_feature.pt` oficial é
-um MNISTClassifier treinado no MNIST (1 canal); o repositório não traz o script de
-treino. Aqui: a mesma arquitetura (BloodClassifier = MNISTClassifier com 3 canais e
-8 classes), treino centralizado no split de treino do BloodMNIST, Adam lr 1e-3,
-batch 128, 15 épocas, semente 0, com as mesmas transformações do ambiente.
-Salva o state_dict completo (o ambiente descarta a última camada ao carregar).
-Não toca no extrator nem nos dados do MNIST.
+B3.0: trains the BloodMNIST feature extractor for the official AdaAggRL
+(results/b31_medmnist_oficial/PREREGISTRO.md §2). The official `extract_feature.pt` is
+an MNISTClassifier trained on MNIST (1 channel); the repository does not ship the training
+script. Here: the same architecture (BloodClassifier = MNISTClassifier with 3 channels and
+8 classes), centralized training on the BloodMNIST training split, Adam lr 1e-3,
+batch 128, 15 epochs, seed 0, with the same transforms as the environment.
+Saves the full state_dict (the environment drops the last layer when loading).
+Does not touch the MNIST extractor or data.
 
-Uso (venv oficial): external/.venv_adaaggrl/bin/python scripts/passo2_oficial/treinar_extrator_bloodmnist.py
+Usage (official venv): external/.venv_adaaggrl/bin/python scripts/passo2_oficial/treinar_extrator_bloodmnist.py
 """
 
 import hashlib
@@ -18,7 +18,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-import run_oficial as R  # noqa: E402,F401  (ajusta sys.path para o código oficial e o shim)
+import run_oficial as R  # noqa: E402,F401  (sets sys.path for the official code and the shim)
 import bloodmnist_shim as B  # noqa: E402
 
 import torch  # noqa: E402
@@ -52,7 +52,7 @@ def main():
                 c += (net(x.to(dev)).argmax(1).cpu() == y).sum().item()
                 n += len(y)
         hist.append(c / n)
-        print(f"época {ep + 1}: acurácia no teste {c / n:.4f}", flush=True)
+        print(f"epoch {ep + 1}: test accuracy {c / n:.4f}", flush=True)
     os.makedirs(os.path.dirname(B.EXTRACTOR_PATH), exist_ok=True)
     torch.save({k: v.cpu() for k, v in net.state_dict().items()}, B.EXTRACTOR_PATH)
     h = hashlib.sha256(open(B.EXTRACTOR_PATH, "rb").read()).hexdigest()

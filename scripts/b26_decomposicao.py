@@ -1,27 +1,26 @@
 """
-B2.6 (references/roadmap_tese_gradf_v3.md §4.1): decomposição confirmatória
-do esqueleto do AdaAggRL no framework próprio. Pré-registro em
-results/b26_decomposicao/PREREGISTRO.md. Não altera `src/` nem a ablação
+B2.6: confirmatory decomposition of the AdaAggRL skeleton in the in-house framework.
+Pre-registration in results/b26_decomposicao/PREREGISTRO.md. Does not change `src/` or the ablation
 (scripts/frente1_ablacao_adaaggrl.py).
 
-Referência `sr_only` = exatamente o modo `sr_only` da ablação: score = S_R da
-inversão de gradiente, ação a=[1,0,0,0], b=0,5, min-max de w_hat, limiar
-delta=max(w_tilde)*b, contador h e penalidade lam**h com lam=2, agregação
-ponderada dos parâmetros completos theta_k = global + update_k.
-Cada variante muda UMA peça:
-  sr_nomem        lam = 1 (memória desligada)
-  sr_memof        memória do código oficial: peso x 0,9**flag com o flag ANTERIOR
-                  ao decremento (auditoria §3.5); min-max e limiar iguais
-  sr_bin          máscara binária: acima de delta recebe 1 / lam**h
-  cosserver_only  score = cosseno até o update do servidor no root (sem inversão)
-  sr_cosserver    score = 0,5 S_R + 0,5 cos_server (exploratório)
-  sr_b025, sr_b075  b = 0,25 e 0,75 (sensibilidade)
+Reference `sr_only` = exactly the ablation's `sr_only` mode: score = S_R from
+gradient inversion, action a=[1,0,0,0], b=0.5, min-max of w_hat, threshold
+delta=max(w_tilde)*b, counter h and penalty lam**h with lam=2, weighted
+aggregation of the full parameters theta_k = global + update_k.
+Each variant changes ONE piece:
+  sr_nomem        lam = 1 (memory off)
+  sr_memof        the official code's memory: weight x 0.9**flag with the flag BEFORE
+                  the decrement (as in the official code); same min-max and threshold
+  sr_bin          binary mask: above delta gets 1 / lam**h
+  cosserver_only  score = cosine to the server update on the root (no inversion)
+  sr_cosserver    score = 0.5 S_R + 0.5 cos_server (exploratory)
+  sr_b025, sr_b075  b = 0.25 and 0.75 (sensitivity)
 
-O extrator aleatório é SEMPRE construído (como na ablação): seu __init__
-re-semeia o np.random global, e omiti-lo quebraria o pareamento por semente.
-O `cos_server` é calculado com save/restore do np.random, como na ablação.
+The random extractor is ALWAYS built (as in the ablation): its __init__
+re-seeds the global np.random, and omitting it would break the pairing by seed.
+`cos_server` is computed with save/restore of np.random, as in the ablation.
 
-Uso (CPU, baixa prioridade):
+Usage (CPU, low priority):
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.b26_decomposicao run --variant sr_only --seed 52
   venv/bin/python -m scripts.b26_decomposicao analisar
 """
@@ -62,11 +61,11 @@ def _minmax_threshold(score: np.ndarray, b: float):
 
 
 def weights_for(variant: str, score: np.ndarray, h: np.ndarray):
-    """Pesos finais (não normalizados) e novo contador h para cada variante."""
+    """Final (unnormalized) weights and new counter h for each variant."""
     b = {"sr_b025": 0.25, "sr_b075": 0.75}.get(variant, 0.5)
     w_tilde, flagged = _minmax_threshold(score, b)
     new_h = np.where(flagged, h + 1, np.maximum(h - 1, 0))
-    if variant == "sr_memof":  # oficial: 0,9**flag com o flag anterior, só para os incluídos
+    if variant == "sr_memof":  # official: 0.9**flag with the previous flag, only for included clients
         w = np.where(flagged, 0.0, w_tilde * (0.9 ** h))
     else:
         lam = 1.0 if variant == "sr_nomem" else 2.0
@@ -83,7 +82,7 @@ def build_learner_cls():
 
     class DecompLearner(AdaAggRLGridLearner):
         def __init__(self, *args, variant: str = "sr_only", **kwargs):
-            kwargs["feature_extractor"] = "random"  # sempre construído — ver docstring
+            kwargs["feature_extractor"] = "random"  # always built — see the docstring
             super().__init__(*args, **kwargs)
             if variant not in VARIANTS:
                 raise ValueError(variant)
@@ -142,7 +141,7 @@ def run(variant: str, seed: int):
     os.makedirs(f"{OUT}/raw", exist_ok=True)
     path = f"{OUT}/raw/{variant}_seed{seed}.csv"
     if os.path.exists(path):
-        print(f"{path} já existe, pulando")
+        print(f"{path} already exists, skipping")
         return
     Learner = build_learner_cls()
     rows = []
@@ -161,7 +160,7 @@ def run(variant: str, seed: int):
 
 
 # ---------------------------------------------------------------------------
-# Análise (pré-escrita; roda uma vez, com a grade completa)
+# Analysis (pre-written; runs once, with the full grid)
 # ---------------------------------------------------------------------------
 
 def _desc(d):
@@ -201,15 +200,15 @@ def analisar(raw_dir: str = f"{OUT}/raw", out: str = f"{OUT}/analise.txt"):
     df = pd.concat([pd.read_csv(f) for f in sorted(glob.glob(f"{raw_dir}/*_seed*.csv"))])
     df["valida"] = [(a, t) not in EXCLUDED for a, t in zip(df.alpha, df.attack_type)]
     v = df[df.valida]
-    per_seed = v.groupby(["variant", "seed"])["accuracy"].mean().unstack("variant")  # média das 19 células
+    per_seed = v.groupby(["variant", "seed"])["accuracy"].mean().unstack("variant")  # mean of the 19 cells
 
-    lines = [f"B2.6 — {len(df)} linhas (esperadas {len(VARIANTS) * len(SEEDS) * 21}); unidade = semente "
-             f"(média das 19 células válidas), n = {len(per_seed)}", "",
-             "Média por variante (19 células, 10 sementes):",
+    lines = [f"B2.6 — {len(df)} rows (expected {len(VARIANTS) * len(SEEDS) * 21}); unit = seed "
+             f"(mean of the 19 valid cells), n = {len(per_seed)}", "",
+             "Mean per variant (19 cells, 10 seeds):",
              (per_seed.mean() * 100).round(2).to_string(), ""]
 
     ref = per_seed["sr_only"]
-    specs = [  # (id, variante, teste, alternativa, lado do D)
+    specs = [  # (id, variant, test, alternative, side of D)
         ("H1", "sr_nomem", "wilcoxon", "greater", "ref-var"),   # sr_only − sr_nomem > 0
         ("H2", "sr_memof", "wilcoxon", "two-sided", "ref-var"),
         ("H3", "sr_bin", "tost", None, "var-ref"),
@@ -224,19 +223,19 @@ def analisar(raw_dir: str = f"{OUT}/raw", out: str = f"{OUT}/analise.txt"):
         pvals.append(p)
         rows.append((hid, var, test, side, ds, p))
     adj = _holm(pvals)
-    lines.append("== Hipóteses confirmatórias (Holm sobre H1–H4, α = 0,05) ==")
-    labels = {"H1": "a memória contribui (sr_only − sr_nomem > 0)",
-              "H2": "a força da memória importa (sr_only − sr_memof ≠ 0)",
-              "H3": "máscara binária ≈ suave (sr_bin − sr_only, TOST ±1,0 p.p.)",
-              "H4": "cos_server ≈ S_R (cosserver_only − sr_only, TOST ±1,0 p.p.)"}
+    lines.append("== Confirmatory hypotheses (Holm over H1–H4, α = 0.05) ==")
+    labels = {"H1": "memory contributes (sr_only − sr_nomem > 0)",
+              "H2": "memory strength matters (sr_only − sr_memof ≠ 0)",
+              "H3": "binary mask ≈ soft (sr_bin − sr_only, TOST ±1.0 p.p.)",
+              "H4": "cos_server ≈ S_R (cosserver_only − sr_only, TOST ±1.0 p.p.)"}
     for (hid, var, test, side, ds, p), pa in zip(rows, adj):
         ok = pa < ALPHA_TEST
-        lines.append(f"  {hid} {labels[hid]}: Δ={ds['delta_pp']:+.2f} p.p. IC95=({ds['ic95'][0]:+.2f}, {ds['ic95'][1]:+.2f}) "
-                     f"IC90=({ds['ic90'][0]:+.2f}, {ds['ic90'][1]:+.2f}) d={ds['d']:+.2f} p={p:.4f} Holm={pa:.4f} -> "
-                     f"{'CONFIRMADA' if ok else 'NÃO confirmada'}")
+        lines.append(f"  {hid} {labels[hid]}: Δ={ds['delta_pp']:+.2f} p.p. CI95=({ds['ic95'][0]:+.2f}, {ds['ic95'][1]:+.2f}) "
+                     f"CI90=({ds['ic90'][0]:+.2f}, {ds['ic90'][1]:+.2f}) d={ds['d']:+.2f} p={p:.4f} Holm={pa:.4f} -> "
+                     f"{'CONFIRMED' if ok else 'NOT confirmed'}")
     lines.append("")
 
-    lines.append("== Por ataque (descritivo; Wilcoxon bilateral, Holm sobre os 7 ataques; média das células válidas do ataque por semente) ==")
+    lines.append("== Per attack (descriptive; two-sided Wilcoxon, Holm over the 7 attacks; mean of the attack's valid cells per seed) ==")
     for hid, var, _t, side, _ds, _p in rows:
         per_att = []
         for att, g in v.groupby("attack_type"):
@@ -246,19 +245,19 @@ def analisar(raw_dir: str = f"{OUT}/raw", out: str = f"{OUT}/analise.txt"):
         adj_a = _holm([x[2] for x in per_att])
         lines.append(f"  {hid} ({var}):")
         for (att, ds, p), pa in zip(per_att, adj_a):
-            lines.append(f"    {att:<18} Δ={ds['delta_pp']:+.2f} IC95=({ds['ic95'][0]:+.2f}, {ds['ic95'][1]:+.2f}) p={p:.4f} Holm={pa:.4f}")
+            lines.append(f"    {att:<18} Δ={ds['delta_pp']:+.2f} CI95=({ds['ic95'][0]:+.2f}, {ds['ic95'][1]:+.2f}) p={p:.4f} Holm={pa:.4f}")
     lines.append("")
 
-    lines.append("== Exploratório (sem critério) ==")
+    lines.append("== Exploratory (no criterion) ==")
     for var in ["sr_cosserver", "sr_b025", "sr_b075"]:
         ds = _desc((per_seed[var] - ref).dropna().to_numpy())
-        lines.append(f"  {var} − sr_only: Δ={ds['delta_pp']:+.2f} p.p. IC95=({ds['ic95'][0]:+.2f}, {ds['ic95'][1]:+.2f})")
+        lines.append(f"  {var} − sr_only: Δ={ds['delta_pp']:+.2f} p.p. CI95=({ds['ic95'][0]:+.2f}, {ds['ic95'][1]:+.2f})")
     best_single = np.maximum(per_seed["sr_only"], per_seed["cosserver_only"])
     ds = _desc((per_seed["sr_cosserver"] - best_single).dropna().to_numpy())
-    lines.append(f"  sr_cosserver − max(sr_only, cosserver_only) por semente: Δ={ds['delta_pp']:+.2f} p.p. "
-                 f"IC95=({ds['ic95'][0]:+.2f}, {ds['ic95'][1]:+.2f})")
+    lines.append(f"  sr_cosserver − max(sr_only, cosserver_only) per seed: Δ={ds['delta_pp']:+.2f} p.p. "
+                 f"CI95=({ds['ic95'][0]:+.2f}, {ds['ic95'][1]:+.2f})")
     cell = v.groupby(["alpha", "attack_type", "variant"])["accuracy"].mean().unstack("variant")
-    lines += ["", "Média por célula válida (10 sementes) — S_R contra cos_server contra combinado:",
+    lines += ["", "Mean per valid cell (10 seeds) — S_R vs. cos_server vs. combined:",
               (cell[["sr_only", "cosserver_only", "sr_cosserver"]] * 100).round(2).to_string()]
 
     text = "\n".join(lines)

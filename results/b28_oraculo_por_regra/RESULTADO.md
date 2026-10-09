@@ -1,68 +1,68 @@
-# Resultado — B2.8: teto oracular da seleção por rodada (eixo da granularidade)
+# Result — B2.8: oracle ceiling of per-round selection (granularity axis)
 
-**Data:** 2026-09-30
-**Plano:** `PLANO.md` (hash em `PLANO.sha256`; `PLANO.md` e `scripts/b28_oraculo_por_regra.py` conferidos contra o hash antes da análise: OK).
-**Grade:** 210/210 runs (sementes 42–51 × 3 alphas × 7 ataques), 30/09 18:54 → ~19:15, CPU, sem erros.
-**Análise:** `scripts/b28_oraculo_por_regra.py analisar` → `analise.txt`, `oraculo_por_celula.csv`. **Exploratório.**
+**Date:** 2026-09-30
+**Plan:** `PLANO.md` (English translation in `PLANO.en.md`; hash in `PLANO.sha256`; `PLANO.md` and `scripts/b28_oraculo_por_regra.py` checked against the hash before the analysis: OK).
+**Grid:** 210/210 runs (seeds 42–51 × 3 alphas × 7 attacks), 09/30 18:54 → ~19:15, CPU, no errors.
+**Analysis:** `scripts/b28_oraculo_por_regra.py analisar` → `analise.txt`, `oraculo_por_celula.csv`. **Exploratory.**
 
 ---
 
-## 1. Veredito pelo critério do PLANO
+## 1. Verdict by the PLANO criterion
 
-- **Células-alvo** (o esqueleto supera a melhor regra fixa estática, W com IC95 > 0): **14/19**.
-- Nelas, o oráculo por rodada fica **abaixo** do esqueleto (Q com IC95 < 0) em **8/14** e **acima** em **2/14** (`label_flipping` α = 0,1; `sign_flipping` α = 0,1).
-- **VEREDITO PRÉ-REGISTRADO: "A GRANULARIDADE EXPLICA".** Na maioria das células-alvo, nem uma escolha ideal de regra a cada rodada, feita olhando o teste, alcança a filtragem por cliente.
+- **Target cells** (the skeleton beats the best static fixed rule, W with CI95 > 0): **14/19**.
+- In them, the per-round oracle is **below** the skeleton (Q with CI95 < 0) in **8/14** and **above** in **2/14** (`label_flipping` α = 0.1; `sign_flipping` α = 0.1).
+- **PRE-REGISTERED VERDICT: "GRANULARITY EXPLAINS".** In most target cells, not even an ideal choice of rule every round, made by looking at the test set, reaches per-client filtering.
 
-## 2. Robustez do veredito (exploratório, não pré-registrado)
+## 2. Robustness of the verdict (exploratory, not pre-registered)
 
-O veredito **depende de três células de α = 0,5 com diferenças mínimas**: `gaussian_noise` −0,12 p.p., `sign_flipping` −0,27 e `krum_collusion` −0,47. Todas têm IC95 < 0, mas são irrelevantes na prática.
+The verdict **depends on three α = 0.5 cells with minimal differences**: `gaussian_noise` −0.12 p.p., `sign_flipping` −0.27 and `krum_collusion` −0.47. All have CI95 < 0, but are irrelevant in practice.
 
-| exigência sobre \|Q\| | abaixo do esqueleto | acima | leitura |
+| requirement on \|Q\| | below the skeleton | above | reading |
 |---|---|---|---|
-| > 0 (critério do PLANO) | 8/14 | 2/14 | "a granularidade explica" |
-| > 1 p.p. (relevância prática) | 5/14 | 2/14 | **inconclusivo** (< 7) |
+| > 0 (PLANO criterion) | 8/14 | 2/14 | "granularity explains" |
+| > 1 p.p. (practical relevance) | 5/14 | 2/14 | **inconclusive** (< 7) |
 
-**Leitura calibrada:** a evidência forte está concentrada em **α ≤ 0,1**, com ataques de modelo em que o S_R separa os clientes. Ali o oráculo fica **4–14 p.p. abaixo** do esqueleto:
-- `gaussian_noise` α = 0,05: −13,7 p.p.;
-- `gaussian_noise` α = 0,1: −11,3 p.p.;
-- `krum_collusion` α = 0,05: −10,8 p.p.;
-- `krum_collusion` α = 0,1: −8,9 p.p.;
-- `trim_attack` α = 0,05: −5,9 p.p.
+**Calibrated reading:** the strong evidence is concentrated at **α ≤ 0.1**, with model attacks in which S_R separates the clients. There the oracle is **4–14 p.p. below** the skeleton:
+- `gaussian_noise` α = 0.05: −13.7 p.p.;
+- `gaussian_noise` α = 0.1: −11.3 p.p.;
+- `krum_collusion` α = 0.05: −10.8 p.p.;
+- `krum_collusion` α = 0.1: −8.9 p.p.;
+- `trim_attack` α = 0.05: −5.9 p.p.
 
-Em α = 0,5, esqueleto e oráculo por rodada ficam praticamente empatados. O P2 deve reportar o veredito do critério **junto com** essa ressalva.
+At α = 0.5, skeleton and per-round oracle are practically tied. P2 should report the criterion's verdict **together with** this caveat.
 
-## 3. Padrões por tipo de ataque
+## 3. Patterns per attack type
 
-- **Ataques de modelo com heterogeneidade forte** (`gaussian_noise`, `krum_collusion`, `trim_attack` em α ≤ 0,1): a ponderação por cliente vence com folga até o oráculo. Nenhuma regra única por rodada iguala excluir os clientes certos.
-- **Ataques de rótulo** (`label_flipping`): o oráculo **supera** o esqueleto (α = 0,1: +8,9 p.p.; α = 0,5: +11,9 p.p., esta fora das células-alvo porque ali o esqueleto já perde para o Trimmed-Mean). É coerente com o C.0: onde o S_R não separa os clientes, a escolha da regra importa mais que o filtro por cliente.
-- **`low_mag_backdoor`:** o oráculo supera o esqueleto (+5,4 a +5,7 p.p. em α ≤ 0,1). A célula não é alvo em α = 0,1 porque ali o esqueleto não supera a regra estática. A ASR não foi medida.
-- **Ganho da seleção por rodada sobre a melhor regra fixa (G):**
-  - grande em α ≤ 0,1: até +19,7 p.p. em `sign_flipping` α = 0,1 e +17,5 em `label_flipping` α = 0,1;
-  - pequeno em α = 0,5: ≤ 2,7 p.p.;
-  - negativo em `gaussian_noise` α ≤ 0,1 (−7,1 e −7,7): o guloso por rodada perde para a melhor regra fixa, uma limitação típica do guloso.
+- **Model attacks with strong heterogeneity** (`gaussian_noise`, `krum_collusion`, `trim_attack` at α ≤ 0.1): per-client weighting wins comfortably even against the oracle. No single rule per round matches excluding the right clients.
+- **Label attacks** (`label_flipping`): the oracle **beats** the skeleton (α = 0.1: +8.9 p.p.; α = 0.5: +11.9 p.p., the latter outside the target cells because there the skeleton already loses to Trimmed-Mean). Consistent with C.0: where S_R does not separate the clients, the choice of rule matters more than the per-client filter.
+- **`low_mag_backdoor`:** the oracle beats the skeleton (+5.4 to +5.7 p.p. at α ≤ 0.1). The cell is not a target at α = 0.1 because there the skeleton does not beat the static rule. The ASR was not measured.
+- **Gain of per-round selection over the best fixed rule (G):**
+  - large at α ≤ 0.1: up to +19.7 p.p. on `sign_flipping` α = 0.1 and +17.5 on `label_flipping` α = 0.1;
+  - small at α = 0.5: ≤ 2.7 p.p.;
+  - negative on `gaussian_noise` α ≤ 0.1 (−7.1 and −7.7): the per-round greedy loses to the best fixed rule, a typical limitation of greedy choice.
 
-## 4. O que o oráculo escolhe
+## 4. What the oracle chooses
 
-- **α ≤ 0,1:** esmagadoramente **FLTrust** (89–140 de 150 rodadas por célula), a única regra do arsenal ancorada no dataset raiz. **Clustering** vem em segundo nos ataques de sinal e de trim.
-- **α = 0,5:** a escolha varia por ataque: Trimmed-Mean (`gaussian_noise`), Clustering (`trim_attack`, `sign_flipping`, `label_flipping`), FedAvg (`low_mag_backdoor`).
-- Implicação: o teto da seleção por regra em alta heterogeneidade depende do **sinal do servidor (root)**. É o mesmo trade-off de privacidade do `cos_server` (B2.6/H4; `decisao_root_dataset_lgpd.md`).
+- **α ≤ 0.1:** overwhelmingly **FLTrust** (89–140 of 150 rounds per cell), the only rule in the arsenal anchored on the root dataset. **Clustering** comes second on the sign and trim attacks.
+- **α = 0.5:** the choice varies by attack: Trimmed-Mean (`gaussian_noise`), Clustering (`trim_attack`, `sign_flipping`, `label_flipping`), FedAvg (`low_mag_backdoor`).
+- Implication: the ceiling of per-rule selection under high heterogeneity depends on the **server (root) signal**. It is the same privacy trade-off as `cos_server` (B2.6/H4; the root dataset is an open data-governance question for the clinical setting).
 
-## 5. Consequências para o P2 e o P3
+## 5. Consequences for P2 and P3
 
-- **P2 (eixo da granularidade):** a diferença que o P1 atribuiu a "discreto contra contínuo" é, **em α ≤ 0,1 com ataques de modelo**, uma diferença de **granularidade**: uma regra para todos contra um peso por cliente. Nem a escolha ideal de regra alcança o filtro por cliente. **Não** é uma afirmação geral: em ataques de rótulo, a seleção por regra (idealizada) supera o esqueleto, e em α = 0,5 os dois empatam.
-- **P3 (direção 1 do C.2, dois níveis):** o filtro por cliente vence onde o sinal separa, e a regra robusta vence onde não separa. Isso reforça a arquitetura de **filtro por cliente seguido de regra robusta**.
+- **P2 (granularity axis):** the difference that P1 attributed to "discrete vs. continuous" is, **at α ≤ 0.1 with model attacks**, a difference of **granularity**: one rule for everyone vs. one weight per client. Not even the ideal rule choice reaches the per-client filter. This is **not** a general claim: on label attacks, (idealized) per-rule selection beats the skeleton, and at α = 0.5 the two tie.
+- **P3 (two-level direction):** the per-client filter wins where the signal separates, and the robust rule wins where it does not. This reinforces the **per-client filter followed by a robust rule** architecture.
 
-## 6. Limitações
+## 6. Limitations
 
-- **Exploratório:** sementes gastas; referências da ablação e do exp9 já conhecidas.
-- **O oráculo usa o teste para escolher:** é um teto, não um método. Isso só fortalece as células em que ele perde.
-- **Guloso:** ótimo por rodada, não na trajetória (visto nos G negativos em `gaussian_noise` α ≤ 0,1).
-- **15 rodadas:** gap misturado com convergência; o B2.7 trata do horizonte.
-- **ASR** do `low_mag_backdoor` não medida.
+- **Exploratory:** already-used seeds; ablation and exp9 references already known.
+- **The oracle uses the test set to choose:** it is a ceiling, not a method. This only strengthens the cells where it loses.
+- **Greedy:** optimal per round, not over the trajectory (seen in the negative Gs on `gaussian_noise` α ≤ 0.1).
+- **15 rounds:** gap mixed with convergence; B2.7 addresses the horizon.
+- **ASR** of `low_mag_backdoor` not measured.
 
-## Nota de 2026-10-05 (ponderação × robustez)
+## Note of 2026-10-05 (weighting × robustness)
 
-- Dois dos 7 braços do oráculo por rodada (FedAvg e FedProx) ponderam por tamanho de amostra; os outros 5 e o esqueleto não.
-- Sob rótulos enviesados por cliente (α ≤ 0,1) e teste global balanceado, **a ponderação por tamanho de amostra do FedAvg padrão custa, sozinha e sem ataque, até ~4,5 p.p.** em relação à ponderação uniforme (oráculo-8, α 0,1, H = 150: 85,0% × 89,5%; FedAvg-10: 1,0–1,8 p.p.). Tabelas que comparam defesas com o FedAvg padrão (e os braços FedAvg/FedProx do B2.8 e do B2.7) devem descontar esse efeito, para não atribuir à robustez da defesa o que é só ponderação.
-- No B2.8, o oráculo escolhe a regra pela própria acurácia, a cada rodada, e por isso pode evitar FedAvg/FedProx quando a ponderação por amostra prejudica.
-- A métrica (acurácia no test set global IID; test sets dos clientes são partes iguais) **não** favorece por si a ponderação uniforme: a sensibilidade de métrica do B2.8s é vazia por construção e reproduziu o veredito (`results/b28s_sensibilidade_metrica/RESULTADO.md`).
+- Two of the per-round oracle's 7 arms (FedAvg and FedProx) weight by sample size; the other 5 and the skeleton do not.
+- Under per-client label skew (α ≤ 0.1) and a balanced global test set, **standard FedAvg's sample-size weighting alone, without any attack, costs up to ~4.5 p.p.** relative to uniform weighting (oracle-8, α 0.1, H = 150: 85.0% × 89.5%; FedAvg-10: 1.0–1.8 p.p.). Tables that compare defenses with standard FedAvg (and B2.8's and B2.7's FedAvg/FedProx arms) must discount this effect, so as not to credit the defense's robustness with what is only weighting.
+- In B2.8, the oracle chooses the rule by its own accuracy, every round, so it can avoid FedAvg/FedProx when sample-size weighting hurts.
+- The metric (accuracy on the IID global test set; the clients' test sets are equal-size splits) does **not** by itself favor uniform weighting: B2.8s's metric sensitivity is vacuous by construction and reproduced the verdict (`results/b28s_sensibilidade_metrica/RESULTADO.md`).

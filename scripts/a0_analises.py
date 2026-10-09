@@ -1,18 +1,18 @@
 """
-A0 (references/roadmap_tese_gradf_v4.md §4.2): análises baratas que fecham
-pontas do B2.6, B2.8 e C0. Plano em results/a0_analises/PLANO.md.
-Não altera `src/`, a ablação nem o B2.6 (reusa o learner do B2.6 por herança).
+A0: cheap analyses that close loose ends of B2.6, B2.8 and C0.
+Plan in results/a0_analises/PLANO.md.
+Does not change `src/`, the ablation or B2.6 (reuses the B2.6 learner by inheritance).
 
-Subcomandos (venv do projeto, CPU):
-  massa       (a) roda sr_only e sr_bin nas 8 células com gap negativo no C0,
-                  sementes 52-54, gravando o peso final de cada cliente por rodada
-                  e is_byz; confere que a acurácia reproduz o B2.6.
-  analisar    (a) massa nos atacantes; (b) teto da seleção de sinais (B2.6);
-              (c) concordância S_R x cos_server por cliente (registro da ablação).
-O item (d) (três regimes do TD3) está em scripts/passo2_oficial/a0_regimes_td3.py
-(venv oficial).
+Subcommands (project venv, CPU):
+  massa       (a) runs sr_only and sr_bin on the 8 cells with a negative gap in C0,
+                  seeds 52-54, recording each client's final weight per round
+                  and is_byz; checks that the accuracy reproduces B2.6.
+  analisar    (a) mass on attackers; (b) signal-selection ceiling (B2.6);
+              (c) per-client agreement S_R x cos_server (ablation log).
+Item (d) (three TD3 regimes) is in scripts/passo2_oficial/a0_regimes_td3.py
+(official venv).
 
-Uso:
+Usage:
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.a0_analises massa --seed 52
   venv/bin/python -m scripts.a0_analises analisar
 """
@@ -31,11 +31,11 @@ B26_RAW = "results/b26_decomposicao/raw"
 DETECT = "results/frente1_ablacao_adaaggrl/detectores"
 CELLS = [(0.05, "gaussian_noise"), (0.05, "krum_collusion"), (0.05, "trim_attack"),
          (0.1, "gaussian_noise"), (0.1, "krum_collusion"), (0.1, "trim_attack"),
-         (0.1, "sign_flipping"), (0.1, "low_mag_backdoor")]  # gap negativo com IC95 < 0 no C0
+         (0.1, "sign_flipping"), (0.1, "low_mag_backdoor")]  # negative gap with CI95 < 0 in C0
 SEEDS_MASSA = [52, 53, 54]
 VARIANTS_MASSA = ["sr_only", "sr_bin"]
 EXCLUDED = {(0.05, "fltrust_aligned"), (0.1, "fltrust_aligned")}
-MASS_THRESHOLD = 0.05  # PLANO §3: aproveitamento real se a massa média >= 0,05 (FedAvg daria ~0,2)
+MASS_THRESHOLD = 0.05  # PLANO §3: real exploitation if the mean mass >= 0.05 (FedAvg would give ~0.2)
 
 
 def build_recording_learner():
@@ -47,8 +47,8 @@ def build_recording_learner():
     Base = B.build_learner_cls()
 
     class RecordingDecompLearner(Base):
-        """Mesmo _run_round do B2.6 (cópia literal da lógica, mesma ordem de RNG),
-        acrescentando só o registro dos pesos normalizados e de is_byz."""
+        """Same _run_round as B2.6 (literal copy of the logic, same RNG order),
+        only adding the logging of the normalized weights and of is_byz."""
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -70,7 +70,7 @@ def build_recording_learner():
                         W, b, u, self.local_lr, n_feat, K,
                         num_images=self.num_images, max_iters=self.max_iters, seed=round_num)
             if self.variant not in ("sr_only", "sr_bin"):
-                raise ValueError("A0 só usa sr_only e sr_bin")
+                raise ValueError("A0 only uses sr_only and sr_bin")
             if self._h is None:
                 self._h = np.zeros(n)
             w, self._h = B.weights_for(self.variant, s_r, self._h)
@@ -121,9 +121,9 @@ def _ci95(x):
 
 
 def analisar():
-    lines = ["A0 — análises baratas (roadmap v4 §4.2)", ""]
+    lines = ["A0 — cheap analyses", ""]
 
-    # (a) massa nos atacantes
+    # (a) mass on attackers
     files = sorted(glob.glob(f"{OUT}/massa/*.csv"))
     if files:
         m = pd.concat([pd.read_csv(f) for f in files])
@@ -131,30 +131,30 @@ def analisar():
         fin = m.groupby(["variant", "attack_type", "alpha", "seed"])["final_accuracy"].first().reset_index()
         chk = fin.merge(b26, on=["variant", "attack_type", "alpha", "seed"], how="left", suffixes=("", "_b26"))
         maxdiff = float((chk["final_accuracy"] - chk["accuracy"]).abs().max())
-        lines += [f"(a) Verificação: {len(chk)} runs; máx |acc A0 − acc B2.6| = {maxdiff:.2e} "
-                  f"({'REPRODUZ' if maxdiff < 1e-9 else 'NÃO REPRODUZ'} o B2.6)", ""]
+        lines += [f"(a) Check: {len(chk)} runs; max |acc A0 − acc B2.6| = {maxdiff:.2e} "
+                  f"({'REPRODUCES' if maxdiff < 1e-9 else 'DOES NOT REPRODUCE'} B2.6)", ""]
         mass = (m[m.is_byz].groupby(["variant", "attack_type", "alpha", "seed", "round"])["weight"].sum()
                 .groupby(["variant", "attack_type", "alpha", "seed"]).mean().reset_index(name="massa"))
         tab = mass.groupby(["variant", "alpha", "attack_type"])["massa"].agg(["mean", "min", "max"]).round(4)
-        lines += ["(a) Massa média nos atacantes por rodada (FedAvg uniforme daria 0,2):", tab.to_string(), ""]
+        lines += ["(a) Mean mass on attackers per round (uniform FedAvg would give 0.2):", tab.to_string(), ""]
         for v in VARIANTS_MASSA:
             per_cell = mass[mass.variant == v].groupby(["alpha", "attack_type"])["massa"].mean()
             n_ok = int((per_cell >= MASS_THRESHOLD).sum())
-            lines.append(f"    {v}: células com massa ≥ {MASS_THRESHOLD}: {n_ok}/{len(per_cell)} -> "
-                         + ("APROVEITAMENTO REAL (direção 6 se mantém)" if n_ok >= len(per_cell) / 2
-                            else "sem aproveitamento relevante (direção 6 não explicada por aproveitamento)"))
+            lines.append(f"    {v}: cells with mass ≥ {MASS_THRESHOLD}: {n_ok}/{len(per_cell)} -> "
+                         + ("REAL EXPLOITATION (the attacker-exploitation direction holds)" if n_ok >= len(per_cell) / 2
+                            else "no relevant exploitation (the attacker-exploitation direction is not explained by exploitation)"))
         lines.append("")
 
-    # (b) teto da seleção de sinais (dados do B2.6, sementes 52-61, 19 células válidas)
+    # (b) signal-selection ceiling (B2.6 data, seeds 52-61, 19 valid cells)
     b26 = pd.concat([pd.read_csv(f) for f in glob.glob(f"{B26_RAW}/*_seed*.csv")])
     b26 = b26[[(a, t) not in EXCLUDED for a, t in zip(b26.alpha, b26.attack_type)]]
     w = b26.pivot_table(index=["alpha", "attack_type", "seed"], columns="variant", values="accuracy")
     sr, cs = w["sr_only"], w["cosserver_only"]
-    by_seed_max = np.maximum(sr, cs).groupby("seed").mean()                         # oráculo por semente (viesado)
+    by_seed_max = np.maximum(sr, cs).groupby("seed").mean()                         # per-seed oracle (biased)
     cell_mean = w[["sr_only", "cosserver_only"]].groupby(["alpha", "attack_type"]).mean()
-    pick = cell_mean.idxmax(axis=1)                                                  # escolha por célula, todas as sementes
+    pick = cell_mean.idxmax(axis=1)                                                  # per-cell choice, all seeds
     chosen = pd.Series([w.loc[i, pick[i[:2]]] for i in w.index], index=w.index).groupby("seed").mean()
-    loso = []                                                                        # escolha por célula, deixando a semente de fora
+    loso = []                                                                        # per-cell choice, leaving the seed out
     for s in sorted(w.index.get_level_values("seed").unique()):
         tr = w[w.index.get_level_values("seed") != s]
         pk = tr[["sr_only", "cosserver_only"]].groupby(["alpha", "attack_type"]).mean().idxmax(axis=1)
@@ -163,20 +163,20 @@ def analisar():
     ref = {k: v.groupby("seed").mean() for k, v in [("sr_only", sr), ("cosserver_only", cs),
                                                     ("sr_cosserver", w["sr_cosserver"]), ("sr_bin", w["sr_bin"]),
                                                     ("sr_b025", w["sr_b025"])]}
-    lines.append("(b) Teto da seleção de sinais (B2.6, 19 células, média por semente; %):")
-    for name, ser in [("max por semente (viesado)", by_seed_max), ("escolha por célula (in-sample)", chosen),
-                      ("escolha por célula (deixa a semente de fora)", pd.Series(loso))] + list(ref.items()):
+    lines.append("(b) Signal-selection ceiling (B2.6, 19 cells, mean per seed; %):")
+    for name, ser in [("max per seed (biased)", by_seed_max), ("per-cell choice (in-sample)", chosen),
+                      ("per-cell choice (leave the seed out)", pd.Series(loso))] + list(ref.items()):
         mm, lo, hi = _ci95(100 * np.asarray(ser))
-        lines.append(f"    {name:<46} {mm:6.2f}  IC95=({lo:.2f}, {hi:.2f})")
+        lines.append(f"    {name:<46} {mm:6.2f}  CI95=({lo:.2f}, {hi:.2f})")
     best_single = np.maximum(ref["sr_only"], ref["cosserver_only"])
-    for name, ser in [("max por semente", by_seed_max), ("escolha por célula (LOSO)", pd.Series(loso, index=best_single.index))]:
+    for name, ser in [("max per seed", by_seed_max), ("per-cell choice (LOSO)", pd.Series(loso, index=best_single.index))]:
         d = 100 * (np.asarray(ser) - np.asarray(best_single))
         mm, lo, hi = _ci95(d)
-        lines.append(f"    ganho de {name} sobre o melhor sinal único por semente: {mm:+.2f} p.p. IC95=({lo:+.2f}, {hi:+.2f})")
-    lines.append("    Sinal escolhido por célula (in-sample): " + "; ".join(f"{t} α={a}: {pick[(a, t)]}" for a, t in pick.index))
+        lines.append(f"    gain of {name} over the best single signal per seed: {mm:+.2f} p.p. CI95=({lo:+.2f}, {hi:+.2f})")
+    lines.append("    Signal chosen per cell (in-sample): " + "; ".join(f"{t} α={a}: {pick[(a, t)]}" for a, t in pick.index))
     lines.append("")
 
-    # (c) concordância S_R x cos_server por cliente (registro da ablação: trajetória td3, semente 42)
+    # (c) per-client agreement S_R x cos_server (ablation log: td3 trajectory, seed 42)
     rows = []
     for f in sorted(glob.glob(f"{DETECT}/td3_*_seed42.csv")):
         base = os.path.basename(f)[4:-11]
@@ -188,15 +188,15 @@ def analisar():
             y, s = d["is_byz"].astype(int), d[col]
             if y.nunique() < 2:
                 return np.nan
-            r = stats.rankdata(-s)  # score alto = honesto -> atacante deve ter score baixo
+            r = stats.rankdata(-s)  # high score = honest -> an attacker should have a low score
             pos = r[y == 1]
             return float((pos.sum() - len(pos) * (len(pos) + 1) / 2) / (len(pos) * (len(y) - len(pos))))
         rows.append({"alpha": float(alpha), "attack_type": attack, "spearman_medio": float(np.nanmean(rho)),
                      "AUC_S_R": auc("S_R"), "AUC_cos_server": auc("cos_server")})
     if rows:
         c = pd.DataFrame(rows).sort_values(["alpha", "attack_type"])
-        lines += ["(c) Concordância por cliente entre S_R e cos_server (registro da ablação: trajetória td3, só semente 42; "
-                  "PRELIMINAR) e AUC de cada sinal para separar atacantes (1 = separa perfeitamente):",
+        lines += ["(c) Per-client agreement between S_R and cos_server (ablation log: td3 trajectory, seed 42 only; "
+                  "PRELIMINARY) and AUC of each signal at separating attackers (1 = perfect separation):",
                   c.round(3).to_string(index=False), ""]
         c.to_csv(f"{OUT}/concordancia_sinais.csv", index=False)
 

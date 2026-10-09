@@ -1,66 +1,66 @@
-# Resultado — A0: análises baratas (roadmap v4 §4.2)
+# Result — A0: cheap analyses
 
-**Data:** 2026-10-01. Plano congelado em `PLANO.md` (hash em `PLANO.sha256`, commit `79f9ce1`) antes dos runs e das análises.
-**Saídas:** `analise.txt` (itens a–c), `concordancia_sinais.csv`, `massa/*.csv` (48 runs), `analise_regimes_td3.txt` e `regimes_td3_por_checkpoint.csv` (item d).
+**Date:** 2026-10-01. Plan frozen in `PLANO.md` (English translation in `PLANO.en.md`; hash in `PLANO.sha256`, commit `79f9ce1`) before the runs and the analyses.
+**Outputs:** `analise.txt` (items a–c), `concordancia_sinais.csv`, `massa/*.csv` (48 runs), `analise_regimes_td3.txt` and `regimes_td3_por_checkpoint.csv` (item d).
 
-## (a) Massa de peso nos atacantes → direção 6 do P3 sem motivação
+## (a) Weight mass on attackers → P3 direction 6 without motivation
 
-- **Verificação:** os 48 runs reproduzem exatamente o B2.6 (máx. |Δacc| = 0). O registro de pesos não perturbou a trajetória.
-- **Regra pré-registrada:** "aproveitamento real" exige massa média ≥ 0,05 em ≥ 4 das 8 células. Resultado: **2/8 células**, tanto no `sr_only` quanto no `sr_bin` → **sem aproveitamento relevante.**
-- Em 6 células (`gaussian_noise`, `krum_collusion` e `trim_attack`, em α = 0,05 e 0,1), a massa é **0,0000–0,0001**: os atacantes são excluídos por completo. O ganho sobre o oráculo FedAvg-8 nessas células (gap negativo do C0) vem, portanto, de **como os honestos são ponderados**, não de usar os atacantes. *Precisão de 2026-10-04:* concretamente, da ponderação **uniforme** dos honestos contra a ponderação **por tamanho de amostra** do oráculo. Como a métrica é a acurácia no test set global IID e balanceado, e os rótulos são enviesados por cliente, a ponderação por amostra desbalanceia as classes; o oráculo-8 uniforme reproduz os melhores métodos (mecanismo corrigido em 2026-10-05) (`results/c0b_espaco_h150/VERIFICACOES.md` §3; `results/c0_espaco_restante/CORRECAO_2026-10-04.md`).
-- As 2 exceções não são "aproveitamento" no sentido da direção 6:
-  - `low_mag_backdoor` α = 0,1: massa ≈ 0,19, perto do uniforme (0,2). O S_R não separa esse ataque (AUC 0,51 no item c), então os atacantes **passam**, não são explorados.
-  - `sign_flipping` α = 0,1: massa 0,06–0,07, concentrada nas rodadas 2–7 (0,08–0,29), que caem a ~0 depois da rodada 8. É um transiente de exclusão tardia.
-- **Leitura:** os gaps negativos do C0 **não** se explicam por aproveitamento dos atacantes. A direção 6 ("aproveitar em vez de excluir") perde a motivação empírica.
-- *Nota:* nessas variantes a semente muda pouco a trajetória (a partição é fixa; a semente só afeta o root e os agentes). No `sr_bin`/`sign_flipping`, as 3 sementes dão a mesma massa por rodada.
+- **Check:** the 48 runs exactly reproduce B2.6 (max. |Δacc| = 0). Recording the weights did not perturb the trajectory.
+- **Pre-registered rule:** "real exploitation" requires a mean mass ≥ 0.05 in ≥ 4 of the 8 cells. Result: **2/8 cells**, both for `sr_only` and `sr_bin` → **no relevant exploitation.**
+- In 6 cells (`gaussian_noise`, `krum_collusion` and `trim_attack`, at α = 0.05 and 0.1), the mass is **0.0000–0.0001**: the attackers are fully excluded. The gain over the FedAvg-8 oracle in those cells (C0 negative gap) therefore comes from **how the honest clients are weighted**, not from using the attackers. *Clarification of 2026-10-04:* concretely, from the **uniform** weighting of the honest clients vs. the oracle's **sample-size** weighting. Since the metric is the accuracy on the IID, balanced global test set, and the labels are skewed per client, sample-size weighting unbalances the classes; the uniform oracle-8 reproduces the best methods (mechanism corrected on 2026-10-05) (`results/c0b_espaco_h150/VERIFICACOES.md` §3; `results/c0_espaco_restante/CORRECAO_2026-10-04.md`).
+- The 2 exceptions are not "exploitation" in the sense of direction 6:
+  - `low_mag_backdoor` α = 0.1: mass ≈ 0.19, close to uniform (0.2). S_R does not separate this attack (AUC 0.51 in item c), so the attackers **get through**; they are not exploited.
+  - `sign_flipping` α = 0.1: mass 0.06–0.07, concentrated in rounds 2–7 (0.08–0.29), which drop to ~0 after round 8. It is a late-exclusion transient.
+- **Reading:** the C0 negative gaps are **not** explained by exploiting the attackers. Direction 6 ("exploit instead of exclude") loses its empirical motivation.
+- *Note:* in these variants the seed changes the trajectory little (the partition is fixed; the seed only affects the root and the agents). For `sr_bin`/`sign_flipping`, the 3 seeds give the same mass per round.
 
-## (b) Teto da seleção de sinais → headroom da direção 1 é ~+1,7 p.p.
+## (b) Signal-selection ceiling → direction 1 headroom is ~+1.7 p.p.
 
-Média sobre as 19 células válidas do B2.6, por semente (n = 10):
+Mean over B2.6's 19 valid cells, per seed (n = 10):
 
-| estimativa | acurácia (%) | IC95 |
+| estimate | accuracy (%) | CI95 |
 |---|---|---|
-| máx. por semente (viesado para cima) | 84,30 | 83,72–84,88 |
-| escolha por célula, in-sample | 83,59 | 82,82–84,36 |
-| **escolha por célula, LOSO (referência)** | **83,24** | 82,61–83,87 |
-| sr_b025 (melhor sinal único fixo) | 82,47 | 82,40–82,53 |
-| sr_cosserver | 82,11 | 81,01–83,21 |
-| sr_bin | 81,92 | 81,52–82,32 |
-| cosserver_only | 81,32 | 80,48–82,16 |
-| sr_only | 80,90 | 80,51–81,28 |
+| per-seed max. (biased upwards) | 84.30 | 83.72–84.88 |
+| per-cell choice, in-sample | 83.59 | 82.82–84.36 |
+| **per-cell choice, LOSO (reference)** | **83.24** | 82.61–83.87 |
+| sr_b025 (best fixed single signal) | 82.47 | 82.40–82.53 |
+| sr_cosserver | 82.11 | 81.01–83.21 |
+| sr_bin | 81.92 | 81.52–82.32 |
+| cosserver_only | 81.32 | 80.48–82.16 |
+| sr_only | 80.90 | 80.51–81.28 |
 
-- **Ganho da escolha de sinal por célula (LOSO) sobre o melhor sinal único por semente: +1,75 p.p. (IC95 +1,31 a +2,19).** É o headroom que a direção 1 do P3 disputa. É pequeno, mas tem IC inteiro acima de zero. Contra o `sr_b025` fixo, a margem cai para ~+0,8 p.p.
-- O padrão de escolha é legível: **cos_server** em `label_flipping`, `sign_flipping` e `low_mag_backdoor` (ataques que o S_R não separa); **S_R** em `gaussian_noise`, `krum_collusion` e `trim_attack` com α baixo.
+- **Gain of the per-cell signal choice (LOSO) over the best single signal per seed: +1.75 p.p. (CI95 +1.31 to +2.19).** This is the headroom that P3 direction 1 competes for. It is small, but its CI lies entirely above zero. Against the fixed `sr_b025`, the margin drops to ~+0.8 p.p.
+- The choice pattern is readable: **cos_server** on `label_flipping`, `sign_flipping` and `low_mag_backdoor` (attacks that S_R does not separate); **S_R** on `gaussian_noise`, `krum_collusion` and `trim_attack` at low α.
 
-- *Nota de 2026-10-04:* (1) esse valor foi superado pelo C0b em H = 150: **+1,24 p.p.** sobre o melhor sinal único por semente (LOSO, IC95 +0,98 a +1,49; `results/c0b_espaco_h150/RESULTADO.md` (ii)); (2) é o teto de **escolher um sinal por célula** (o mesmo sinal para todos os clientes e rodadas), e **não limita uma combinação dos sinais por cliente**.
+- *Note of 2026-10-04:* (1) this value was superseded by C0b at H = 150: **+1.24 p.p.** over the best single signal per seed (LOSO, CI95 +0.98 to +1.49; `results/c0b_espaco_h150/RESULTADO.md` (ii)); (2) it is the ceiling of **choosing one signal per cell** (the same signal for all clients and rounds), and **does not bound a per-client combination of the signals**.
 
-## (c) Concordância S_R × cos_server (preliminar: semente 42, trajetória td3)
+## (c) S_R × cos_server agreement (preliminary: seed 42, td3 trajectory)
 
-- **Spearman médio por rodada entre clientes:** de −0,36 a +0,35. Os dois sinais são **quase ortogonais**.
-- **AUC complementar:**
-  - o **S_R** separa `gaussian_noise` (≈ 1,0), `krum_collusion` e `trim_attack` (0,86–0,97);
-  - o **cos_server** separa `label_flipping` (0,80–1,0) e `sign_flipping` (0,83–0,99);
-  - nenhum dos dois separa bem `low_mag_backdoor`;
-  - em `fltrust_aligned`, o cos_server é **invertido** (AUC 0), artefato conhecido do ataque.
-- **Leitura:** um seletor não aprendido (por exemplo, "usar o sinal de maior separação") é plausível, porque os sinais falham em ataques diferentes. A confirmação exige mais sementes.
+- **Mean per-round Spearman across clients:** from −0.36 to +0.35. The two signals are **nearly orthogonal**.
+- **Complementary AUC:**
+  - **S_R** separates `gaussian_noise` (≈ 1.0), `krum_collusion` and `trim_attack` (0.86–0.97);
+  - **cos_server** separates `label_flipping` (0.80–1.0) and `sign_flipping` (0.83–0.99);
+  - neither separates `low_mag_backdoor` well;
+  - on `fltrust_aligned`, cos_server is **inverted** (AUC 0), a known artifact of the attack.
+- **Reading:** a non-learned selector (e.g. "use the signal with the highest separation") is plausible, because the signals fail on different attacks. Confirmation requires more seeds.
 
-## (d) Três regimes do TD3 (figura do P2)
+## (d) Three TD3 regimes (P2 figure)
 
-Mediana entre runs, estados das rodadas 401–500, σ_a = 0,0475:
+Median across runs, states of rounds 401–500, σ_a = 0.0475:
 
-| checkpoint | drift publicado | drift B2.3 | drift B2.3b | sd_estados publicado | sd_estados B2.3 | sd_estados B2.3b |
+| checkpoint | drift published | drift B2.3 | drift B2.3b | sd_estados published | sd_estados B2.3 | sd_estados B2.3b |
 |---|---|---|---|---|---|---|
-| 0 | 0 | 0 | 0 | 0,0046 | 0,0047 | 0,0045 |
-| 100 | 0 | 0,314 | 0,023 | 0,0046 | 0,0195 | 0,0048 |
-| 250 | 0,0035 | 0,467 | 0,063 | 0,0046 | 0,0010 | 0,0072 |
-| 500 | **0,0097** | **0,470** | **0,174** | **0,0047** | **0,0011** | **0,0134** |
+| 0 | 0 | 0 | 0 | 0.0046 | 0.0047 | 0.0045 |
+| 100 | 0 | 0.314 | 0.023 | 0.0046 | 0.0195 | 0.0048 |
+| 250 | 0.0035 | 0.467 | 0.063 | 0.0046 | 0.0010 | 0.0072 |
+| 500 | **0.0097** | **0.470** | **0.174** | **0.0047** | **0.0011** | **0.0134** |
 
-- **Publicado:** a política quase não se move (drift ≪ σ_a) e não depende do estado.
-- **B2.3 (lr 1e-3):** a política se move muito, satura num canto do Box até o passo ~200 e fica **ainda menos** dependente do estado (sd 0,001).
-- **B2.3b (lr 1e-4, recompensa normalizada):** o drift cresce de forma monotônica e o `sd_estados` triplica (0,0045 → 0,0134). Mesmo assim, fica a ~¼ de σ_a em 500 rodadas. É a única configuração com dependência de estado crescente, que é a limitação de horizonte já registrada no roadmap (horizonte longo no código oficial: cortado).
+- **Published:** the policy barely moves (drift ≪ σ_a) and does not depend on the state.
+- **B2.3 (lr 1e-3):** the policy moves a lot, saturates at a corner of the Box by step ~200 and becomes **even less** state-dependent (sd 0.001).
+- **B2.3b (lr 1e-4, normalized reward):** the drift grows monotonically and `sd_estados` triples (0.0045 → 0.0134). Even so, it stays at ~¼ of σ_a in 500 rounds. It is the only configuration with growing state dependence, which is the already-recorded horizon limitation (a long horizon on the official code was cut).
 
-## Decisões para o P3
+## Decisions for P3
 
-1. **Direção 6** (aproveitar atacantes): **sem motivação** pelo critério pré-registrado.
-2. **Direção 1** (seleção de sinal): headroom real, mas modesto (~+1,7 p.p. sobre o melhor sinal único por semente; ~+0,8 sobre o `sr_b025`). Os sinais são complementares por tipo de ataque.
-   - *Nota de 2026-10-04:* (1) esse valor foi superado pelo C0b em H = 150: **+1,24 p.p.** (LOSO, IC95 +0,98 a +1,49; `results/c0b_espaco_h150/RESULTADO.md` (ii)); (2) é o teto de **escolher um sinal por célula**, e **não limita uma combinação dos sinais por cliente**, que pode usar sinais diferentes para clientes diferentes na mesma rodada.
+1. **Direction 6** (exploit attackers): **no motivation** by the pre-registered criterion.
+2. **Direction 1** (signal selection): real but modest headroom (~+1.7 p.p. over the best single signal per seed; ~+0.8 over `sr_b025`). The signals are complementary by attack type.
+   - *Note of 2026-10-04:* (1) this value was superseded by C0b at H = 150: **+1.24 p.p.** (LOSO, CI95 +0.98 to +1.49; `results/c0b_espaco_h150/RESULTADO.md` (ii)); (2) it is the ceiling of **choosing one signal per cell**, and **does not bound a per-client combination of the signals**, which can use different signals for different clients in the same round.

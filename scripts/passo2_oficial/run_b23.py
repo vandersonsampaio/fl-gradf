@@ -1,20 +1,20 @@
 """
-B2.3 (references/roadmap_tese_gradf_v2.md §4): steelman do TD3 no AdaAggRL
-oficial. Pergunta: dando ao TD3 condições muito mais favoráveis de aprender,
-ele passa a superar a ação fixa?
+B2.3 (results/b23_steelman_oficial/PLANO.md): TD3 steelman in the official
+AdaAggRL. Question: given much more favorable learning conditions,
+does TD3 come to beat the fixed action?
 
-Única mudança em relação ao TD3 oficial (main.py):
-  learning_rate   1e-5 -> 1e-3   (100x; ator e crítico, Adam do SB3)
-  learning_starts 100  -> 10     (aquecimento com ação aleatória 10x menor)
-Todo o resto é idêntico: MlpPolicy [256,128], buffer 1000, batch 64,
-train_freq 3, ruído N(0, 0,1), gamma 0,99, mesmo ambiente e mesmas sementes.
+The only change relative to the official TD3 (main.py):
+  learning_rate   1e-5 -> 1e-3   (100x; actor and critic, SB3's Adam)
+  learning_starts 100  -> 10     (10x shorter random-action warm-up)
+Everything else is identical: MlpPolicy [256,128], buffer 1000, batch 64,
+train_freq 3, noise N(0, 0.1), gamma 0.99, same environment and same seeds.
 
-Exploratório, em sementes gastas (100-104), pareado com os runs `fixed` e `td3`
-do Passo 2 (results/frente1_passo2_oficial/raw/). Reusa `run_b21.run` sem
-alterá-lo (inclusive o log de estados e os checkpoints do ator), trocando só o
-construtor do TD3 neste processo.
+Exploratory, on already-used seeds (100-104), paired with the `fixed` and `td3` runs
+of Step 2 (results/frente1_passo2_oficial/raw/). Reuses `run_b21.run` without
+changing it (including the state log and the actor checkpoints), replacing only the
+TD3 constructor in this process.
 
-Uso (sempre com o venv isolado):
+Usage (always with the isolated venv):
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_b23.py --attack EB --seed 100
 """
 
@@ -35,7 +35,7 @@ _used_kwargs = {}
 
 
 def _steelman_td3(*args, **kwargs):
-    """Substitui só lr e learning_starts; registra os kwargs efetivos."""
+    """Replaces only lr and learning_starts; records the effective kwargs."""
     kwargs.update(STEELMAN)
     _used_kwargs.clear()
     _used_kwargs.update({k: v for k, v in kwargs.items() if k not in ("action_noise",)})
@@ -43,7 +43,7 @@ def _steelman_td3(*args, **kwargs):
 
 
 def run(attack: str, seed: int, rounds: int, q: float, dataset: str, out_dir: str) -> str:
-    B21.R.TD3 = _steelman_td3  # vale só neste processo
+    B21.R.TD3 = _steelman_td3  # applies to this process only
     path = B21.run(attack, "td3", seed, rounds, q, dataset, out_dir)
     d = json.load(open(path))
     d["variant"] = "td3_steelman"

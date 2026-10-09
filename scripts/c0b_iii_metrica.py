@@ -1,10 +1,10 @@
 """
-C0b-iii (results/c0b_iii_metrica/PLANO.md): sensibilidade da métrica no C0b, α ≤ 0,1.
-Mesmos sistemas, regime e ressemeadura do C0b, gravando as acurácias por cliente em
-H = 15/50/150 (métricas uniforme e ponderada pelo tamanho do test set), mais os tetos
-FedAvg-10 e oráculo-8 com ponderação uniforme e por amostra.
+C0b-iii (results/c0b_iii_metrica/PLANO.md): metric sensitivity of C0b, α ≤ 0.1.
+Same systems, regime and reseeding as C0b, saving the per-client accuracies at
+H = 15/50/150 (uniform metric and metric weighted by test-set size), plus the
+FedAvg-10 and oracle-8 ceilings with uniform and sample-size weighting.
 
-Uso (CPU):
+Usage (CPU):
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.c0b_iii_metrica celula --alpha 0.1 --attack sign_flipping --seed 72
   ... -m scripts.c0b_iii_metrica teto --alpha 0.1 --seed 72
   ... -m scripts.c0b_iii_metrica analisar
@@ -71,7 +71,7 @@ def run_cell(alpha, attack, seed):
         print(f"alpha={alpha} attack={attack} seed={seed} {system} ({time.time() - t0:.0f}s)", flush=True)
     pd.DataFrame(rows).to_csv(path + ".tmp", index=False)
     os.replace(path + ".tmp", path)
-    print(f"FIM {path}", flush=True)
+    print(f"END {path}", flush=True)
     return path
 
 
@@ -98,7 +98,7 @@ def run_teto(alpha, seed):
             class _Ceil(AttackedFederatedLearner):
                 def _run_round(self, round_num, ps, root_data):
                     rr = super()._run_round(round_num, ps, root_data)
-                    if round_num in HORIZONS:  # avalia nos test sets dos 10 clientes
+                    if round_num in HORIZONS:  # evaluates on the 10 clients' test sets
                         m = self._make_model(parts[0].n_features)
                         m.set_params(self._global_params)
                         accs_h[round_num] = {p.id: m.accuracy(p.X_test, p.y_test) for p in parts}
@@ -109,7 +109,7 @@ def run_teto(alpha, seed):
             _Ceil(n_rounds=H_MAX, n_classes=10, attack_type="none", byzantine_ids=byz, seed=seed,
                   aggregation="fedavg").train(clients, root_data=root, verbose=False)
 
-            class _R:  # adaptador para _rows
+            class _R:  # adapter for _rows
                 def __init__(self, pa):
                     self.per_participant_accuracy, self.global_accuracy = pa, float(np.mean(list(pa.values())))
             fake = [None] * H_MAX
@@ -119,7 +119,7 @@ def run_teto(alpha, seed):
     FL.FedAvgStrategy.aggregate = orig
     pd.DataFrame(rows).to_csv(path + ".tmp", index=False)
     os.replace(path + ".tmp", path)
-    print(f"FIM {path}", flush=True)
+    print(f"END {path}", flush=True)
     return path
 
 
@@ -135,9 +135,9 @@ def analisar():
     tet = pd.concat([pd.read_csv(f) for f in sorted(glob.glob(f"{RAW}/teto_*.csv"))])
     cel.to_csv(f"{OUT}/grade_raw.csv", index=False)
     tet.to_csv(f"{OUT}/tetos_raw.csv", index=False)
-    lines = ["C0b-iii — sensibilidade da métrica no C0b (α ≤ 0,1; sementes 72–81)",
-             f"linhas de célula: {len(cel)} (esperado {12 * 10 * 8 * 3}); de teto: {len(tet)} (esperado {2 * 10 * 4 * 3})", ""]
-    # verificações de reprodução
+    lines = ["C0b-iii — metric sensitivity of C0b (α ≤ 0.1; seeds 72–81)",
+             f"cell rows: {len(cel)} (expected {12 * 10 * 8 * 3}); ceiling rows: {len(tet)} (expected {2 * 10 * 4 * 3})", ""]
+    # reproduction checks
     c0b = pd.read_csv("results/c0b_espaco_h150/grade_raw.csv")
     m = cel.merge(c0b, on=["alpha", "attack_type", "seed", "system", "H"])
     dmax = float((m.acc_uniforme - m.accuracy).abs().max()) if len(m) else float("nan")
@@ -149,8 +149,8 @@ def analisar():
     t_u = t_u[(t_u.system == "teto_oraculo8_uniforme") & t_u.alpha.isin(ALPHAS)]
     mu = tet[tet.system == "teto_oraculo8_uniforme"].merge(t_u, on=["alpha", "seed", "H"])
     du = float((mu.acc_uniforme - mu.accuracy).abs().max()) if len(mu) else float("nan")
-    lines += [f"Reprodução: métrica uniforme × C0b grade_raw máx |Δ| = {dmax:.2e}; oráculo-8 por amostra × C0b = {dt:.2e}; "
-              f"oráculo-8 uniforme × sensibilidade = {du:.2e}", ""]
+    lines += [f"Reproduction: uniform metric × C0b grade_raw max |Δ| = {dmax:.2e}; sample-weighted oracle-8 × C0b = {dt:.2e}; "
+              f"uniform oracle-8 × sensitivity = {du:.2e}", ""]
 
     pares = {"U": ("acc_uniforme", "teto_oraculo8_uniforme"), "P": ("acc_ponderada", "teto_oraculo8_amostra")}
     res = []
@@ -178,23 +178,23 @@ def analisar():
         dir_p = int((p.classe == "variante").sum()) - int((p.classe == "regra").sum())
         same_dir = np.sign(dir_u) == np.sign(dir_p)
         if not same_dir:
-            crit = "(iii) DEPENDE DA MÉTRICA (direção majoritária muda)"
+            crit = "(iii) DEPENDS ON THE METRIC (majority direction changes)"
         elif conc >= 0.75:
-            crit = "(iii) BLINDADO"
+            crit = "(iii) ROBUST"
         else:
-            crit = "(iii) BLINDADO NA DIREÇÃO, SENSÍVEL POR CÉLULA"
+            crit = "(iii) ROBUST IN DIRECTION, SENSITIVE PER CELL"
         lines += [f"== H = {H} ==",
-                  f"(iii) classes U: variante {int((u.classe == 'variante').sum())}, regra {int((u.classe == 'regra').sum())}, "
-                  f"empate {int((u.classe == 'empate').sum())} | P: variante {int((p.classe == 'variante').sum())}, "
-                  f"regra {int((p.classe == 'regra').sum())}, empate {int((p.classe == 'empate').sum())}; concordância {conc:.0%}"
+                  f"(iii) classes U: variant {int((u.classe == 'variante').sum())}, rule {int((u.classe == 'regra').sum())}, "
+                  f"tie {int((u.classe == 'empate').sum())} | P: variant {int((p.classe == 'variante').sum())}, "
+                  f"rule {int((p.classe == 'regra').sum())}, tie {int((p.classe == 'empate').sum())}; agreement {conc:.0%}"
                   + (f"  -> {crit}" if H == H_MAX else ""),
-                  "    células que mudam: " + "; ".join(f"{t} α={a}: {u.loc[(a, t), 'classe']}→{p.loc[(a, t), 'classe']}"
+                  "    cells that change: " + "; ".join(f"{t} α={a}: {u.loc[(a, t), 'classe']}→{p.loc[(a, t), 'classe']}"
                                                          for (a, t) in u.index if u.loc[(a, t), 'classe'] != p.loc[(a, t), 'classe']),
-                  f"(i) células com espaço: U {int(u.espaco.sum())} [" + "; ".join(f"{t} α={a}" for (a, t) in u.index[u.espaco]) +
+                  f"(i) cells with headroom: U {int(u.espaco.sum())} [" + "; ".join(f"{t} α={a}" for (a, t) in u.index[u.espaco]) +
                   f"] | P {int(p.espaco.sum())} [" + "; ".join(f"{t} α={a}" for (a, t) in p.index[p.espaco]) + "]", ""]
     cols = ["par", "alpha", "attack_type", "melhor_variante", "melhor_regra", "D_pp", "D_lo", "D_hi", "classe",
             "melhor_existente", "gap_pp", "gap_lo", "espaco"]
-    lines += ["Detalhe em H = 150:", r[r.H == H_MAX][cols].round(3).to_string(index=False)]
+    lines += ["Detail at H = 150:", r[r.H == H_MAX][cols].round(3).to_string(index=False)]
     text = "\n".join(lines) + "\n"
     open(f"{OUT}/analise.txt", "w").write(text)
     print(text)

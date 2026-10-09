@@ -1,29 +1,29 @@
 """
-Análise do B2.1 + B2.2, conforme results/b21_replicacao_oficial/PREREGISTRO.md.
-Escrita antes de existir qualquer resultado da grade. Reusa os testes de
-`analisar.py` (Passo 2) sem alterá-lo.
+B2.1 + B2.2 analysis, following results/b21_replicacao_oficial/PREREGISTRO.md.
+Written before any grid result existed. Reuses the tests from
+`analisar.py` (Step 2) without changing it.
 
-B2.1 (unidade = par ataque×semente, n=20):
-  Primária: mediana da acurácia nas rodadas 401-500 (runs truncados em 500 passos).
-  H1: fixed - td3. TOST pareado (t), margem ±1,0 p.p., alfa 0,05; Wilcoxon
-      pareado para diferença. Por ataque: Δ, IC95, d, Wilcoxon + Holm.
-  Secundárias: média 451-500 (métrica do Passo 2), nº de resets, massa nos atacantes.
+B2.1 (unit = attack×seed pair, n=20):
+  Primary: median accuracy over rounds 401-500 (runs truncated at 500 steps).
+  H1: fixed - td3. Paired TOST (t), margin ±1.0 p.p., alpha 0.05; paired Wilcoxon
+      for a difference. Per attack: Δ, CI95, d, Wilcoxon + Holm.
+  Secondary: mean 451-500 (Step 2 metric), number of resets, mass on attackers.
 
-B2.2 (família de 3 hipóteses, Holm sobre H3-H5, alfa 0,05; testes unilaterais):
-  σ_a = 0,1 × 0,95/2 = 0,0475 (desvio do ruído de exploração do SB3 em unidades de ação).
-  H3: corr. passo a passo das ações EXECUTADAS do td3 (rodadas 101-500, 5 dims)
-      entre EB e LMP da mesma semente é > 0,9. Wilcoxon unilateral em
-      atanh(r) - atanh(0,9) > 0, n=10.
-  H4: a política determinística final quase não difere da inicial:
-      drift = média |π_500(s) - π_0(s)| sobre os estados s das rodadas 401-500 e
-      as 5 dims. Wilcoxon unilateral drift - σ_a < 0, n=20 runs td3.
-  H5: a política final quase não depende da entrada:
-      S_swap = média |π_500(s_ataque,t) - π_500(s_outro_ataque,t)|, t em 401-500,
-      mesma semente. Wilcoxon unilateral S_swap - σ_a < 0, n=20.
-  Reportados sem teste: S_shuffle (estado de outra rodada do mesmo run), e
-  drift/S_swap do ator inicial π_0 como referência.
+B2.2 (family of 3 hypotheses, Holm over H3-H5, alpha 0.05; one-sided tests):
+  σ_a = 0.1 × 0.95/2 = 0.0475 (std of SB3's exploration noise in action units).
+  H3: step-by-step correlation of td3's EXECUTED actions (rounds 101-500, 5 dims)
+      between EB and LMP of the same seed is > 0.9. One-sided Wilcoxon on
+      atanh(r) - atanh(0.9) > 0, n=10.
+  H4: the final deterministic policy barely differs from the initial one:
+      drift = mean |π_500(s) - π_0(s)| over the states s of rounds 401-500 and
+      the 5 dims. One-sided Wilcoxon drift - σ_a < 0, n=20 td3 runs.
+  H5: the final policy barely depends on its input:
+      S_swap = mean |π_500(s_attack,t) - π_500(s_other_attack,t)|, t in 401-500,
+      same seed. One-sided Wilcoxon S_swap - σ_a < 0, n=20.
+  Reported without a test: S_shuffle (state from another round of the same run), and
+  drift/S_swap of the initial actor π_0 as a reference.
 
-Uso:
+Usage:
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_b21.py
 """
 
@@ -63,7 +63,7 @@ def load_runs(raw):
                 if not os.path.exists(f):
                     continue
                 d = json.load(open(f))
-                steps = d["steps"][:ROUNDS]  # Adendo 1 do Passo 2: td3 do SB3 roda 501 passos
+                steps = d["steps"][:ROUNDS]  # Step 2 addendum 1: SB3's td3 runs 501 steps
                 acc = np.array([x["acc"] for x in steps])
                 real = np.array([x["n_att_real"] for x in steps])
                 mass = np.array([np.nan if x["att_weight_mass"] is None else x["att_weight_mass"] for x in steps])
@@ -84,10 +84,10 @@ def paired_block(tab, metric_label, lines):
     d = (pair["fixed"] - pair["td3"]).to_numpy()
     desc = P2.describe(d)
     p_tost = max(P2.tost_paired(d, MARGIN))
-    lines += [f"== H1 ({metric_label}): fixed − td3 (pooled, pares ataque×semente) ==",
-              f"  n={desc['n']}  Δ={desc['delta_pp']:+.2f} p.p.  IC95=({desc['ci95_pp'][0]:+.2f}, {desc['ci95_pp'][1]:+.2f})  d={desc['d']:+.2f}",
+    lines += [f"== H1 ({metric_label}): fixed − td3 (pooled, attack×seed pairs) ==",
+              f"  n={desc['n']}  Δ={desc['delta_pp']:+.2f} p.p.  CI95=({desc['ci95_pp'][0]:+.2f}, {desc['ci95_pp'][1]:+.2f})  d={desc['d']:+.2f}",
               f"  TOST ±{100*MARGIN:.1f} p.p.: p={p_tost:.4f}   Wilcoxon: p={desc['wilcoxon_p']:.4f}",
-              f"  VEREDITO: {P2.verdict(desc, p_tost)}"]
+              f"  VERDICT: {P2.verdict(desc, p_tost)}"]
     per = []
     for att in ATTACKS:
         if att in pair.index.get_level_values(0):
@@ -97,12 +97,12 @@ def paired_block(tab, metric_label, lines):
     if per:
         adj = P2.holm(np.array([x[1]["wilcoxon_p"] for x in per]))
         for (att, ds), pa in zip(per, adj):
-            lines.append(f"    {att}: n={ds['n']} Δ={ds['delta_pp']:+.2f} p.p. IC95=({ds['ci95_pp'][0]:+.2f}, {ds['ci95_pp'][1]:+.2f}) d={ds['d']:+.2f} Wilcoxon p={ds['wilcoxon_p']:.4f} Holm={pa:.4f}")
+            lines.append(f"    {att}: n={ds['n']} Δ={ds['delta_pp']:+.2f} p.p. CI95=({ds['ci95_pp'][0]:+.2f}, {ds['ci95_pp'][1]:+.2f}) d={ds['d']:+.2f} Wilcoxon p={ds['wilcoxon_p']:.4f} Holm={pa:.4f}")
     lines.append("")
 
 
 # ---------------------------------------------------------------------------
-# B2.2: reconstrução do ator do SB3 para avaliar a política determinística
+# B2.2: rebuild the SB3 actor to evaluate the deterministic policy
 # ---------------------------------------------------------------------------
 
 def make_actor_evaluator():
@@ -131,7 +131,7 @@ def make_actor_evaluator():
 
 
 def one_sided_wilcoxon_less(x):
-    """p de H1: mediana(x) < 0."""
+    """p-value for H1: median(x) < 0."""
     return float(stats.wilcoxon(x, alternative="less").pvalue)
 
 
@@ -144,7 +144,7 @@ def b22(df, raw, lines):
     td3 = df[df["condition"] == "td3"].set_index(["attack", "seed"])
     rng = np.random.RandomState(0)
 
-    # H3: correlação das ações executadas entre ataques, mesma semente
+    # H3: correlation of the executed actions across attacks, same seed
     rs = []
     for s in SEEDS:
         if ("EB", s) in td3.index and ("LMP", s) in td3.index:
@@ -153,7 +153,7 @@ def b22(df, raw, lines):
     r = np.array([x[1] for x in rs])
     p3 = one_sided_wilcoxon_greater(np.arctanh(np.clip(r, -0.999999, 0.999999)) - np.arctanh(R_THRESH))
 
-    # H4 e H5: política determinística
+    # H4 and H5: deterministic policy
     rows = []
     for (att, s) in td3.index:
         other = "LMP" if att == "EB" else "EB"
@@ -183,15 +183,15 @@ def b22(df, raw, lines):
     p5 = one_sided_wilcoxon_less(m["S_swap"].to_numpy() - SIGMA_A) if len(m) else np.nan
     adj = P2.holm(np.array([p3, p4, p5]))
 
-    lines += ["== B2.2: hipóteses mecanísticas (Holm sobre H3–H5) ==",
-              f"  σ_a (ruído de exploração, unidades de ação) = {SIGMA_A:.4f}",
-              f"  H3 corr(EB, LMP) das ações > {R_THRESH}: n={len(r)}  r por semente={np.round(r, 3).tolist()}",
-              f"     mediana r={np.median(r):.3f}  Wilcoxon unilateral p={p3:.4f}  Holm={adj[0]:.4f}  -> {'CONFIRMADA' if adj[0] < ALPHA else 'NÃO confirmada'}",
-              f"  H4 drift |π500−π0| < σ_a: n={len(m)}  mediana={m['drift'].median():.4f}  máx={m['drift'].max():.4f}",
-              f"     Wilcoxon unilateral p={p4:.4f}  Holm={adj[1]:.4f}  -> {'CONFIRMADA' if adj[1] < ALPHA else 'NÃO confirmada'}",
-              f"  H5 S_swap |π500(s)−π500(s')| < σ_a: n={len(m)}  mediana={m['S_swap'].median():.4f}  máx={m['S_swap'].max():.4f}",
-              f"     Wilcoxon unilateral p={p5:.4f}  Holm={adj[2]:.4f}  -> {'CONFIRMADA' if adj[2] < ALPHA else 'NÃO confirmada'}",
-              "  Referências (sem teste): mediana S_shuffle={:.4f}; mediana S_swap do π0={:.4f}; mediana |π0−centro|={:.4f}".format(
+    lines += ["== B2.2: mechanistic hypotheses (Holm over H3–H5) ==",
+              f"  σ_a (exploration noise, action units) = {SIGMA_A:.4f}",
+              f"  H3 corr(EB, LMP) of actions > {R_THRESH}: n={len(r)}  r per seed={np.round(r, 3).tolist()}",
+              f"     median r={np.median(r):.3f}  one-sided Wilcoxon p={p3:.4f}  Holm={adj[0]:.4f}  -> {'CONFIRMED' if adj[0] < ALPHA else 'NOT confirmed'}",
+              f"  H4 drift |π500−π0| < σ_a: n={len(m)}  median={m['drift'].median():.4f}  max={m['drift'].max():.4f}",
+              f"     one-sided Wilcoxon p={p4:.4f}  Holm={adj[1]:.4f}  -> {'CONFIRMED' if adj[1] < ALPHA else 'NOT confirmed'}",
+              f"  H5 S_swap |π500(s)−π500(s')| < σ_a: n={len(m)}  median={m['S_swap'].median():.4f}  max={m['S_swap'].max():.4f}",
+              f"     one-sided Wilcoxon p={p5:.4f}  Holm={adj[2]:.4f}  -> {'CONFIRMED' if adj[2] < ALPHA else 'NOT confirmed'}",
+              "  References (no test): median S_shuffle={:.4f}; median S_swap of π0={:.4f}; median |π0−center|={:.4f}".format(
                   m["S_shuffle"].median(), m["S_swap_pi0"].median(), m["pi0_dist_center"].median()),
               ""]
     return m
@@ -204,13 +204,13 @@ def main():
     a = p.parse_args()
 
     df = load_runs(a.raw_dir)
-    lines = [f"B2.1 + B2.2 — {len(df)} runs carregados (esperados {len(ATTACKS) * 2 * len(SEEDS)})", ""]
+    lines = [f"B2.1 + B2.2 — {len(df)} runs loaded (expected {len(ATTACKS) * 2 * len(SEEDS)})", ""]
     tab = df.pivot_table(index=["attack", "seed"], columns="condition", values="primary_median_401_500")
-    lines += ["Métrica primária (mediana da acurácia nas rodadas 401–500):", tab.round(4).to_string(), ""]
-    paired_block(tab, "primária: mediana 401–500", lines)
+    lines += ["Primary metric (median accuracy over rounds 401–500):", tab.round(4).to_string(), ""]
+    paired_block(tab, "primary: median 401–500", lines)
     tab2 = df.pivot_table(index=["attack", "seed"], columns="condition", values="mean_451_500")
-    paired_block(tab2, "secundária: média 451–500, métrica do Passo 2", lines)
-    lines += ["== Secundárias descritivas (média por ataque × condição) ==",
+    paired_block(tab2, "secondary: mean 451–500, Step 2 metric", lines)
+    lines += ["== Descriptive secondary metrics (mean per attack × condition) ==",
               df.groupby(["attack", "condition"])[["n_resets_extra", "att_mass_mean"]].mean().round(4).to_string(), ""]
 
     m = b22(df, a.raw_dir, lines)

@@ -1,56 +1,56 @@
-# Resultado — B2.5: IPM real no AdaAggRL oficial (fixed contra td3)
+# Result — B2.5: real IPM in the official AdaAggRL (fixed vs. td3)
 
-**Data:** 2026-10-02.
-- Plano: `PLANO.md`, commit `1e92014`.
-- Adendo 1 (ε = 2): `ADENDO1.md`, commit `4faad80`.
-- Grade: 20 runs (sementes 105–114 × {td3, fixed}, 500 rodadas), de 01/10 14h12 a 02/10 19h36. Sem falhas.
-- Saídas: `analise.txt`, `resumo_runs.csv`, `mecanismo.csv`, `raw/`.
+**Date:** 2026-10-02.
+- Plan: `PLANO.md` (English translation in `PLANO.en.md`), commit `1e92014`.
+- Addendum 1 (ε = 2): `ADENDO1.md` (English translation in `ADENDO1.en.md`), commit `4faad80`.
+- Grid: 20 runs (seeds 105–114 × {td3, fixed}, 500 rounds), from 10/01 14:12 to 10/02 19:36. No failures.
+- Outputs: `analise.txt`, `resumo_runs.csv`, `mecanismo.csv`, `raw/`.
 
-## H1 (pré-registrada): INCONCLUSIVA
+## H1 (pre-registered): INCONCLUSIVE
 
-| métrica | Δ fixed − td3 | IC90 | IC95 | TOST ±1 p.p. | Wilcoxon |
+| metric | Δ fixed − td3 | CI90 | CI95 | TOST ±1 p.p. | Wilcoxon |
 |---|---|---|---|---|---|
-| **primária:** mediana 401–500 | +2,78 p.p. | −4,63 a +10,19 | −6,37 a +11,92 | p = 0,66 | p = 0,63 |
-| secundária: média 451–500 | +4,23 p.p. | −5,65 a +14,12 | −7,96 a +16,43 | p = 0,72 | p = 0,56 |
+| **primary:** median 401–500 | +2.78 p.p. | −4.63 to +10.19 | −6.37 to +11.92 | p = 0.66 | p = 0.63 |
+| secondary: mean 451–500 | +4.23 p.p. | −5.65 to +14.12 | −7.96 to +16.43 | p = 0.72 | p = 0.56 |
 
-- Nem equivalência nem diferença. O sinal favorece o **fixed**, mas sem significância.
-- **Não há evidência de que o TD3 contribua sob IPM.**
+- Neither equivalence nor a difference. The sign favors **fixed**, without significance.
+- **There is no evidence that TD3 contributes under IPM.**
 
-## Por que inconclusiva: cascatas de reset
+## Why inconclusive: reset cascades
 
-- O sd das diferenças por semente é **12,8 p.p.**, contra ~0,3 p.p. no B2.1.
-- O IPM com ε = 2 provoca muitos resets do ambiente oficial (recompensa < −80 → reinicialização do modelo): mediana de **2,5 resets extras por run nas duas condições**.
-- Em duas sementes há **cascatas tardias** dentro da janela 401–500:
-  - **110, td3:** 7 resets, 5 deles entre as rodadas 414 e 494 → mediana 57,9%;
-  - **111, fixed:** 7 resets, 4 deles entre as rodadas 402 e 435 → 68,4%;
-  - **111, td3:** resets em 412 e 428 → 81,8%.
-- Como o reset é consequência da ação, o plano não permite excluí-lo. A mediana de 100 rodadas não resiste a cascatas com mais de ~50 rodadas contaminadas, ao contrário do B2.1, onde os resets eram isolados.
-- **Sensibilidade post hoc**, sem valor confirmatório: excluindo as sementes 110 e 111, Δ = +0,58 p.p., IC90 de −0,99 a +2,15, sd 2,35. O resultado continua sem equivalência a ±1 p.p. e sem diferença.
+- The sd of the per-seed differences is **12.8 p.p.**, vs. ~0.3 p.p. in B2.1.
+- IPM with ε = 2 triggers many resets of the official environment (reward < −80 → model re-initialization): a median of **2.5 extra resets per run in both conditions**.
+- Two seeds have **late cascades** inside the 401–500 window:
+  - **110, td3:** 7 resets, 5 of them between rounds 414 and 494 → median 57.9%;
+  - **111, fixed:** 7 resets, 4 of them between rounds 402 and 435 → 68.4%;
+  - **111, td3:** resets at 412 and 428 → 81.8%.
+- Since the reset is a consequence of the action, the plan does not allow excluding it. The 100-round median does not withstand cascades with more than ~50 contaminated rounds, unlike B2.1, where resets were isolated.
+- **Post hoc sensitivity**, with no confirmatory value: excluding seeds 110 and 111, Δ = +0.58 p.p., CI90 from −0.99 to +2.15, sd 2.35. The result still shows no equivalence at ±1 p.p. and no difference.
 
-## Mecanismo (descritivo): o TD3 continua sem aprender
+## Mechanism (descriptive): TD3 still does not learn
 
-| | mediana | máx. |
+| | median | max. |
 |---|---|---|
-| drift \|π₅₀₀ − π₀\| | 0,0107 | 0,0168 |
-| sd_estados de π₅₀₀ | 0,0029 | 0,0106 |
+| drift \|π₅₀₀ − π₀\| | 0.0107 | 0.0168 |
+| sd_estados of π₅₀₀ | 0.0029 | 0.0106 |
 
-- Os dois ficam bem abaixo do ruído de exploração (σ_a = 0,0475), como no B2.1 (drift ~0,01).
-- Sob IPM, a política final é praticamente a inicial e não depende do estado.
-- A diferença de acurácia entre as condições vem da dinâmica de resets, não de uma política aprendida.
+- Both stay well below the exploration noise (σ_a = 0.0475), as in B2.1 (drift ~0.01).
+- Under IPM, the final policy is practically the initial one and does not depend on the state.
+- The accuracy difference between the conditions comes from the reset dynamics, not from a learned policy.
 
-**Massa nos atacantes** (mediana entre sementes, rodadas com atacantes reais): fixed 0,089, td3 0,096. Com ε = 2, os dois filtros dão peso apreciável aos atacantes, como o sanity antecipou.
+**Mass on attackers** (median across seeds, rounds with real attackers): fixed 0.089, td3 0.096. With ε = 2, both filters give appreciable weight to the attackers, as the sanity check anticipated.
 
-## Achados de auditoria
+## Audit findings
 
-1. **O IPM do código oficial é um update nulo** (`teste_unitario.txt`): a rede é posta em `old_weights` antes do `craft`, então o atacante envia o próprio modelo global. Os resultados de IPM do paper original não testam o IPM de Xie et al.
-2. O IPM real (via o gancho do LMP, desvio declarado) é um ataque efetivo no código oficial: degrada o FedAvg em 5,9 p.p. com ε = 2 e em 63,5 p.p. com ε = 10 (sanity). Ele também desencadeia cascatas de reset no mecanismo de reinicialização do ambiente.
+1. **The official code's IPM is a null update** (`teste_unitario.txt`): the network is set to `old_weights` before the `craft`, so the attacker sends the global model itself. The original paper's IPM results do not test Xie et al.'s IPM.
+2. The real IPM (via the LMP hook, a declared deviation) is an effective attack in the official code: it degrades FedAvg by 5.9 p.p. with ε = 2 and by 63.5 p.p. with ε = 10 (sanity). It also triggers reset cascades in the environment's re-initialization mechanism.
 
-## Leitura para a tese
+## Reading for the thesis
 
-- A conclusão confirmatória do P2 ("fixed ≡ TD3") continua valendo **para LMP e EB** (B2.1).
-- **Sob IPM real:**
-  - não há equivalência estabelecida, por causa da variância induzida pelos resets;
-  - não há evidência de contribuição do TD3: o Δ favorece o fixed, sem significância;
-  - o mecanismo (política sem drift e independente do estado) se mantém.
-- Formulação sugerida: "sob IPM, a política TD3 não aprende (drift ≪ ruído de exploração) e não há evidência de ganho sobre a ação fixa; a equivalência não pôde ser estabelecida devido a cascatas de reset do ambiente oficial".
-- **Limitação:** n = 10, uma célula (MNIST, q = 0,5, ε = 2), métrica primária sensível a cascatas de reset longas.
+- The confirmatory P2 conclusion ("fixed ≡ TD3") still holds **for LMP and EB** (B2.1).
+- **Under real IPM:**
+  - no equivalence is established, because of the reset-induced variance;
+  - there is no evidence of a TD3 contribution: Δ favors fixed, without significance;
+  - the mechanism (policy with no drift and independent of the state) holds.
+- Suggested wording: "under IPM, the TD3 policy does not learn (drift ≪ exploration noise) and there is no evidence of a gain over the fixed action; equivalence could not be established due to reset cascades in the official environment".
+- **Limitation:** n = 10, one cell (MNIST, q = 0.5, ε = 2), primary metric sensitive to long reset cascades.

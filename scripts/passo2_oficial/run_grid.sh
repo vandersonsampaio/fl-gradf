@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Grade confirmatória do Passo 2 (results/frente1_passo2_oficial/PREREGISTRO.md §4).
-# Retomável: pula runs cujo JSON já existe. Uso: bash scripts/passo2_oficial/run_grid.sh
+# Confirmatory Step 2 grid (results/frente1_passo2_oficial/PREREGISTRO.md §4).
+# Resumable: skips runs whose JSON already exists. Usage: bash scripts/passo2_oficial/run_grid.sh
 set -u
 cd "$(dirname "$0")/../.."
 PY=external/.venv_adaaggrl/bin/python

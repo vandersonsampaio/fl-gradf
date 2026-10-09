@@ -1,16 +1,16 @@
 """
-Análise do B3.1 + B3.2 (results/b31_medmnist_oficial/PREREGISTRO.md §5), escrita
-antes da grade. Margem M e ataques incluídos vêm do Adendo 1 (argumentos).
+B3.1 + B3.2 analysis (results/b31_medmnist_oficial/PREREGISTRO.md §5), written
+before the grid. The margin M and the included attacks come from Addendum 1 (arguments).
 
-B3.1 (unidade = par ataque × semente): D = métrica(fixed) − métrica(td3)
-  primária: mediana da acurácia nas rodadas 401-500
-  sensibilidade por AUC: média 1-500 e média 251-500
-  TOST pareado ±M (IC90 e IC95), Wilcoxon; por ataque com Holm. Primária e AUCs
-  discordando no veredito -> "sensível a resets".
-  Resets: contam como resultado; nº por run e fração de runs com reset em 401-500.
-B3.2 (Holm sobre H3-H5, unilaterais, σ_a = 0,0475), como no B2.2.
+B3.1 (unit = attack × seed pair): D = metric(fixed) − metric(td3)
+  primary: median accuracy over rounds 401-500
+  AUC sensitivity: mean 1-500 and mean 251-500
+  Paired TOST ±M (CI90 and CI95), Wilcoxon; per attack with Holm. Primary and AUCs
+  disagreeing on the verdict -> "reset-sensitive".
+  Resets: count as a result; number per run and fraction of runs with a reset in 401-500.
+B3.2 (Holm over H3-H5, one-sided, σ_a = 0.0475), as in B2.2.
 
-Uso (venv oficial):
+Usage (official venv):
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_b31.py --margem 1.25 --ataques LMP EB
 """
 
@@ -78,8 +78,8 @@ def h1(df, metric, margem, ataques, lines):
     v = P2.verdict(desc, p_tost)
     c90, c95 = _ci(d, 0.90), _ci(d, 0.95)
     lines += [f"== H1 ({metric}): fixed − td3, n={desc['n']} ==",
-              f"  Δ={desc['delta_pp']:+.2f} p.p.  IC90=({c90[0]:+.2f}, {c90[1]:+.2f})  IC95=({c95[0]:+.2f}, {c95[1]:+.2f})  d={desc['d']:+.2f}",
-              f"  TOST ±{margem:.2f} p.p.: p={p_tost:.4f}   Wilcoxon: p={desc['wilcoxon_p']:.4f}   VEREDITO: {v}"]
+              f"  Δ={desc['delta_pp']:+.2f} p.p.  CI90=({c90[0]:+.2f}, {c90[1]:+.2f})  CI95=({c95[0]:+.2f}, {c95[1]:+.2f})  d={desc['d']:+.2f}",
+              f"  TOST ±{margem:.2f} p.p.: p={p_tost:.4f}   Wilcoxon: p={desc['wilcoxon_p']:.4f}   VERDICT: {v}"]
     per = []
     for att in ataques:
         if att in tab.index.get_level_values(0):
@@ -89,7 +89,7 @@ def h1(df, metric, margem, ataques, lines):
     if per:
         adj = P2.holm(np.array([x[1]["wilcoxon_p"] for x in per]))
         for (att, ds), pa in zip(per, adj):
-            lines.append(f"    {att}: n={ds['n']} Δ={ds['delta_pp']:+.2f} p.p. IC95=({ds['ci95_pp'][0]:+.2f}, {ds['ci95_pp'][1]:+.2f}) "
+            lines.append(f"    {att}: n={ds['n']} Δ={ds['delta_pp']:+.2f} p.p. CI95=({ds['ci95_pp'][0]:+.2f}, {ds['ci95_pp'][1]:+.2f}) "
                          f"d={ds['d']:+.2f} Wilcoxon p={ds['wilcoxon_p']:.4f} Holm={pa:.4f}")
     lines.append("")
     return v
@@ -109,7 +109,7 @@ def b32(df, ataques, lines):
         r = np.array(rs)
         pvals.append(float(stats.wilcoxon(np.arctanh(np.clip(r, -0.999999, 0.999999)) - np.arctanh(R_THRESH),
                                           alternative="greater").pvalue))
-        labels.append(f"H3 corr(ações entre ataques) > {R_THRESH}: mediana r={np.median(r):.3f}")
+        labels.append(f"H3 corr(actions across attacks) > {R_THRESH}: median r={np.median(r):.3f}")
     rows = []
     for (att, s) in td3.index:
         tag = _tag(att, "td3", s)
@@ -133,39 +133,39 @@ def b32(df, ataques, lines):
     m = pd.DataFrame(rows)
     m.to_csv(f"{OUT}/mecanismo.csv", index=False)
     pvals.append(float(stats.wilcoxon(m.drift - SIGMA_A, alternative="less").pvalue))
-    labels.append(f"H4 drift < σ_a: mediana={m.drift.median():.4f} máx={m.drift.max():.4f}")
+    labels.append(f"H4 drift < σ_a: median={m.drift.median():.4f} max={m.drift.max():.4f}")
     if "S_swap" in m:
         pvals.append(float(stats.wilcoxon(m.S_swap.dropna() - SIGMA_A, alternative="less").pvalue))
-        labels.append(f"H5 S_swap < σ_a: mediana={m.S_swap.median():.4f}")
+        labels.append(f"H5 S_swap < σ_a: median={m.S_swap.median():.4f}")
     adj = P2.holm(np.array(pvals))
     lines += [f"== B3.2 (Holm; σ_a = {SIGMA_A:.4f}) =="]
     for lab, p, pa in zip(labels, pvals, adj):
-        lines.append(f"  {lab}  p={p:.4f} Holm={pa:.4f} -> {'CONFIRMADA' if pa < ALPHA else 'NÃO confirmada'}")
-    lines.append(f"  descritivo: sd_estados mediana={m.sd_estados.median():.4f}; S_shuffle mediana={m.S_shuffle.median():.4f}")
+        lines.append(f"  {lab}  p={p:.4f} Holm={pa:.4f} -> {'CONFIRMED' if pa < ALPHA else 'NOT confirmed'}")
+    lines.append(f"  descriptive: sd_estados median={m.sd_estados.median():.4f}; S_shuffle median={m.S_shuffle.median():.4f}")
     lines.append("")
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--margem", type=float, required=True, help="M em p.p. (Adendo 1)")
+    ap.add_argument("--margem", type=float, required=True, help="M in p.p. (Addendum 1)")
     ap.add_argument("--ataques", nargs="+", required=True)
     a = ap.parse_args()
     df = load(a.ataques)
     df.drop(columns="actions").to_csv(f"{OUT}/resumo_runs.csv", index=False)
-    lines = [f"B3.1 + B3.2 — BloodMNIST, AdaAggRL oficial; ataques {a.ataques}; M = ±{a.margem:.2f} p.p.",
-             f"runs: {len(df)} (esperado {len(a.ataques) * 2 * len(SEEDS)})", ""]
+    lines = [f"B3.1 + B3.2 — BloodMNIST, official AdaAggRL; attacks {a.ataques}; M = ±{a.margem:.2f} p.p.",
+             f"runs: {len(df)} (expected {len(a.ataques) * 2 * len(SEEDS)})", ""]
     vs = {m: h1(df, m, a.margem, a.ataques, lines) for m in ["primaria", "auc_1_500", "auc_251_500"]}
     if len(set(vs.values())) > 1:
-        lines.append(f"SENSÍVEL A RESETS: vereditos diferem entre primária e AUCs ({vs})")
+        lines.append(f"RESET-SENSITIVE: verdicts differ between primary and AUCs ({vs})")
     else:
-        lines.append(f"Primária e AUCs concordam: {vs['primaria']}")
+        lines.append(f"Primary and AUCs agree: {vs['primaria']}")
     g = df.groupby("condition")
-    lines += ["", "Resets (contam como resultado):",
+    lines += ["", "Resets (count as a result):",
               g.agg(resets_media=("resets", "mean"), frac_reset_401_500=("reset_401_500", "mean"),
                     massa_atac=("massa_atac", "median")).round(3).to_string()]
     t = df.pivot_table(index=["attack", "seed"], columns="condition", values="resets").dropna()
     dr = (t["fixed"] - t["td3"]).to_numpy()
-    lines += [f"  Wilcoxon pareado do nº de resets (descritivo): p={P2.describe(dr.astype(float))['wilcoxon_p']:.4f}", ""]
+    lines += [f"  Paired Wilcoxon of the number of resets (descriptive): p={P2.describe(dr.astype(float))['wilcoxon_p']:.4f}", ""]
     b32(df, a.ataques, lines)
     text = "\n".join(lines) + "\n"
     open(f"{OUT}/analise.txt", "w").write(text)

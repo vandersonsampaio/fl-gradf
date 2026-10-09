@@ -1,95 +1,95 @@
-# Resultado — B2.7: o ganho do aprendizado cresce com o horizonte?
+# Result — B2.7: does the gain from learning grow with the horizon?
 
-**Data:** 2026-10-02. Plano congelado em `PLANO.md` (hash em `PLANO.sha256`, commit `8ab747f`) antes da grade.
-**Grade:** 80 jobs célula × semente (20 sistemas × 150 rodadas) + 30 tetos, de 01/10 12h39 a 02/10 15h56. Sem falhas.
-**Saídas:** `analise.txt`, `delta_por_celula.csv`, `grade_raw.csv`, `tetos_raw.csv`, `verificacao.txt`.
+**Date:** 2026-10-02. Plan frozen in `PLANO.md` (English translation in `PLANO.en.md`; hash in `PLANO.sha256`, commit `8ab747f`) before the grid.
+**Grid:** 80 cell × seed jobs (20 systems × 150 rounds) + 30 ceilings, from 10/01 12:39 to 10/02 15:56. No failures.
+**Outputs:** `analise.txt`, `delta_por_celula.csv`, `grade_raw.csv`, `tetos_raw.csv`, `verificacao.txt`.
 
-## Resposta curta
+## Short answer
 
-**Não.** Pelo critério do plano (Δ > 0 com IC95 > 0 em ≥ 3 das 8 células), **nenhum agente se paga em nenhum horizonte**. O único sinal positivo (TD3, 1/8 células em H = 150) foi explicado pelo B2.7a/b como fatores sem aprendizado (ruído de exploração e/ou constante deslocada, não separáveis), e não como aprendizado (ver a leitura do TD3 abaixo).
+**No.** By the plan's criterion (Δ > 0 with CI95 > 0 in ≥ 3 of the 8 cells), **no agent pays off at any horizon**. The only positive signal (TD3, 1/8 cells at H = 150) was explained by B2.7a/b as non-learning factors (exploration noise and/or a shifted constant, not separable), not as learning (see the TD3 reading below).
 
-| agente | referência fixa | H = 15 | H = 50 | H = 150 | Δ médio sobre as células (15 → 50 → 150) |
+| agent | fixed reference | H = 15 | H = 50 | H = 150 | mean Δ over the cells (15 → 50 → 150) |
 |---|---|---|---|---|---|
-| TD3 (AdaAggRL) | `fixed`, mesmo esqueleto | 0/8 | 0/8 | 1/8 | −1,65 → −1,12 → **+1,33** p.p. |
-| LinUCB (FedStrategist b) | melhor `arm_rule` em retrospecto | 0/8 | 0/8 | 0/8 | −11,55 → −8,23 → −8,62 p.p. |
-| DQN (GRADF v1) | melhor `arm_gradf` em retrospecto | 0/8 | 0/8 | 0/8 | −13,27 → −11,61 → −9,54 p.p. |
+| TD3 (AdaAggRL) | `fixed`, same skeleton | 0/8 | 0/8 | 1/8 | −1.65 → −1.12 → **+1.33** p.p. |
+| LinUCB (FedStrategist b) | best `arm_rule` in hindsight | 0/8 | 0/8 | 0/8 | −11.55 → −8.23 → −8.62 p.p. |
+| DQN (GRADF v1) | best `arm_gradf` in hindsight | 0/8 | 0/8 | 0/8 | −13.27 → −11.61 → −9.54 p.p. |
 
-## Leitura por agente
+## Reading per agent
 
-**TD3: tendência positiva no Δ contra o centro, concentrada em três células e sem passar no critério. O B2.7a/b mostrou que ela não é aprendizado.**
-- A única célula que passa é `label_flipping` α 0,05 em H = 150: +6,65 p.p., IC95 (+2,84; +10,46). Em H = 15 e 50, a mesma célula estava em −5,8 e −5,3 p.p.
-- A virada do Δ médio vem de 3 células:
-  - `label_flipping` α 0,05: inclinação +5,3 p.p. por log H;
-  - `label_flipping` α 0,1: +2,2, com H = 150 em +2,7 e IC95 cruzando zero;
-  - `low_mag_backdoor` α 0,05: +2,4, com H = 150 em +3,1 e IC95 cruzando zero.
-- Nas outras 5 células, Δ fica em ±0,1 p.p. (`gaussian_noise`, `krum_collusion`, `trim_attack`) ou oscila (`sign_flipping` α 0,05: −2,0 em H = 150).
-- **Leitura (atualizada em 2026-10-04 com o B2.7a/b, `results/b27b_td3_constante/RESULTADO.md`):** o TD3 **não** passa a usar o sinal com horizonte longo. Nas 3 células com inclinação positiva:
-  - a política não depende do estado: o sd_estados de π₁₅₀ (~0,0005) é igual ao da rede inicial e ~300× menor que σ_a = 0,15;
-  - o TD3 com o ator congelado (mesmo ruído, sem aprendizado) não se distingue do `td3_ref` (IC95 contém 0 nas 3 células);
-  - a constante que o próprio TD3 aprendeu não se distingue do `td3_ref` (IC95 largo, ±6 p.p.; isso não é equivalência);
-  - **uma constante com b = 0,25 supera o TD3 em 4,4 a 6,9 p.p. nas 3 células**, com IC95 inteiro abaixo de 0.
-  
-  O ganho sobre o centro vem de fatores sem aprendizado (ruído de exploração e/ou constante deslocada para b ≈ 0,45, não separáveis: o critério 1 do B2.7b falhou por pouco, e o critério 2 só mostra que não há diferença detectável). **O B2.7c foi cancelado** (condição 1 não atendida). *A leitura anterior ("indício de que o TD3 passa a usar o sinal… merece confirmação") fica superada.*
+**TD3: a positive trend in Δ vs. the center, concentrated in three cells and not passing the criterion. B2.7a/b showed that it is not learning.**
+- The only cell that passes is `label_flipping` α 0.05 at H = 150: +6.65 p.p., CI95 (+2.84; +10.46). At H = 15 and 50, the same cell was at −5.8 and −5.3 p.p.
+- The turn in the mean Δ comes from 3 cells:
+  - `label_flipping` α 0.05: slope +5.3 p.p. per log H;
+  - `label_flipping` α 0.1: +2.2, with H = 150 at +2.7 and a CI95 crossing zero;
+  - `low_mag_backdoor` α 0.05: +2.4, with H = 150 at +3.1 and a CI95 crossing zero.
+- In the other 5 cells, Δ stays within ±0.1 p.p. (`gaussian_noise`, `krum_collusion`, `trim_attack`) or oscillates (`sign_flipping` α 0.05: −2.0 at H = 150).
+- **Reading (updated on 2026-10-04 with B2.7a/b, `results/b27b_td3_constante/RESULTADO.md`):** TD3 does **not** start using the signal at a long horizon. In the 3 cells with a positive slope:
+  - the policy does not depend on the state: the sd_estados of π₁₅₀ (~0.0005) equals the initial network's and is ~300× smaller than σ_a = 0.15;
+  - TD3 with a frozen actor (same noise, no learning) is indistinguishable from `td3_ref` (CI95 contains 0 in the 3 cells);
+  - the constant that TD3 itself learned is indistinguishable from `td3_ref` (wide CI95, ±6 p.p.; this is not equivalence);
+  - **a constant with b = 0.25 beats TD3 by 4.4 to 6.9 p.p. in the 3 cells**, with the whole CI95 below 0.
 
-**LinUCB: muito abaixo do melhor braço fixo em todos os horizontes.**
-- Δ entre −0,6 e −26,4 p.p. A diferença encolhe com H em 4 células e cresce em outras (`sign_flipping` α 0,05: −19,4 → −26,4).
-- Contra o braço aleatório, Δ fica perto de zero (de −8 a +7 p.p.). O LinUCB não se distingue de escolher a regra ao acaso.
+  The gain over the center comes from non-learning factors (exploration noise and/or a constant shifted to b ≈ 0.45, not separable: B2.7b's criterion 1 failed narrowly, and criterion 2 only shows that there is no detectable difference). **B2.7c was cancelled** (condition 1 not met). *The earlier reading ("a hint that TD3 starts using the signal… deserves confirmation") is superseded.*
 
-**DQN: muito abaixo do melhor braço fixo e, na maioria das células, abaixo do próprio braço aleatório.**
-- Δ de −1,2 a −24,0 p.p. A inclinação por log H é positiva em 7 de 8 células (Δ médio −13,3 → −9,5), mas fica longe de zero.
-- Contra o `rand_gradf`, Δ é negativo em 22 das 24 combinações célula × H. Em `low_mag_backdoor` α 0,05, chega a −18 a −23 p.p.: a política aprendida é **pior que escolher ao acaso**.
+**LinUCB: far below the best fixed arm at every horizon.**
+- Δ between −0.6 and −26.4 p.p. The difference shrinks with H in 4 cells and grows in others (`sign_flipping` α 0.05: −19.4 → −26.4).
+- Against the random arm, Δ stays near zero (−8 to +7 p.p.). LinUCB is indistinguishable from picking the rule at random.
 
-**Ressalva (prevista no plano):** o melhor braço é escolhido em retrospecto e é otimista para o fixo. Mas o LinUCB e o DQN perdem também para o braço aleatório ou empatam com ele, então a conclusão não depende dessa ressalva.
+**DQN: far below the best fixed arm and, in most cells, below its own random arm.**
+- Δ from −1.2 to −24.0 p.p. The slope per log H is positive in 7 of 8 cells (mean Δ −13.3 → −9.5), but stays far from zero.
+- Against `rand_gradf`, Δ is negative in 22 of the 24 cell × H combinations. On `low_mag_backdoor` α 0.05, it reaches −18 to −23 p.p.: the learned policy is **worse than choosing at random**.
 
-## Robustez contra convergência (pergunta do C0)
+**Caveat (foreseen in the plan):** the best arm is chosen in hindsight and is optimistic for the fixed side. But LinUCB and DQN also lose to the random arm or tie with it, so the conclusion does not depend on this caveat.
 
-Os tetos sobem com o horizonte, sobretudo o oráculo FedAvg-8 em α baixo. Valores do oráculo **corrigidos** em 2026-10-02 (ver a correção no fim deste arquivo):
+## Robustness vs. convergence (the C0 question)
 
-| α | FedAvg-10 sem ataque (15 → 50 → 150) | oráculo FedAvg-8 (15 → 50 → 150) |
+The ceilings rise with the horizon, especially the FedAvg-8 oracle at low α. Oracle values **corrected** on 2026-10-02 (see the correction at the end of this file):
+
+| α | FedAvg-10 without attack (15 → 50 → 150) | FedAvg-8 oracle (15 → 50 → 150) |
 |---|---|---|
-| 0,05 | 85,3 → 88,5 → 89,5% | 77,1 → 84,0 → 86,5% |
-| 0,1 | 85,5 → 88,5 → 89,4% | 79,0 → 82,5 → 85,0% |
-| 0,5 | 90,5 → 91,6 → 91,9% | 89,9 → 91,1 → 91,7% |
+| 0.05 | 85.3 → 88.5 → 89.5% | 77.1 → 84.0 → 86.5% |
+| 0.1 | 85.5 → 88.5 → 89.4% | 79.0 → 82.5 → 85.0% |
+| 0.5 | 90.5 → 91.6 → 91.9% | 89.9 → 91.1 → 91.7% |
 
-- **Nota (2026-10-04):** os gaps desta seção são contra o oráculo FedAvg-8 **ponderado por tamanho de amostra**. Com α ≤ 0,1, os gaps negativos **misturam convergência e ponderação por amostra**: o oráculo-8 com ponderação uniforme fica ~4,5 p.p. acima do ponderado em α 0,1 (H = 150) e é o teto de referência adequado (ver `results/c0b_espaco_h150/RESULTADO.md`, seção de sensibilidade, e `VERIFICACOES.md`).
-- **O oráculo FedAvg-8 não converge em 15 rodadas com α ≤ 0,1.** Ele ganha 6,0–9,4 p.p. até H = 150. Por isso parte dos gaps negativos do C0 (métodos sob ataque acima do oráculo em 15 rodadas) é **artefato de convergência do teto**:
-  - TD3 em `gaussian_noise` α 0,05: gap ao oráculo −3,2 → −1,4 p.p.
-- Em outras células o gap negativo **persiste** com o horizonte:
-  - TD3 em `krum_collusion` α 0,1: −4,5 → −4,4;
-  - TD3 em `sign_flipping` α 0,1: −1,2 → −2,7.
-  - Nelas, o esqueleto exclui os atacantes (A0(a): massa ≈ 0) e pondera os honestos de forma uniforme, enquanto o oráculo FedAvg-8 pondera por tamanho de amostra. Como a métrica é a acurácia no test set global IID e balanceado, e os rótulos são enviesados por cliente, a ponderação por amostra desbalanceia as classes, e isso basta para o esqueleto superar o oráculo (mecanismo corrigido em 2026-10-05). (Corrigido em 2026-10-04; ver `results/c0b_espaco_h150/VERIFICACOES.md`: o oráculo por amostra subestima o teto em α ≤ 0,1.)
-- **`label_flipping` α ≤ 0,1, a única região com espaço no C0, continua com gap grande em H = 150 contra o TD3 e o esqueleto de referência** (TD3: +18,0 p.p. ao oráculo em α 0,05; +10,9 em α 0,1). **Contra o melhor método existente, o espaço fecha em α 0,1 e sobra +2,8 p.p. em α 0,05** (C0b, oráculo uniforme; o melhor existente é o FLTrust).
+- **Note (2026-10-04):** the gaps in this section are against the **sample-size-weighted** FedAvg-8 oracle. With α ≤ 0.1, the negative gaps **mix convergence and sample-size weighting**: the uniformly weighted oracle-8 is ~4.5 p.p. above the weighted one at α 0.1 (H = 150) and is the appropriate reference ceiling (see `results/c0b_espaco_h150/RESULTADO.md`, sensitivity section, and `VERIFICACOES.md`).
+- **The FedAvg-8 oracle does not converge in 15 rounds with α ≤ 0.1.** It gains 6.0–9.4 p.p. up to H = 150. So part of the C0 negative gaps (methods under attack above the oracle at 15 rounds) is a **ceiling convergence artifact**:
+  - TD3 on `gaussian_noise` α 0.05: gap to the oracle −3.2 → −1.4 p.p.
+- In other cells the negative gap **persists** with the horizon:
+  - TD3 on `krum_collusion` α 0.1: −4.5 → −4.4;
+  - TD3 on `sign_flipping` α 0.1: −1.2 → −2.7.
+  - In those cells, the skeleton excludes the attackers (A0(a): mass ≈ 0) and weights the honest clients uniformly, while the FedAvg-8 oracle weights by sample size. Since the metric is the accuracy on the global, IID and balanced test set, and the labels are skewed per client, sample-size weighting unbalances the classes, and this is enough for the skeleton to beat the oracle (mechanism corrected on 2026-10-05). (Corrected on 2026-10-04; see `results/c0b_espaco_h150/VERIFICACOES.md`: the sample-weighted oracle underestimates the ceiling at α ≤ 0.1.)
+- **`label_flipping` α ≤ 0.1, the only region with headroom in C0, still has a large gap at H = 150 against TD3 and the reference skeleton** (TD3: +18.0 p.p. to the oracle at α 0.05; +10.9 at α 0.1). **Against the best existing method, the headroom closes at α 0.1 and +2.8 p.p. remain at α 0.05** (C0b, uniform oracle; the best existing method is FLTrust).
 
-## Verificações (`verificacao.txt`)
+## Checks (`verificacao.txt`)
 
-**1. Aninhamento:** idêntico (|Δ| = 0) para 7 dos 8 sistemas testados (`td3_ref`, `fixed`, `linucb`, `rand_rule`, `rand_gradf`, `arm_rule_median`, `arm_gradf_median`). O `dqn` diferiu 4,15 p.p. (H = 15) e 3,74 p.p. (H = 50).
-- **Causa diagnosticada:** não é dependência do horizonte. Dois processos com configuração idêntica (15 rodadas, mesma ordem de sistemas) dão a mesma diferença de 4,15 p.p. no `dqn` e |Δ| = 0 nos demais.
-- O **DQN do GRADF é não-determinístico de um run para outro**, mesmo com a semente fixada (provavelmente estado ou operações não determinísticas do TF no treino online do seletor).
-- **Desvio declarado:** o plano (§6.1) previa refazer os horizontes como runs separados se o aninhamento falhasse. Isso não foi feito, porque a causa não é o aninhamento e runs separados não removeriam o não-determinismo.
-- **Consequência:** o `dqn` carrega ruído extra entre runs, absorvido na variância entre sementes. O D2 (`results/d2_variancia_p1/`) mediu esse ruído no código do P1: SD médio de 9,3 p.p. por célula × semente (amplitude de até 63 p.p.); no agregado de 21 células, SD de 1,8 p.p. Os Δ do DQN (−9 a −13 p.p. em média) são muito maiores que esse ruído; a conclusão não muda.
+**1. Nesting:** identical (|Δ| = 0) for 7 of the 8 systems tested (`td3_ref`, `fixed`, `linucb`, `rand_rule`, `rand_gradf`, `arm_rule_median`, `arm_gradf_median`). `dqn` differed by 4.15 p.p. (H = 15) and 3.74 p.p. (H = 50).
+- **Diagnosed cause:** not a horizon dependence. Two processes with an identical configuration (15 rounds, same system order) give the same 4.15 p.p. difference for `dqn` and |Δ| = 0 for the others.
+- **GRADF's DQN is non-deterministic from run to run**, even with the seed fixed (probably TF state or non-deterministic operations in the selector's online training).
+- **Declared deviation:** the plan (§6.1) foresaw redoing the horizons as separate runs if the nesting failed. This was not done, because the cause is not the nesting and separate runs would not remove the non-determinism.
+- **Consequence:** `dqn` carries extra run-to-run noise, absorbed into the variance across seeds. D2 (`results/d2_variancia_p1/`) measured this noise in the P1 code: a mean SD of 9.3 p.p. per cell × seed (range up to 63 p.p.); on the 21-cell aggregate, SD 1.8 p.p. The DQN Δs (−9 to −13 p.p. on average) are much larger than that noise; the conclusion does not change.
 
-**2. Reprodução em H = 15 contra os runs antigos:**
-- `td3_ref` e `fixed`: idênticos (80/80).
-- `linucb`: média |Δ| 0,9 p.p. (máx. 23,6).
-- `dqn`: média |Δ| 17,4 p.p. (máx. 61,9).
-- `rand_gradf`: média |Δ| 1,6 p.p.
-- Braços contra o exp9: média |Δ| ≤ 2,2 p.p.
-- As diferenças vêm da dependência de ordem do RNG global (corrigida no B2.7, PLANO §6.3) e, no DQN, do não-determinismo acima. **Os números de DQN/GRADF dos experimentos antigos (exp10 etc.) têm, portanto, variância de execução não reportada.**
+**2. Reproduction at H = 15 against the earlier runs:**
+- `td3_ref` and `fixed`: identical (80/80).
+- `linucb`: mean |Δ| 0.9 p.p. (max. 23.6).
+- `dqn`: mean |Δ| 17.4 p.p. (max. 61.9).
+- `rand_gradf`: mean |Δ| 1.6 p.p.
+- Arms vs. exp9: mean |Δ| ≤ 2.2 p.p.
+- The differences come from the order dependence of the global RNG (fixed in B2.7, PLANO §6.3) and, for the DQN, from the non-determinism above. **The DQN/GRADF numbers from the earlier experiments (exp10 etc.) therefore have unreported run-to-run variance.**
 
-## Implicações
+## Implications
 
-1. **P2:** "o aprendizado não se paga" se estende a horizontes 10× maiores (150 rodadas) para LinUCB e DQN, contra a versão fixa no mesmo espaço de ação e contra o aleatório. **O TD3 também não se paga até 150 rodadas:** o ganho sobre o centro em `label_flipping` e `low_mag_backdoor` vem de fatores sem aprendizado (ruído de exploração e/ou constante deslocada, não separáveis; B2.7a/b), e a melhor constante (b = 0,25) o supera.
-2. **C0:** parte dos gaps negativos era convergência do teto, e parte, a ponderação por amostra do oráculo (C0b). O espaço em `label_flipping` α ≤ 0,1 persiste contra o TD3 e o esqueleto de referência. Contra o melhor existente, fecha em α 0,1 e sobra +2,8 p.p. em α 0,05 (C0b, oráculo uniforme).
-3. **Reprodutibilidade:** o DQN do GRADF v1 é não-determinístico entre runs, e o RNG global do framework depende da ordem de execução. Isso deve ser corrigido antes do GRADF-v2 (P3) e declarado como limitação dos resultados do P1.
+1. **P2:** "learning does not pay off" extends to horizons 10× longer (150 rounds) for LinUCB and DQN, against the fixed version in the same action space and against random. **TD3 also does not pay off up to 150 rounds:** the gain over the center on `label_flipping` and `low_mag_backdoor` comes from non-learning factors (exploration noise and/or a shifted constant, not separable; B2.7a/b), and the best constant (b = 0.25) beats it.
+2. **C0:** part of the negative gaps was ceiling convergence, and part the oracle's sample-size weighting (C0b). The headroom on `label_flipping` α ≤ 0.1 persists against TD3 and the reference skeleton. Against the best existing method, it closes at α 0.1 and +2.8 p.p. remain at α 0.05 (C0b, uniform oracle).
+3. **Reproducibility:** GRADF v1's DQN is non-deterministic across runs, and the framework's global RNG depends on the execution order. This should be fixed before GRADF-v2 (P3) and declared as a limitation of the P1 results.
 
-## Correção do teto oráculo FedAvg-8 (2026-10-02)
+## Correction of the FedAvg-8 oracle ceiling (2026-10-02)
 
-- **Bug:** `run_ceiling` gravava o oráculo FedAvg-8 quando `round_num + 1 ∈ {15, 50, 150}`, mas o `train` numera as rodadas a partir de 1. Os valores rotulados H = 15, 50 e 150 eram os das rodadas 14, 49 e 149.
-- **O teto FedAvg-10 e todos os sistemas estavam corretos**, porque usam `results[H − 1]`.
-- **Correção:** `if round_num in HORIZONS` em `scripts/b27_horizonte.py`. Os 30 jobs de teto foram refeitos em `raw_teto_corrigido/`; os arquivos com o bug ficam em `raw/teto_*` e a análise anterior em `v1_teto_bug_*`.
-- **Efeito:**
-  - o FedAvg-10 sai idêntico (|Δ| = 0);
-  - o oráculo muda +0,25 p.p. em média em H = 15 (máx. 0,56), +0,05 em H = 50 e +0,01 em H = 150;
-  - os gaps ao oráculo mudam no máximo 0,46 p.p.;
-  - **os Δ dos agentes e todos os veredictos do critério ficam idênticos.**
-- **Verificação:** o oráculo corrigido em H = 15 fica a 0,05 p.p. (média; máx. 0,13) do teto oráculo do C0, que foi calculado em outro processo.
+- **Bug:** `run_ceiling` recorded the FedAvg-8 oracle when `round_num + 1 ∈ {15, 50, 150}`, but `train` numbers rounds starting from 1. The values labeled H = 15, 50 and 150 were those of rounds 14, 49 and 149.
+- **The FedAvg-10 ceiling and all systems were correct**, because they use `results[H − 1]`.
+- **Fix:** `if round_num in HORIZONS` in `scripts/b27_horizonte.py`. The 30 ceiling jobs were re-run into `raw_teto_corrigido/`; the files with the bug stay in `raw/teto_*` and the earlier analysis in `v1_teto_bug_*`.
+- **Effect:**
+  - FedAvg-10 comes out identical (|Δ| = 0);
+  - the oracle changes by +0.25 p.p. on average at H = 15 (max. 0.56), +0.05 at H = 50 and +0.01 at H = 150;
+  - the gaps to the oracle change by at most 0.46 p.p.;
+  - **the agents' Δs and all criterion verdicts are identical.**
+- **Check:** the corrected oracle at H = 15 is within 0.05 p.p. (mean; max. 0.13) of the C0 oracle ceiling, which was computed in another process.

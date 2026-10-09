@@ -1,17 +1,17 @@
 """
-Análise do B2.4r, conforme results/b24r_limiar_oficial/PLANO.md. Escrita antes da grade.
+B2.4r analysis, following results/b24r_limiar_oficial/PLANO.md. Written before the grid.
 
-Para cada a₅ ∈ {0; 0,1; 0,25; 0,95}: Δ = métrica(a₅) − métrica(centro, a₅ = 0,475),
-pareado por semente (100-104), IC95 t. Centro: rodado de novo nesta grade (ADENDO1:
-o código oficial na GPU não é bit-reprodutível entre runs, então o centro do Passo 2
-não reproduziu); o centro do Passo 2 aparece só como referência descritiva.
-  primária   mediana da acurácia nas rodadas 401-500
-  secundária média da acurácia nas 500 rodadas (robusta a reset)
-  Q1 efeito causal: algum a₅ com |Δ| > 2 p.p. e IC95 excluindo 0 (primária OU secundária)
-  Q2 constante melhor: algum a₅ com Δ > 0 e IC95 > 0 na primária E Δ > 0 na secundária
-Mecanismo: resets, massa nos atacantes, excluídos e atacantes excluídos por rodada.
+For each a₅ ∈ {0; 0.1; 0.25; 0.95}: Δ = metric(a₅) − metric(center, a₅ = 0.475),
+paired by seed (100-104), t CI95. Center: re-run in this grid (ADENDO1:
+the official code on GPU is not bit-reproducible across runs, so the Step 2 center
+did not reproduce); the Step 2 center appears only as a descriptive reference.
+  primary    median accuracy over rounds 401-500
+  secondary  mean accuracy over the 500 rounds (robust to resets)
+  Q1 causal effect: some a₅ with |Δ| > 2 p.p. and CI95 excluding 0 (primary OR secondary)
+  Q2 better constant: some a₅ with Δ > 0 and CI95 > 0 on the primary AND Δ > 0 on the secondary
+Mechanism: resets, mass on attackers, excluded clients and excluded attackers per round.
 
-Uso (venv oficial): external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_b24r.py
+Usage (official venv): external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_b24r.py
 """
 
 import json
@@ -66,9 +66,9 @@ def main():
     df = pd.DataFrame(rows)
     df.to_csv(f"{OUT}/resumo_runs.csv", index=False)
 
-    lines = [f"B2.4r — limiar a₅ no AdaAggRL oficial, EB, sementes {SEEDS[0]}–{SEEDS[-1]}, {ROUNDS} rodadas",
-             f"runs: {len(df[df.a5 != 'centro_passo2'])} (esperado 25, com o centro refeito) + centro do Passo 2 (descritivo): {len(df[df.a5 == 'centro_passo2'])}", "",
-             "Descritivo por a₅ (média entre sementes):",
+    lines = [f"B2.4r — threshold a₅ in the official AdaAggRL, EB, seeds {SEEDS[0]}–{SEEDS[-1]}, {ROUNDS} rounds",
+             f"runs: {len(df[df.a5 != 'centro_passo2'])} (expected 25, with the re-run center) + Step 2 center (descriptive): {len(df[df.a5 == 'centro_passo2'])}", "",
+             "Descriptive by a₅ (mean across seeds):",
              df.astype({"a5": str}).groupby("a5")[["primaria", "secundaria", "resets", "massa_atac", "excluidos", "atac_excluidos"]]
              .mean().round(4).to_string(), ""]
     center = df[df.a5 == 0.475].set_index("seed")
@@ -92,12 +92,12 @@ def main():
         res.append(out)
     r = pd.DataFrame(res)
     r.to_csv(f"{OUT}/delta_vs_centro.csv", index=False)
-    lines += ["Δ contra o centro (a₅ = 0,475), pareado por semente, IC95 t (Wilcoxon descritivo; n = 5 → p mín. 0,0625):",
+    lines += ["Δ vs. the center (a₅ = 0.475), paired by seed, t CI95 (descriptive Wilcoxon; n = 5 → min. p 0.0625):",
               r.round(3).to_string(index=False), "",
-              f"Q1 (efeito causal: |Δ| > {THRESH_PP} p.p. com IC95 excluindo 0): "
-              + ("SIM — " + ", ".join(f"a₅={a} ({m})" for a, m in q1) if q1 else "NÃO"),
-              "Q2 (constante melhor que o centro): " + ("SIM — a₅ ∈ " + str(q2) if q2 else "NÃO"),
-              "Exploratório, sem correção de multiplicidade (4 comparações)."]
+              f"Q1 (causal effect: |Δ| > {THRESH_PP} p.p. with CI95 excluding 0): "
+              + ("YES — " + ", ".join(f"a₅={a} ({m})" for a, m in q1) if q1 else "NO"),
+              "Q2 (constant better than the center): " + ("YES — a₅ ∈ " + str(q2) if q2 else "NO"),
+              "Exploratory, no multiplicity correction (4 comparisons)."]
     text = "\n".join(lines) + "\n"
     open(f"{OUT}/analise.txt", "w").write(text)
     print(text)

@@ -1,63 +1,63 @@
-# Resultado — D2: variância de execução dos números do P1
+# Result — D2: run-to-run variance of the P1 numbers
 
-**Data:** 2026-10-05.
-- Plano: `PLANO.md`, commit `7c0311b`.
-- Código: tag `p1.0.0` (3beb0f8), via `git worktree`, sem alterações.
-- Grade: 9 jobs (sementes 42–44 × 3 repetições), de 05/10 00h12 a 05h57. Sem falhas.
-- A execução original do P1 conta como a 4ª repetição.
-- Saídas: `analise.txt`, `sd_exec_por_celula.csv`, `delta_agregado_por_execucao.csv`, `grade_raw.csv`.
+**Date:** 2026-10-05.
+- Plan: `PLANO.md` (English translation in `PLANO.en.md`), commit `7c0311b`.
+- Code: tag `p1.0.0` (3beb0f8), via `git worktree`, unmodified.
+- Grid: 9 jobs (seeds 42–44 × 3 repetitions), from 10/05 00:12 to 05:57. No failures.
+- The original P1 execution counts as the 4th repetition.
+- Outputs: `analise.txt`, `sd_exec_por_celula.csv`, `delta_agregado_por_execucao.csv`, `grade_raw.csv`.
 
-## Regra de leitura (PLANO §4): **CONCLUSÃO DO P1 ROBUSTA À VARIÂNCIA DE EXECUÇÃO**
+## Reading rule (PLANO §4): **P1 CONCLUSION ROBUST TO RUN-TO-RUN VARIANCE**
 
-- **Sinais:** em todas as 12 combinações execução × semente, GRADF − Random < 0, FedStrategist − Random < 0 e AdaAggRL − Random > 0.
-- **Magnitude:** o SD_exec do Δ agregado fica abaixo de ½ |Δ publicado| nos três:
+- **Signs:** in all 12 execution × seed combinations, GRADF − Random < 0, FedStrategist − Random < 0 and AdaAggRL − Random > 0.
+- **Magnitude:** the SD_exec of the aggregate Δ is below ½ |published Δ| for all three:
 
-| sistema | Δ publicado (Tab. 4) | SD_exec do Δ agregado | ½ \|Δ\| | SD entre as 10 sementes do P1 |
+| system | published Δ (Tab. 4) | SD_exec of the aggregate Δ | ½ \|Δ\| | SD across P1's 10 seeds |
 |---|---|---|---|---|
-| GRADF | −0,042 | **0,0177** | 0,021 | 0,0335 |
-| FedStrategist | −0,044 | 0,0005 | 0,022 | 0,0184 |
-| AdaAggRL | +0,030 | 0,0001 | 0,015 | 0,0271 |
+| GRADF | −0.042 | **0.0177** | 0.021 | 0.0335 |
+| FedStrategist | −0.044 | 0.0005 | 0.022 | 0.0184 |
+| AdaAggRL | +0.030 | 0.0001 | 0.015 | 0.0271 |
 
-## Variância por sistema (entre as 4 execuções, por célula × semente)
+## Variance per system (across the 4 executions, per cell × seed)
 
-| sistema | SD médio | SD máx. | amplitude média | amplitude máx. |
+| system | mean SD | max SD | mean range | max range |
 |---|---|---|---|---|
 | AdaAggRL | 0 | 0 | 0 | 0 |
-| Random | 0,0001 | 0,002 | 0,0002 | 0,005 |
-| Oracle | 0,0003 | 0,012 | 0,0006 | 0,023 |
-| FedStrategist | 0,0007 | 0,013 | 0,0014 | 0,025 |
-| **GRADF** | **0,093** | **0,31** | **0,19** | **0,63** |
+| Random | 0.0001 | 0.002 | 0.0002 | 0.005 |
+| Oracle | 0.0003 | 0.012 | 0.0006 | 0.023 |
+| FedStrategist | 0.0007 | 0.013 | 0.0014 | 0.025 |
+| **GRADF** | **0.093** | **0.31** | **0.19** | **0.63** |
 
-## Leitura
+## Reading
 
-- **AdaAggRL é determinístico** entre execuções. Random, Oracle e FedStrategist variam pouco: no máximo 1–2 p.p. numa célula, e só a ordem do RNG global os afeta.
-- **O GRADF é fortemente não-determinístico célula a célula:** SD médio de 9,3 p.p., e a mesma célula com a mesma semente chega a variar **63 p.p.** entre execuções. A fonte é o DQN (TF) do seletor, como no B2.7.
-- **No agregado sobre as 21 células, a variância cai muito:**
-  - o SD_exec do Δ do GRADF é 1,8 p.p., ~metade da variação entre sementes (3,4 p.p.), e o sinal negativo se mantém em todas as execuções;
-  - a conclusão do P1 (a seleção discreta não supera o Random; o AdaAggRL supera) **não depende da execução**.
+- **AdaAggRL is deterministic** across executions. Random, Oracle and FedStrategist vary little: at most 1–2 p.p. in one cell, and only the order of the global RNG affects them.
+- **GRADF is strongly non-deterministic cell by cell:** a mean SD of 9.3 p.p., and the same cell with the same seed varies by up to **63 p.p.** across executions. The source is the selector's DQN (TF), as in B2.7.
+- **In the aggregate over the 21 cells, the variance drops a lot:**
+  - GRADF's Δ SD_exec is 1.8 p.p., ~half the variation across seeds (3.4 p.p.), and the negative sign holds in every execution;
+  - P1's conclusion (discrete selection does not beat Random; AdaAggRL does) **does not depend on the execution**.
 
-## Nota de limitação para o P1 (pronta para a revisão)
+## Limitation note for P1 (ready for the revision)
 
-> Os resultados do GRADF por célula (Tabela 3) têm variância de execução não reportada: o seletor DQN é não-determinístico entre execuções com a mesma semente (SD médio de 9,3 p.p. por célula; amplitude de até 63 p.p.). A comparação agregada da Tabela 4 é robusta a essa variância: em três sementes e quatro execuções, a diferença GRADF − Random permaneceu negativa em todas as combinações. Como cada semente do P1 corresponde a uma execução, a variância de execução já está contida na variação entre sementes usada nos testes da Tabela 4; os testes permanecem válidos, apenas mais ruidosos que o necessário. FedStrategist, Random e Oracle variam ≤ 2,5 p.p. por célula; o AdaAggRL é determinístico.
+> GRADF's per-cell results (Table 3) have unreported run-to-run variance: the DQN selector is non-deterministic across executions with the same seed (mean SD of 9.3 p.p. per cell; range up to 63 p.p.). The aggregate comparison in Table 4 is robust to this variance: across three seeds and four executions, the GRADF − Random difference remained negative in every combination. Since each P1 seed corresponds to one execution, the run-to-run variance is already contained in the across-seed variation used in the Table 4 tests; the tests remain valid, only noisier than necessary. FedStrategist, Random and Oracle vary by ≤ 2.5 p.p. per cell; AdaAggRL is deterministic.
 
-**O que sustenta a conclusão** é o **sinal negativo de GRADF − Random em todas as 12 combinações**. A razão SD/efeito é secundária e, no GRADF, tem folga pequena: SD_exec de 1,77 p.p. contra o limiar de ½|Δ| = 2,1 p.p., com só 3 sementes.
+**What supports the conclusion** is the **negative sign of GRADF − Random in all 12 combinations**. The SD/effect ratio is secondary and, for GRADF, has a small margin: SD_exec of 1.77 p.p. against the ½|Δ| = 2.1 p.p. threshold, with only 3 seeds.
 
-**Uso da nota:**
-- não contatar o editor agora, porque a conclusão do P1 não muda;
-- **incluir a nota na resposta à revisão, mesmo que os revisores não perguntem**;
-- no P2, a limitação do DQN no B2.7 cita estes números em vez de "alguns p.p.".
+**Use of the note:**
+- do not contact the editor now, because P1's conclusion does not change;
+- **include the note in the response to the revision, even if the reviewers do not ask**;
+- in P2, the DQN limitation in B2.7 cites these numbers instead of "a few p.p.".
 
-## Afirmações do P1 que dependem do GRADF por célula ou por ataque (releitura de 05/10)
+## P1 claims that depend on GRADF per cell or per attack (re-reading of 10/05)
 
-Nenhuma frase do texto destaca o GRADF numa célula específica ("vence em X", "colapsa em Y"). Estes pontos, porém, usam valores do GRADF por célula ou por ataque e herdam a variância de execução. Pelo D2, o SD de execução esperado numa média de 10 sementes é de ~2,9 p.p. por célula (9,3/√10) e de ~1,7 p.p. por ataque (30 célula × semente):
+No sentence in the text singles out GRADF in a specific cell ("wins in X", "collapses in Y"). These points, however, use GRADF values per cell or per attack and inherit the run-to-run variance. By D2, the expected execution SD of a 10-seed mean is ~2.9 p.p. per cell (9.3/√10) and ~1.7 p.p. per attack (30 cell × seed):
 
-| onde | o que depende do GRADF por célula/ataque | risco | ação na revisão |
+| where | what depends on GRADF per cell/attack | risk | action in the revision |
 |---|---|---|---|
-| **Tabela 3**, coluna GRADF | acurácia média por célula (10 sementes) | ~2,9 p.p. por célula de ruído de execução | nota de rodapé: valores do GRADF por célula têm variância de execução; não comparar células isoladas |
-| **Figura 2** e texto ("*In terms of headroom count, … none by GRADF*") | contagem de células com headroom capturado (critério por célula) | uma célula pode entrar ou sair da contagem por ruído de execução | trocar por "nenhuma de forma consistente", ou recalcular a contagem com médias entre execuções |
-| **Tabela 5**, colunas do GRADF, e texto ("*Neither of the two surpasses the Random-selector in any individual attack type*") | Δ, p e d por tipo de ataque | o maior Δ do GRADF por ataque é +0,014 (`sign_flipping`, p = 0,40). A afirmação é provável, mas não está garantida contra ~1,7 p.p. de ruído | manter, com a ressalva de que os valores por ataque do GRADF incluem variância de execução; os testes continuam válidos |
-| **Figura 3** (por tipo de ataque) | posição do GRADF por ataque | igual à Tabela 5 | mesma ressalva |
+| **Table 3**, GRADF column | mean accuracy per cell (10 seeds) | ~2.9 p.p. of execution noise per cell | footnote: GRADF's per-cell values have run-to-run variance; do not compare isolated cells |
+| **Figure 2** and text ("*In terms of headroom count, … none by GRADF*") | count of cells with captured headroom (per-cell criterion) | a cell can enter or leave the count due to execution noise | change to "none consistently", or recompute the count with means across executions |
+| **Table 5**, GRADF columns, and text ("*Neither of the two surpasses the Random-selector in any individual attack type*") | Δ, p and d per attack type | GRADF's largest per-attack Δ is +0.014 (`sign_flipping`, p = 0.40). The claim is likely, but not guaranteed against ~1.7 p.p. of noise | keep, with the caveat that GRADF's per-attack values include run-to-run variance; the tests remain valid |
+| **Figure 3** (per attack type) | GRADF's position per attack | same as Table 5 | same caveat |
 
-## D2 encerrado
+## D2 closed
 
-A remedição "depois do D1" **não** é mais item do P1: ela só mostraria que o D1 funcionou. Ela vira o **critério de aceitação do D1 no P3**: *|Δ| = 0 entre execuções com a mesma semente para o GRADF v1 determinístico.*
+The "after D1" re-measurement is **no longer** a P1 item: it would only show that D1 worked. It becomes **D1's acceptance criterion in P3**: *|Δ| = 0 across executions with the same seed for the deterministic GRADF v1.*

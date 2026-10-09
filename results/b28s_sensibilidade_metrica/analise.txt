@@ -1,6 +1,6 @@
-B2.8s — sensibilidade da métrica; 1890 linhas (esperado 1890)
+B2.8s — metric sensitivity; 1890 rows (expected 1890)
 
-== Métrica UNIFORME (oracle_u) ==
+== UNIFORM metric (oracle_u) ==
  alpha      attack_type melhor_esqueleto melhor_estatica    Q_pp    Q_lo    Q_hi    W_pp    W_lo   G_pp                                                        escolhas_oraculo
   0.05   gaussian_noise            fixed    trimmed_mean -14.040 -15.597 -12.483   6.569   6.381 -7.471                                   fltrust:141, trimmed_mean:7, median:2
   0.05   krum_collusion            fixed         fltrust -10.198 -11.855  -8.541  16.303  13.921  6.105                         fltrust:131, fedavg:10, clustering:5, fedprox:4
@@ -21,9 +21,9 @@ B2.8s — sensibilidade da métrica; 1890 linhas (esperado 1890)
   0.50 low_mag_backdoor            fixed    trimmed_mean   0.840   0.587   1.093  -0.201  -0.437  0.639                              fedavg:120, fedprox:12, krum:10, fltrust:8
   0.50    sign_flipping            fixed            krum  -0.223  -0.471   0.025   0.678   0.561  0.455                                      clustering:84, fltrust:50, krum:16
   0.50      trim_attack          sr_only    trimmed_mean  -0.026  -0.102   0.050   2.734   2.691  2.708                                      clustering:130, krum:11, fltrust:9
-células-alvo: 14; abaixo 7, acima 2 -> VEREDITO: A GRANULARIDADE EXPLICA
+target cells: 14; below 7, above 2 -> VERDICT: GRANULARITY EXPLAINS
 
-== Métrica PONDERADA por tamanho do test set (oracle_w) ==
+== Metric WEIGHTED by test-set size (oracle_w) ==
  alpha      attack_type melhor_esqueleto melhor_estatica    Q_pp    Q_lo    Q_hi    W_pp    W_lo   G_pp                                                        escolhas_oraculo
   0.05   gaussian_noise            fixed    trimmed_mean -14.040 -15.597 -12.483   6.569   6.381 -7.471                                   fltrust:141, trimmed_mean:7, median:2
   0.05   krum_collusion            fixed         fltrust -10.198 -11.855  -8.541  16.303  13.921  6.105                         fltrust:131, fedavg:10, clustering:5, fedprox:4
@@ -44,11 +44,11 @@ células-alvo: 14; abaixo 7, acima 2 -> VEREDITO: A GRANULARIDADE EXPLICA
   0.50 low_mag_backdoor            fixed    trimmed_mean   0.841   0.586   1.096  -0.201  -0.437  0.640                              fedavg:122, krum:10, fedprox:10, fltrust:8
   0.50    sign_flipping            fixed            krum  -0.223  -0.471   0.025   0.678   0.561  0.455                                      clustering:84, fltrust:50, krum:16
   0.50      trim_attack          sr_only    trimmed_mean  -0.026  -0.102   0.050   2.734   2.691  2.708                                      clustering:130, krum:11, fltrust:9
-células-alvo: 14; abaixo 7, acima 2 -> VEREDITO: A GRANULARIDADE EXPLICA
+target cells: 14; below 7, above 2 -> VERDICT: GRANULARITY EXPLAINS
 
-Células-alvo comuns: 14; concordância do sinal de Q: 100%
-Diferenças: 
+Common target cells: 14; sign agreement of Q: 100%
+Differences: 
 
-CRITÉRIO DA SENSIBILIDADE (PLANO §3): GRANULARIDADE BLINDADA (veredito igual e ≥ 75% de concordância de sinal nas células-alvo comuns)
+SENSITIVITY CRITERION (PLANO §3): GRANULARITY ROBUST (same verdict and ≥ 75% sign agreement in the common target cells)
 
-(Descritivo) veredito do B2.8 original: 8/14 células-alvo abaixo -> 'a granularidade explica'; nesta grade, métrica uniforme: A GRANULARIDADE EXPLICA
+(Descriptive) original B2.8 verdict: 8/14 target cells below -> 'granularity explains'; in this grid, uniform metric: GRANULARITY EXPLAINS

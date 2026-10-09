@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Grade do B2.7 (results/b27_horizonte/PLANO.md). Retomável: pula jobs cujo CSV já existe.
-# 80 jobs célula×semente (150 rodadas, 20 sistemas) + 30 jobs de teto α×semente.
-# Uso: bash scripts/run_grid_b27.sh [n_procs]
+# B2.7 grid (results/b27_horizonte/PLANO.md). Resumable: skips jobs whose CSV already exists.
+# 80 cell×seed jobs (150 rounds, 20 systems) + 30 α×seed ceiling jobs.
+# Usage: bash scripts/run_grid_b27.sh [n_procs]
 set -u
 cd "$(dirname "$0")/.."
 P=${1:-10}

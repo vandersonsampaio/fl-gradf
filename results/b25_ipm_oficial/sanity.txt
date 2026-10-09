@@ -1,8 +1,8 @@
-B2.5 sanity — semente 100, 100 rodadas; métrica = média da acurácia nas rodadas 81–100
-critério: degrada o FedAvg se ≥ 5 p.p. abaixo do FedAvg sem ataque; não é totalmente excluído se a massa média nos atacantes sob o fixed > 0.01
+B2.5 sanity — seed 100, 100 rounds; metric = mean accuracy over rounds 81–100
+criterion: degrades FedAvg if ≥ 5 p.p. below FedAvg without attack; not fully excluded if the mean mass on attackers under fixed > 0.01
 
-FedAvg sem ataque: 93.38%  (resets extras: 0)
-ε=2: FedAvg 87.48% (queda +5.90 p.p., degrada=True, resets extras 0); fixed: massa média nos atacantes=0.1408 em 92 rodadas com atacantes reais (não excluído=True), acc 81–100 88.80%; massa FedAvg (referência)=0.2261
-ε=10: FedAvg 29.91% (queda +63.48 p.p., degrada=True, resets extras 8); fixed: massa média nos atacantes=0.0103 em 92 rodadas com atacantes reais (não excluído=True), acc 81–100 92.13%; massa FedAvg (referência)=0.1537
+FedAvg without attack: 93.38%  (extra resets: 0)
+ε=2: FedAvg 87.48% (drop +5.90 p.p., degrades=True, extra resets 0); fixed: mean mass on attackers=0.1408 over 92 rounds with real attackers (not excluded=True), acc 81–100 88.80%; FedAvg mass (reference)=0.2261
+ε=10: FedAvg 29.91% (drop +63.48 p.p., degrades=True, extra resets 8); fixed: mean mass on attackers=0.0103 over 92 rounds with real attackers (not excluded=True), acc 81–100 92.13%; FedAvg mass (reference)=0.1537
 
-ESCOLHA: ε = 2.0 — satisfaz os dois critérios (desempate: menor ε)
+CHOICE: ε = 2.0 — meets both criteria (tie-break: smallest ε)

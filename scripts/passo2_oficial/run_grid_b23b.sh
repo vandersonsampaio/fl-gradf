@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Grade exploratória do B2.3b (último steelman; results/b23b_steelman_normalizado/PLANO.md).
-# 10 runs: sementes 100-104 x {LMP, EB}. Retomável: pula runs cujo JSON já existe.
-# Uso: bash scripts/passo2_oficial/run_grid_b23b.sh
+# Exploratory B2.3b grid (last steelman; results/b23b_steelman_normalizado/PLANO.md).
+# 10 runs: seeds 100-104 x {LMP, EB}. Resumable: skips runs whose JSON already exists.
+# Usage: bash scripts/passo2_oficial/run_grid_b23b.sh
 set -u
 cd "$(dirname "$0")/../.."
 PY=external/.venv_adaaggrl/bin/python

@@ -1,6 +1,6 @@
-B2.3 steelman — runs steelman carregados: 10 (esperados 10); pareados com Passo 2 (fixed, td3)
+B2.3 steelman — steelman runs loaded: 10 (expected 10); paired with Step 2 (fixed, td3)
 
-Primária (mediana 401–500):
+Primary (median 401–500):
 condition     fixed  steelman     td3
 attack seed                          
 EB     100   0.8831    0.4757  0.8893
@@ -14,22 +14,22 @@ LMP    100   0.9660    0.9639  0.9644
        103   0.9629    0.9627  0.9672
        104   0.9657    0.9648  0.9676
 
-== C1 [primária]: steelman − fixed (pooled, n=10) ==
-  Δ=-10.22 p.p.  IC95=(-24.28, +3.84)  d=-0.52  Wilcoxon p=0.0840
-    LMP: Δ=-0.09 p.p. IC95=(-0.34, +0.15) d=-0.47 Wilcoxon p=0.3125 Holm=0.3750
-    EB: Δ=-20.34 p.p. IC95=(-51.08, +10.39) d=-0.82 Wilcoxon p=0.1875 Holm=0.3750
+== C1 [primary]: steelman − fixed (pooled, n=10) ==
+  Δ=-10.22 p.p.  CI95=(-24.28, +3.84)  d=-0.52  Wilcoxon p=0.0840
+    LMP: Δ=-0.09 p.p. CI95=(-0.34, +0.15) d=-0.47 Wilcoxon p=0.3125 Holm=0.3750
+    EB: Δ=-20.34 p.p. CI95=(-51.08, +10.39) d=-0.82 Wilcoxon p=0.1875 Holm=0.3750
 
-== C2 [primária]: steelman − td3 (pooled, n=10) ==
-  Δ=-10.40 p.p.  IC95=(-24.53, +3.73)  d=-0.53  Wilcoxon p=0.0020
-    LMP: Δ=-0.23 p.p. IC95=(-0.42, -0.04) d=-1.47 Wilcoxon p=0.0625 Holm=0.1250
-    EB: Δ=-20.57 p.p. IC95=(-51.46, +10.31) d=-0.83 Wilcoxon p=0.0625 Holm=0.1250
+== C2 [primary]: steelman − td3 (pooled, n=10) ==
+  Δ=-10.40 p.p.  CI95=(-24.53, +3.73)  d=-0.53  Wilcoxon p=0.0020
+    LMP: Δ=-0.23 p.p. CI95=(-0.42, -0.04) d=-1.47 Wilcoxon p=0.0625 Holm=0.1250
+    EB: Δ=-20.57 p.p. CI95=(-51.46, +10.31) d=-0.83 Wilcoxon p=0.0625 Holm=0.1250
 
-== C1 [secundária: média 451–500]: steelman − fixed (pooled, n=10) ==
-  Δ=-11.11 p.p.  IC95=(-25.67, +3.45)  d=-0.55  Wilcoxon p=0.0840
-    LMP: Δ=-0.11 p.p. IC95=(-0.40, +0.18) d=-0.48 Wilcoxon p=0.3125 Holm=0.3750
-    EB: Δ=-22.11 p.p. IC95=(-53.25, +9.03) d=-0.88 Wilcoxon p=0.1875 Holm=0.3750
+== C1 [secondary: mean 451–500]: steelman − fixed (pooled, n=10) ==
+  Δ=-11.11 p.p.  CI95=(-25.67, +3.45)  d=-0.55  Wilcoxon p=0.0840
+    LMP: Δ=-0.11 p.p. CI95=(-0.40, +0.18) d=-0.48 Wilcoxon p=0.3125 Holm=0.3750
+    EB: Δ=-22.11 p.p. CI95=(-53.25, +9.03) d=-0.88 Wilcoxon p=0.1875 Holm=0.3750
 
-Resets extras (média por ataque × condição):
+Extra resets (mean per attack × condition):
 attack  condition
 EB      fixed         0.6
         steelman     15.8
@@ -38,7 +38,7 @@ LMP     fixed         0.2
         steelman      0.2
         td3           0.6
 
-== Mecanismo do steelman (σ_a = 0.0475) ==
+== Steelman mechanism (σ_a = 0.0475) ==
 attack  seed  drift_500  S_swap  pi500_dist_center
    LMP   100     0.4682  0.0001             0.4749
    LMP   101     0.4731  0.0067             0.4656
@@ -50,8 +50,8 @@ attack  seed  drift_500  S_swap  pi500_dist_center
     EB   102     0.4617  0.0090             0.4588
     EB   103     0.4754  0.0011             0.4748
     EB   104     0.4913  0.0000             0.4750
-  mediana drift_500=0.4698  mediana S_swap=0.0011
-  drift ao longo do treino (mediana entre runs):
+  median drift_500=0.4698  median S_swap=0.0011
+  drift over training (median across runs):
 step
 50     0.0978
 100    0.3141
@@ -64,8 +64,8 @@ step
 450    0.4680
 500    0.4698
 
-== Portão B-a (critério do PLANO) ==
-  C1 steelman > fixed (Δ>0 e p<0,05): NÃO
-  política se moveu (drift_500 > σ_a): SIM
-  política usa a entrada (S_swap > σ_a): NÃO
-  VEREDITO: o steelman NÃO supera a fixa (tese do P2 fortalecida)
+== Gate B-a (PLANO criterion) ==
+  C1 steelman > fixed (Δ>0 and p<0.05): NO
+  policy moved (drift_500 > σ_a): YES
+  policy uses its input (S_swap > σ_a): NO
+  VERDICT: the steelman does NOT beat the fixed action (P2 thesis strengthened)

@@ -1,19 +1,19 @@
-B2.7a — mecanismo do TD3 em H = 150 (descritivo)
-runs: 30 (esperado 30)
-Verificação contra o B2.7: máx |Δacc| = 5.55e-17 -> REPRODUZ
+B2.7a — TD3 mechanism at H = 150 (descriptive)
+runs: 30 (expected 30)
+Check against B2.7: max |Δacc| = 5.55e-17 -> REPRODUCES
 
-Mediana entre sementes (σ_a = 0.15):
+Median across seeds (σ_a = 0.15):
                          drift  sd_estados  sd_estados_pi0  dist_centro
 alpha attack_type                                                      
 0.05  label_flipping    0.0640      0.0005          0.0004       0.0664
       low_mag_backdoor  0.0605      0.0004          0.0004       0.0681
 0.10  label_flipping    0.0610      0.0004          0.0004       0.0727
 
-a_TD3 médio por célula (média entre sementes; dims a1..a4, b):
+Mean a_TD3 per cell (mean across seeds; dims a1..a4, b):
                         a_td3_0  a_td3_1  a_td3_2  a_td3_3  a_td3_4
 alpha attack_type                                                  
 0.05  label_flipping      0.464    0.562    0.510    0.505    0.456
       low_mag_backdoor    0.473    0.571    0.496    0.513    0.449
 0.10  label_flipping      0.444    0.558    0.500    0.497    0.446
 
-Condição 1 do B2.7c (mediana de sd_estados > σ_a em ≥ 2/3 células): 0/3 -> NÃO atendida
+B2.7c condition 1 (median sd_estados > σ_a in ≥ 2/3 cells): 0/3 -> NOT met

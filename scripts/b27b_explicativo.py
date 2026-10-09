@@ -1,26 +1,26 @@
 """
-B2.7b explicativo (results/b27b_td3_constante/PLANO.md + ADENDO2.md).
+B2.7b explanatory (results/b27b_td3_constante/PLANO.md + ADENDO2.md).
 
-Pergunta (revista após o B2.7a, que mostrou política independente do estado):
-de onde vem o Δ(td3_ref − fixed) em H = 150, de uma constante deslocada ou do
-ruído de exploração?
+Question (revised after B2.7a, which showed a state-independent policy):
+where does Δ(td3_ref − fixed) at H = 150 come from, a shifted constant or the
+exploration noise?
 
-Sistemas novos (3 células × sementes 42-51, H = 150, learner da ablação):
-  td3_frozen     o mesmo agente TD3, mesmo aquecimento e mesmo processo de ruído,
-                 SEM aprendizado do ator: train_step roda normalmente (crítico,
-                 buffer e RNG consumidos igual ao td3_ref) e o ator (W, b e alvos)
-                 é restaurado ao inicial logo depois. A atualização do ator não
-                 consome RNG, então a sequência de ruído é a mesma do td3_ref.
-  fixed_td3mean  ação constante, determinística = média por célula de a_TD3
-                 (π150 nos estados 101-150, a_td3.csv do B2.7a)
-  fixed_b025     a = [0,5]*4, b = 0,25
-  fixed_b075     a = [0,5]*4, b = 0,75
-As constantes passam pelo modo td3 com select_action → constante e train_step →
-no-op; o RNG do agente é próprio e não toca o np.random global, então isso é
-equivalente ao modo fixed (verificado: constante [0,5]*5 reproduz o `fixed`).
-td3_ref e fixed (centro) vêm do B2.7 (results/b27_horizonte/grade_raw.csv).
+New systems (3 cells × seeds 42-51, H = 150, the ablation learner):
+  td3_frozen     the same TD3 agent, same warm-up and same noise process,
+                 WITHOUT actor learning: train_step runs normally (critic,
+                 buffer and RNG consumed as in td3_ref) and the actor (W, b and targets)
+                 is restored to the initial one right after. The actor update does not
+                 consume RNG, so the noise sequence is the same as td3_ref's.
+  fixed_td3mean  constant, deterministic action = per-cell mean of a_TD3
+                 (π150 on the states of rounds 101-150, a_td3.csv from B2.7a)
+  fixed_b025     a = [0.5]*4, b = 0.25
+  fixed_b075     a = [0.5]*4, b = 0.75
+The constants go through td3 mode with select_action → constant and train_step →
+no-op; the agent's RNG is its own and does not touch the global np.random, so this is
+equivalent to fixed mode (verified: the constant [0.5]*5 reproduces `fixed`).
+td3_ref and fixed (center) come from B2.7 (results/b27_horizonte/grade_raw.csv).
 
-Uso (CPU):
+Usage (CPU):
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.b27b_explicativo run --alpha 0.05 --attack label_flipping --seed 42 --system td3_frozen
   venv/bin/python -m scripts.b27b_explicativo analisar
 """
@@ -42,7 +42,7 @@ SYSTEMS = ["td3_frozen", "fixed_td3mean", "fixed_b025", "fixed_b075"]
 HORIZONS = [15, 50, 150]
 H_MAX = 150
 B27_RAW = "results/b27_horizonte/grade_raw.csv"
-MARGIN_PP = 1.0  # TOST descritivo
+MARGIN_PP = 1.0  # descriptive TOST
 
 
 def td3mean_action(alpha, attack):
@@ -72,7 +72,7 @@ def run(alpha, attack, seed, system, n_rounds=H_MAX, out_dir=RAW):
     os.makedirs(out_dir, exist_ok=True)
     path = f"{out_dir}/{system}_{attack}_a{alpha}_seed{seed}_R{n_rounds}.csv"
     if os.path.exists(path):
-        print(f"já existe: {path}", flush=True)
+        print(f"already exists: {path}", flush=True)
         return path
     Ablation = build_learner_cls()
     participants, root = load_dataset_participants("mnist", _split_name(alpha), 10, root_size=100, root_seed=seed)
@@ -90,7 +90,7 @@ def run(alpha, attack, seed, system, n_rounds=H_MAX, out_dir=RAW):
 
         def frozen_train(*a, **k):
             orig_train(*a, **k)
-            for k_, v in init.items():  # lr do ator = 0: restaura ator e alvo do ator
+            for k_, v in init.items():  # actor lr = 0: restore the actor and the actor target
                 setattr(agent, k_, v.copy())
         agent.train_step = frozen_train
     else:
@@ -102,7 +102,7 @@ def run(alpha, attack, seed, system, n_rounds=H_MAX, out_dir=RAW):
             for H in HORIZONS if len(res) >= H]
     pd.DataFrame(rows).to_csv(path + ".tmp", index=False)
     os.replace(path + ".tmp", path)
-    print(f"FIM {system} {attack} a{alpha} seed{seed} ({time.time() - t0:.0f}s)", flush=True)
+    print(f"END {system} {attack} a{alpha} seed{seed} ({time.time() - t0:.0f}s)", flush=True)
     return path
 
 
@@ -149,7 +149,7 @@ def analisar():
         best = w[consts].mean().idxmax()
         d = (w["td3_ref"] - w[best]).dropna().to_numpy()
         m, lo, hi = _ci(d)
-        rows.append({"alpha": alpha, "attack_type": attack, "comparacao": f"td3_ref − melhor constante ({best})",
+        rows.append({"alpha": alpha, "attack_type": attack, "comparacao": f"td3_ref − best constant ({best})",
                      "n": len(d), "delta_pp": 100 * m, "ic95_lo_pp": 100 * lo, "ic95_hi_pp": 100 * hi,
                      "p_tost_1pp": _tost(d, MARGIN_PP / 100)})
     r = pd.DataFrame(rows)
@@ -163,23 +163,23 @@ def analisar():
     c2 = int(((ff.delta_pp > 0) & (ff.ic95_lo_pp > 0)).sum())
     expl = c1 and c2 >= 1
     desl = bool(((rm.ic95_lo_pp <= 0) & (rm.ic95_hi_pp >= 0)).all()) and len(rm) == 3
-    best_rows = r[r.comparacao.str.startswith("td3_ref − melhor")]
+    best_rows = r[r.comparacao.str.startswith("td3_ref − best")]
     old_crit = int(((best_rows.delta_pp > 0) & (best_rows.ic95_lo_pp > 0)).sum())
 
     pd.set_option("display.width", 220)
-    lines = ["B2.7b explicativo — H = 150, sementes 42–51, 3 células (exploratório; B2.7a já visto)",
-             f"runs novos: {len(new[new.H == H_MAX])} (esperado 120)", "",
-             "Médias por sistema (acurácia em H = 150):",
+    lines = ["B2.7b explanatory — H = 150, seeds 42–51, 3 cells (exploratory; B2.7a already seen)",
+             f"new runs: {len(new[new.H == H_MAX])} (expected 120)", "",
+             "Means per system (accuracy at H = 150):",
              allr.pivot_table(index=["alpha", "attack_type"], columns="system", values="accuracy").round(4).to_string(), "",
-             "Δ pareados por semente (p.p., IC95 t; TOST ±1 p.p. descritivo):",
+             "Δ paired by seed (p.p., t CI95; descriptive TOST ±1 p.p.):",
              r.round(3).to_string(index=False), "",
-             f"Critério 1 — 'o ganho é exploração, não aprendizado': IC95 de (td3_ref − td3_frozen) contém 0 nas 3 células "
-             f"[{'sim' if c1 else 'não'}] E (td3_frozen − fixed) > 0 com IC95 > 0 em ≥ 1 célula [{c2}/3] -> "
-             + ("ATENDIDO" if expl else "NÃO atendido"),
-             "Critério 2 — 'constante deslocada' (fixed_td3mean ≈ td3_ref): IC95 de (td3_ref − fixed_td3mean) contém 0 nas 3 "
-             "células -> " + ("ATENDIDO" if desl else "NÃO atendido"),
-             f"Critério original do PLANO (secundário): td3_ref > melhor constante (IC95 > 0) em {old_crit}/3 células -> "
-             + ("atendido" if old_crit >= 2 else "não atendido")]
+             f"Criterion 1 — 'the gain is exploration, not learning': CI95 of (td3_ref − td3_frozen) contains 0 in the 3 cells "
+             f"[{'yes' if c1 else 'no'}] AND (td3_frozen − fixed) > 0 with CI95 > 0 in ≥ 1 cell [{c2}/3] -> "
+             + ("MET" if expl else "NOT met"),
+             "Criterion 2 — 'shifted constant' (fixed_td3mean ≈ td3_ref): CI95 of (td3_ref − fixed_td3mean) contains 0 in the 3 "
+             "cells -> " + ("MET" if desl else "NOT met"),
+             f"Original PLANO criterion (secondary): td3_ref > best constant (CI95 > 0) in {old_crit}/3 cells -> "
+             + ("met" if old_crit >= 2 else "not met")]
     text = "\n".join(lines) + "\n"
     open(f"{OUT}/b27b_analise.txt", "w").write(text)
     print(text)

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# D2 (results/d2_variancia_p1/PLANO.md): 3 repetições × sementes 42-44 do exp10 da tag p1.0.0, um processo novo por job.
-# Uso: bash scripts/run_grid_d2.sh <worktree_da_tag_p1.0.0> [n_procs]. Retomável.
+# D2 (results/d2_variancia_p1/PLANO.md): 3 repetitions × seeds 42-44 of exp10 from tag p1.0.0, one new process per job.
+# Usage: bash scripts/run_grid_d2.sh <worktree_of_tag_p1.0.0> [n_procs]. Resumable.
 set -u
 cd "$(dirname "$0")/.."
-WT=${1:?worktree da tag p1.0.0}
+WT=${1:?worktree of tag p1.0.0}
 P=${2:-9}
 OUT=results/d2_variancia_p1/raw
 mkdir -p "$OUT"

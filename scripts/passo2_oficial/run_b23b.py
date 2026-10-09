@@ -1,26 +1,26 @@
 """
-B2.3b (references/roadmap_tese_gradf_v3.md §4.1): ÚLTIMO steelman do TD3 no
-AdaAggRL oficial. Pergunta: com a recompensa bem condicionada, o TD3 aprende
-uma política dependente do estado e supera a ação fixa?
+B2.3b (results/b23b_steelman_normalizado/PLANO.md): LAST TD3 steelman in the
+official AdaAggRL. Question: with a well-conditioned reward, does TD3 learn
+a state-dependent policy and beat the fixed action?
 
-Motivo: no B2.3 (lr 1e-3, learning_starts 10) a política saturou num canto
-constante do Box. A hipótese de condicionamento é a escala da recompensa
-oficial (SOMA da loss sobre ~156 batches do teste, dezenas a centenas por
-rodada, sem normalização).
+Motivation: in B2.3 (lr 1e-3, learning_starts 10) the policy saturated in a constant
+corner of the Box. The conditioning hypothesis is the scale of the official
+reward (SUM of the loss over ~156 test batches, tens to hundreds per
+round, without normalization).
 
-Mudanças em relação ao TD3 oficial (main.py):
-  recompensa      normalizada pelo VecNormalize do SB3 (norm_reward=True,
-                  gamma=0,99, clip 10); observações NÃO normalizadas, então o
-                  ator continua avaliável com as ferramentas do B2.2
-  learning_rate   1e-5 -> 1e-4   (10x; ator e crítico)
-  learning_starts 100  -> 10     (igual ao B2.3)
-Todo o resto é idêntico ao oficial e ao B2.3. A recompensa registrada no JSON
-continua sendo a bruta (o adaptador registra antes do wrapper).
+Changes relative to the official TD3 (main.py):
+  reward          normalized by SB3's VecNormalize (norm_reward=True,
+                  gamma=0.99, clip 10); observations NOT normalized, so the
+                  actor can still be evaluated with the B2.2 tools
+  learning_rate   1e-5 -> 1e-4   (10x; actor and critic)
+  learning_starts 100  -> 10     (same as B2.3)
+Everything else is identical to the official code and to B2.3. The reward recorded in the JSON
+is still the raw one (the adapter records it before the wrapper).
 
-Reusa `run_b21.run` sem alterá-lo (log de estados e checkpoints do ator),
-trocando só o construtor do TD3 neste processo.
+Reuses `run_b21.run` without changing it (state log and actor checkpoints),
+replacing only the TD3 constructor in this process.
 
-Uso (sempre com o venv isolado):
+Usage (always with the isolated venv):
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_b23b.py --attack EB --seed 100
 """
 
@@ -44,7 +44,7 @@ _used = {}
 
 
 def _steelman_td3(policy, env, **kwargs):
-    """Troca lr e learning_starts e envolve o ambiente num VecNormalize só de recompensa."""
+    """Replaces lr and learning_starts and wraps the environment in a reward-only VecNormalize."""
     kwargs.update(STEELMAN)
     venv = VecNormalize(DummyVecEnv([lambda: env]), **VECNORM)
     _used.clear()
@@ -54,7 +54,7 @@ def _steelman_td3(policy, env, **kwargs):
 
 
 def run(attack: str, seed: int, rounds: int, q: float, dataset: str, out_dir: str) -> str:
-    B21.R.TD3 = _steelman_td3  # vale só neste processo
+    B21.R.TD3 = _steelman_td3  # applies to this process only
     path = B21.run(attack, "td3", seed, rounds, q, dataset, out_dir)
     d = json.load(open(path))
     d["variant"] = "td3_steelman_normalizado"

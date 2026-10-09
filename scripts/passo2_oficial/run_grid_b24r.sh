@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Grade do B2.4r (results/b24r_limiar_oficial/PLANO.md + ADENDO1.md): a₅ ∈ {0; 0,1; 0,25; 0,475 (centro, refeito); 0,95}
-# × sementes 100-104, EB, 500 rodadas (25 runs).
-# Retomável: pula runs cujo JSON final já existe. Uso: bash scripts/passo2_oficial/run_grid_b24r.sh
+# B2.4r grid (results/b24r_limiar_oficial/PLANO.md + ADENDO1.md): a₅ ∈ {0; 0.1; 0.25; 0.475 (center, re-run); 0.95}
+# × seeds 100-104, EB, 500 rounds (25 runs).
+# Resumable: skips runs whose final JSON already exists. Usage: bash scripts/passo2_oficial/run_grid_b24r.sh
 set -u
 cd "$(dirname "$0")/../.."
 PY=external/.venv_adaaggrl/bin/python

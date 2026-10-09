@@ -1,4 +1,4 @@
-B2.8 — oráculo guloso por rodada (7 regras), 210 runs; 19 células válidas (fltrust_aligned α ≤ 0,1 excluídas)
+B2.8 — greedy per-round oracle (7 rules), 210 runs; 19 valid cells (fltrust_aligned α ≤ 0.1 excluded)
 
  alpha      attack_type  oraculo_por_rodada melhor_esqueleto  acc_esqueleto melhor_regra_estatica  acc_regra_estatica  Q_oraculo_menos_esqueleto_pp  Q_ic95_lo  Q_ic95_hi  W_esqueleto_menos_estatica_pp  G_oraculo_menos_estatica_pp
   0.05   gaussian_noise               0.668            fixed          0.804          trimmed_mean               0.738                       -13.662    -15.664    -11.660                          6.592                       -7.070
@@ -21,7 +21,7 @@ B2.8 — oráculo guloso por rodada (7 regras), 210 runs; 19 células válidas (
   0.50    sign_flipping               0.889            fixed          0.892                  krum               0.884                        -0.265     -0.473     -0.057                          0.709                        0.444
   0.50      trim_attack               0.896          sr_only          0.897          trimmed_mean               0.869                        -0.060     -0.123      0.003                          2.745                        2.685
 
-Regras escolhidas pelo oráculo (contagem de rodadas por célula):
+Rules chosen by the oracle (round counts per cell):
  alpha      attack_type                                                      regras_escolhidas
   0.05   gaussian_noise                                  fltrust:140, trimmed_mean:7, median:3
   0.05   krum_collusion                         fltrust:136, fedavg:8, fedprox:5, clustering:1
@@ -43,7 +43,7 @@ Regras escolhidas pelo oráculo (contagem de rodadas por célula):
   0.50    sign_flipping                                     clustering:80, fltrust:54, krum:16
   0.50      trim_attack                                    clustering:124, fltrust:15, krum:11
 
-Células-alvo (esqueleto > melhor regra estática, IC95 > 0): 14/19 — gaussian_noise α=0.05; krum_collusion α=0.05; label_flipping α=0.05; sign_flipping α=0.05; trim_attack α=0.05; gaussian_noise α=0.1; krum_collusion α=0.1; label_flipping α=0.1; sign_flipping α=0.1; trim_attack α=0.1; gaussian_noise α=0.5; krum_collusion α=0.5; sign_flipping α=0.5; trim_attack α=0.5
-  nelas, oráculo por rodada ABAIXO do esqueleto (IC95 < 0): 8  [gaussian_noise α=0.05; krum_collusion α=0.05; trim_attack α=0.05; gaussian_noise α=0.1; krum_collusion α=0.1; gaussian_noise α=0.5; krum_collusion α=0.5; sign_flipping α=0.5]
-  nelas, oráculo por rodada ACIMA do esqueleto (IC95 > 0): 2  [label_flipping α=0.1; sign_flipping α=0.1]
-VEREDITO (critério do PLANO §4): A GRANULARIDADE EXPLICA: nem o oráculo por rodada alcança o esqueleto na maioria das células-alvo
+Target cells (skeleton > best static rule, CI95 > 0): 14/19 — gaussian_noise α=0.05; krum_collusion α=0.05; label_flipping α=0.05; sign_flipping α=0.05; trim_attack α=0.05; gaussian_noise α=0.1; krum_collusion α=0.1; label_flipping α=0.1; sign_flipping α=0.1; trim_attack α=0.1; gaussian_noise α=0.5; krum_collusion α=0.5; sign_flipping α=0.5; trim_attack α=0.5
+  in them, per-round oracle BELOW the skeleton (CI95 < 0): 8  [gaussian_noise α=0.05; krum_collusion α=0.05; trim_attack α=0.05; gaussian_noise α=0.1; krum_collusion α=0.1; gaussian_noise α=0.5; krum_collusion α=0.5; sign_flipping α=0.5]
+  in them, per-round oracle ABOVE the skeleton (CI95 > 0): 2  [label_flipping α=0.1; sign_flipping α=0.1]
+VERDICT (PLANO §4 criterion): GRANULARITY EXPLAINS: not even the per-round oracle reaches the skeleton in most target cells

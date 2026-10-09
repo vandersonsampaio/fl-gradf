@@ -1,14 +1,14 @@
 """
-Análise do B2.5 (IPM real no AdaAggRL oficial), conforme
-results/b25_ipm_oficial/PLANO.md. Escrita antes de qualquer run do sanity e da grade.
+B2.5 analysis (real IPM in the official AdaAggRL), following
+results/b25_ipm_oficial/PLANO.md. Written before any sanity or grid run.
 
-Subcomandos:
-  sanity   semente 100, 100 rodadas: aplica o critério de escolha do ε
-           (só FedAvg e fixed; o td3 nunca entra na escolha)
-  grade    sementes 105-114, 500 rodadas, ε escolhido: H1 (fixed − td3) com a
-           métrica primária do B2.1, e mecanismo descritivo (drift, sd_estados)
+Subcommands:
+  sanity   seed 100, 100 rounds: applies the ε selection criterion
+           (FedAvg and fixed only; td3 never enters the choice)
+  grade    seeds 105-114, 500 rounds, chosen ε (the full grid): H1 (fixed − td3) with the
+           B2.1 primary metric, and a descriptive mechanism (drift, sd_estados)
 
-Uso (venv oficial):
+Usage (official venv):
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_b25.py sanity
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_b25.py grade --eps 10
 """
@@ -32,8 +32,8 @@ SANITY_RAW = os.path.join(OUT, "sanity")
 EPS_CANDIDATES = [2.0, 10.0]
 SANITY_SEED = 100
 SANITY_ROUNDS = 100
-DEGRADE_PP = 0.05     # FedAvg com ataque ≥ 5 p.p. abaixo do sem ataque (média 81-100)
-MASS_MIN = 0.01       # massa média nos atacantes sob o fixed > 0,01
+DEGRADE_PP = 0.05     # FedAvg under attack ≥ 5 p.p. below no attack (mean 81-100)
+MASS_MIN = 0.01       # mean mass on attackers under fixed > 0.01
 MARGIN = 0.010
 ALPHA = 0.05
 SEEDS = list(range(105, 115))
@@ -50,7 +50,7 @@ def _load(raw, eps, cond, seed, rounds):
     if not os.path.exists(f):
         return None
     d = json.load(open(f))
-    steps = d["steps"][:rounds]  # td3 do SB3 roda 501 passos (Adendo 1 do Passo 2)
+    steps = d["steps"][:rounds]  # SB3's td3 runs 501 steps (Step 2 addendum 1)
     acc = np.array([x["acc"] for x in steps])
     real = np.array([x["n_att_real"] for x in steps])
     mass = np.array([np.nan if x["att_weight_mass"] is None else x["att_weight_mass"] for x in steps])
@@ -61,39 +61,39 @@ def _load(raw, eps, cond, seed, rounds):
 
 
 def sanity():
-    lines = [f"B2.5 sanity — semente {SANITY_SEED}, {SANITY_ROUNDS} rodadas; métrica = média da acurácia nas rodadas 81–100",
-             f"critério: degrada o FedAvg se ≥ {100*DEGRADE_PP:.0f} p.p. abaixo do FedAvg sem ataque; "
-             f"não é totalmente excluído se a massa média nos atacantes sob o fixed > {MASS_MIN}", ""]
+    lines = [f"B2.5 sanity — seed {SANITY_SEED}, {SANITY_ROUNDS} rounds; metric = mean accuracy over rounds 81–100",
+             f"criterion: degrades FedAvg if ≥ {100*DEGRADE_PP:.0f} p.p. below FedAvg without attack; "
+             f"not fully excluded if the mean mass on attackers under fixed > {MASS_MIN}", ""]
     base = _load(SANITY_RAW, None, "fedavg", SANITY_SEED, SANITY_ROUNDS)
     if base is None:
-        raise SystemExit("falta o run fedavg sem ataque")
+        raise SystemExit("missing the fedavg run without attack")
     acc0 = float(base["acc"][80:100].mean())
-    lines.append(f"FedAvg sem ataque: {100*acc0:.2f}%  (resets extras: {base['n_resets_extra']})")
+    lines.append(f"FedAvg without attack: {100*acc0:.2f}%  (extra resets: {base['n_resets_extra']})")
     rows = []
     for eps in EPS_CANDIDATES:
         fa = _load(SANITY_RAW, eps, "fedavg", SANITY_SEED, SANITY_ROUNDS)
         fx = _load(SANITY_RAW, eps, "fixed", SANITY_SEED, SANITY_ROUNDS)
         if fa is None or fx is None:
-            raise SystemExit(f"faltam runs de ε={eps:g}")
+            raise SystemExit(f"missing runs for ε={eps:g}")
         acc_fa = float(fa["acc"][80:100].mean())
         degrade = (acc0 - acc_fa) >= DEGRADE_PP
         incl = fx["mass_mean"] > MASS_MIN
         rows.append((eps, degrade, incl))
-        lines.append(f"ε={eps:g}: FedAvg {100*acc_fa:.2f}% (queda {100*(acc0-acc_fa):+.2f} p.p., degrada={degrade}, "
-                     f"resets extras {fa['n_resets_extra']}); fixed: massa média nos atacantes={fx['mass_mean']:.4f} "
-                     f"em {fx['n_rounds_att']} rodadas com atacantes reais (não excluído={incl}), "
+        lines.append(f"ε={eps:g}: FedAvg {100*acc_fa:.2f}% (drop {100*(acc0-acc_fa):+.2f} p.p., degrades={degrade}, "
+                     f"extra resets {fa['n_resets_extra']}); fixed: mean mass on attackers={fx['mass_mean']:.4f} "
+                     f"over {fx['n_rounds_att']} rounds with real attackers (not excluded={incl}), "
                      f"acc 81–100 {100*float(fx['acc'][80:100].mean()):.2f}%; "
-                     f"massa FedAvg (referência)={fa['mass_mean']:.4f}")
+                     f"FedAvg mass (reference)={fa['mass_mean']:.4f}")
     both = [e for e, dg, inc in rows if dg and inc]
     deg = [e for e, dg, _ in rows if dg]
     if both:
-        choice, note = min(both), "satisfaz os dois critérios (desempate: menor ε)"
+        choice, note = min(both), "meets both criteria (tie-break: smallest ε)"
     elif deg:
-        choice, note = min(deg), ("nenhum ε satisfaz os dois critérios; menor ε que degrada o FedAvg. "
-                                  "DECLARAR: o resultado da grade pode ser trivial (o fixed exclui os atacantes)")
+        choice, note = min(deg), ("no ε meets both criteria; smallest ε that degrades FedAvg. "
+                                  "DECLARE: the grid result may be trivial (fixed excludes the attackers)")
     else:
-        choice, note = None, "nenhum ε degrada o FedAvg: caso não previsto, consultar o autor antes da grade"
-    lines += ["", f"ESCOLHA: ε = {choice} — {note}"]
+        choice, note = None, "no ε degrades FedAvg: unforeseen case, consult the author before the grid"
+    lines += ["", f"CHOICE: ε = {choice} — {note}"]
     text = "\n".join(lines) + "\n"
     open(os.path.join(OUT, "sanity.txt"), "w").write(text)
     print(text)
@@ -124,21 +124,21 @@ def grade(eps):
                          "n_resets_extra": r["n_resets_extra"], "att_mass_mean": r["mass_mean"]})
     df = pd.DataFrame(rows)
     df.to_csv(os.path.join(OUT, "resumo_runs.csv"), index=False)
-    lines = [f"B2.5 — IPM real ε={eps:g}, MNIST q=0,5, sementes {SEEDS[0]}–{SEEDS[-1]}, {ROUNDS} rodadas",
-             f"runs: {len(df)} (esperado 20)", ""]
-    for metric, label in [("primary_median_401_500", "PRIMÁRIA: mediana 401–500"),
-                          ("mean_451_500", "secundária: média 451–500")]:
+    lines = [f"B2.5 — real IPM ε={eps:g}, MNIST q=0.5, seeds {SEEDS[0]}–{SEEDS[-1]}, {ROUNDS} rounds",
+             f"runs: {len(df)} (expected 20)", ""]
+    for metric, label in [("primary_median_401_500", "PRIMARY: median 401–500"),
+                          ("mean_451_500", "secondary: mean 451–500")]:
         tab = df.pivot(index="seed", columns="condition", values=metric)[["fixed", "td3"]].dropna()
         d = (tab["fixed"] - tab["td3"]).to_numpy()
         desc = P2.describe(d)
         p_tost = max(P2.tost_paired(d, MARGIN))
         c90, c95 = _ci(d, 0.90), _ci(d, 0.95)
-        lines += [f"== H1 ({label}): fixed − td3, n={desc['n']} sementes ==",
-                  f"  Δ={desc['delta_pp']:+.2f} p.p.  IC90=({c90[0]:+.2f}, {c90[1]:+.2f})  IC95=({c95[0]:+.2f}, {c95[1]:+.2f})  d={desc['d']:+.2f}",
+        lines += [f"== H1 ({label}): fixed − td3, n={desc['n']} seeds ==",
+                  f"  Δ={desc['delta_pp']:+.2f} p.p.  CI90=({c90[0]:+.2f}, {c90[1]:+.2f})  CI95=({c95[0]:+.2f}, {c95[1]:+.2f})  d={desc['d']:+.2f}",
                   f"  TOST ±{100*MARGIN:.1f} p.p.: p={p_tost:.4f}   Wilcoxon: p={desc['wilcoxon_p']:.4f}",
-                  f"  VEREDITO: {P2.verdict(desc, p_tost)}", ""]
+                  f"  VERDICT: {P2.verdict(desc, p_tost)}", ""]
     g = df.groupby("condition")
-    lines += ["== Descritivo por condição (mediana entre sementes) ==",
+    lines += ["== Descriptive by condition (median across seeds) ==",
               g[["primary_median_401_500", "mean_451_500", "n_resets_extra", "att_mass_mean"]].median().round(4).to_string(), ""]
 
     policy = _make_actor_evaluator()
@@ -157,10 +157,10 @@ def grade(eps):
     m = pd.DataFrame(mech)
     if len(m):
         m.to_csv(os.path.join(OUT, "mecanismo.csv"), index=False)
-        lines += ["== Mecanismo (descritivo, sem teste) ==",
-                  f"  σ_a = {SIGMA_A:.4f}; n={len(m)} runs td3",
-                  f"  drift |π500−π0|: mediana={m['drift'].median():.4f} máx={m['drift'].max():.4f}",
-                  f"  sd_estados de π500: mediana={m['sd_estados'].median():.4f} máx={m['sd_estados'].max():.4f}", ""]
+        lines += ["== Mechanism (descriptive, no test) ==",
+                  f"  σ_a = {SIGMA_A:.4f}; n={len(m)} td3 runs",
+                  f"  drift |π500−π0|: median={m['drift'].median():.4f} max={m['drift'].max():.4f}",
+                  f"  sd_estados of π500: median={m['sd_estados'].median():.4f} max={m['sd_estados'].max():.4f}", ""]
     text = "\n".join(lines) + "\n"
     open(os.path.join(OUT, "analise.txt"), "w").write(text)
     print(text)

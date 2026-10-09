@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# C0b (results/c0b_espaco_h150/PLANO.md + ADENDO1.md): 19 células × sementes 72-81 (8 sistemas, H aninhado 15/50/150)
-# + 30 tetos (3 α × 10 sementes). Retomável: pula jobs cujo CSV já existe. Uso: bash scripts/run_grid_c0b.sh [n_procs]
+# C0b (results/c0b_espaco_h150/PLANO.md + ADENDO1.md): 19 cells × seeds 72-81 (8 systems, nested H 15/50/150)
+# + 30 ceilings (3 α × 10 seeds). Resumable: skips jobs whose CSV already exists. Usage: bash scripts/run_grid_c0b.sh [n_procs]
 set -u
 cd "$(dirname "$0")/.."
 P=${1:-12}

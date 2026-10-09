@@ -1,11 +1,11 @@
-C0b — espaço restante em H = 150 (descritivo; critério do C0); sementes 72–81; 19 células
-linhas: 4560 (esperado 4560); tetos: 180 (esperado 180)
+C0b — remaining headroom at H = 150 (descriptive; C0 criterion); seeds 72–81; 19 cells
+rows: 4560 (expected 4560); ceilings: 180 (expected 180)
 
-H= 15: células com espaço contra o MELHOR EXISTENTE (oráculo FedAvg-8, gap > 2.0 p.p., IC95 > 0) = 0/19; contra o esqueleto de referência (sr_only) = 6/19
-H= 50: células com espaço contra o MELHOR EXISTENTE (oráculo FedAvg-8, gap > 2.0 p.p., IC95 > 0) = 0/19; contra o esqueleto de referência (sr_only) = 5/19
-H=150: células com espaço contra o MELHOR EXISTENTE (oráculo FedAvg-8, gap > 2.0 p.p., IC95 > 0) = 0/19; contra o esqueleto de referência (sr_only) = 5/19
+H= 15: cells with headroom vs. the BEST EXISTING (FedAvg-8 oracle, gap > 2.0 p.p., CI95 > 0) = 0/19; vs. the reference skeleton (sr_only) = 6/19
+H= 50: cells with headroom vs. the BEST EXISTING (FedAvg-8 oracle, gap > 2.0 p.p., CI95 > 0) = 0/19; vs. the reference skeleton (sr_only) = 5/19
+H=150: cells with headroom vs. the BEST EXISTING (FedAvg-8 oracle, gap > 2.0 p.p., CI95 > 0) = 0/19; vs. the reference skeleton (sr_only) = 5/19
 
-(i) Mapa em H = 150:
+(i) Map at H = 150:
  alpha      attack_type melhor_existente  acc_melhor  gap_global_oraculo8_pp  gap_global_oraculo8_lo  gap_global_oraculo8_hi  espaco_global  gap_global_fedavg10_pp  gap_esqueleto_ref_oraculo8_pp  espaco_vs_esqueleto_ref
   0.05   gaussian_noise           sr_bin       0.880                  -1.485                  -1.513                  -1.457          False                   1.522                         -1.397                    False
   0.05   krum_collusion          sr_b025       0.872                  -0.715                  -0.775                  -0.655          False                   2.292                          0.982                    False
@@ -27,7 +27,7 @@ H=150: células com espaço contra o MELHOR EXISTENTE (oráculo FedAvg-8, gap > 
   0.50    sign_flipping       clustering       0.914                   0.307                   0.285                   0.329          False                   0.565                          1.769                    False
   0.50      trim_attack           sr_bin       0.914                   0.241                   0.117                   0.365          False                   0.499                          0.316                    False
 
-(iii) Melhor variante do esqueleto − melhor regra estática (p.p., IC95), H = 150:
+(iii) Best skeleton variant − best static rule (p.p., CI95), H = 150:
  alpha      attack_type melhor_variante melhor_regra  var_menos_regra_pp  var_menos_regra_lo  var_menos_regra_hi
   0.05   gaussian_noise          sr_bin      fltrust               2.722               2.166               3.278
   0.05   krum_collusion         sr_b025      fltrust               1.766               1.160               2.372
@@ -49,23 +49,23 @@ H=150: células com espaço contra o MELHOR EXISTENTE (oráculo FedAvg-8, gap > 
   0.50    sign_flipping  cosserver_only   clustering              -0.172              -0.367               0.023
   0.50      trim_attack          sr_bin   clustering               0.607               0.460               0.754
 
-(ii) Teto da seleção de sinais em H = 150 (19 células, média por semente; %):
-    max por semente (viesado)                   89.18  IC95=(88.83, 89.52)
-    escolha por célula (in-sample)              88.92  IC95=(88.48, 89.36)
-    escolha por célula (LOSO, referência)       88.79  IC95=(88.37, 89.21)
-    sr_only                                     86.04  IC95=(85.58, 86.49)
-    sr_bin                                      85.39  IC95=(84.83, 85.96)
-    sr_b025                                     87.10  IC95=(87.01, 87.19)
-    cosserver_only                              87.55  IC95=(87.02, 88.09)
-    fltrust                                     87.35  IC95=(87.16, 87.55)
-    trimmed_mean                                75.58  IC95=(75.57, 75.59)
-    clustering                                  82.46  IC95=(82.26, 82.66)
-    median                                      74.41  IC95=(74.38, 74.43)
-    ganho de max por semente sobre o melhor sinal único por semente: +1.62 p.p. IC95=(+1.28, +1.97)
-    ganho de escolha por célula (LOSO) sobre o melhor sinal único por semente: +1.24 p.p. IC95=(+0.98, +1.49)
-    Sinal escolhido por célula (in-sample): gaussian_noise α=0.05: sr_only; krum_collusion α=0.05: cosserver_only; label_flipping α=0.05: cosserver_only; low_mag_backdoor α=0.05: cosserver_only; sign_flipping α=0.05: cosserver_only; trim_attack α=0.05: cosserver_only; gaussian_noise α=0.1: sr_only; krum_collusion α=0.1: sr_only; label_flipping α=0.1: cosserver_only; low_mag_backdoor α=0.1: cosserver_only; sign_flipping α=0.1: cosserver_only; trim_attack α=0.1: sr_only; fltrust_aligned α=0.5: sr_only; gaussian_noise α=0.5: sr_only; krum_collusion α=0.5: sr_only; label_flipping α=0.5: cosserver_only; low_mag_backdoor α=0.5: sr_only; sign_flipping α=0.5: cosserver_only; trim_attack α=0.5: sr_only
+(ii) Signal-selection ceiling at H = 150 (19 cells, mean per seed; %):
+    max per seed (biased)                       89.18  CI95=(88.83, 89.52)
+    per-cell choice (in-sample)                 88.92  CI95=(88.48, 89.36)
+    per-cell choice (LOSO, reference)           88.79  CI95=(88.37, 89.21)
+    sr_only                                     86.04  CI95=(85.58, 86.49)
+    sr_bin                                      85.39  CI95=(84.83, 85.96)
+    sr_b025                                     87.10  CI95=(87.01, 87.19)
+    cosserver_only                              87.55  CI95=(87.02, 88.09)
+    fltrust                                     87.35  CI95=(87.16, 87.55)
+    trimmed_mean                                75.58  CI95=(75.57, 75.59)
+    clustering                                  82.46  CI95=(82.26, 82.66)
+    median                                      74.41  CI95=(74.38, 74.43)
+    gain of max per seed over the best single signal per seed: +1.62 p.p. CI95=(+1.28, +1.97)
+    gain of per-cell choice (LOSO) over the best single signal per seed: +1.24 p.p. CI95=(+0.98, +1.49)
+    Signal chosen per cell (in-sample): gaussian_noise α=0.05: sr_only; krum_collusion α=0.05: cosserver_only; label_flipping α=0.05: cosserver_only; low_mag_backdoor α=0.05: cosserver_only; sign_flipping α=0.05: cosserver_only; trim_attack α=0.05: cosserver_only; gaussian_noise α=0.1: sr_only; krum_collusion α=0.1: sr_only; label_flipping α=0.1: cosserver_only; low_mag_backdoor α=0.1: cosserver_only; sign_flipping α=0.1: cosserver_only; trim_attack α=0.1: sr_only; fltrust_aligned α=0.5: sr_only; gaussian_noise α=0.5: sr_only; krum_collusion α=0.5: sr_only; label_flipping α=0.5: cosserver_only; low_mag_backdoor α=0.5: sr_only; sign_flipping α=0.5: cosserver_only; trim_attack α=0.5: sr_only
 
-Concordância por cliente (trajetória sr_only, rodadas ≥ 2, média de 10 sementes; descritivo):
+Per-client agreement (sr_only trajectory, rounds ≥ 2, mean of 10 seeds; descriptive):
                         spearman_medio  AUC_S_R  AUC_cos_server
 alpha attack_type                                              
 0.05  gaussian_noise             0.045    1.000           0.552

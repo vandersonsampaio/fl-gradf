@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# B2.7b explicativo (results/b27b_td3_constante/ADENDO2.md): 4 sistemas × 3 células × sementes 42-51, H = 150 (120 runs).
-# Retomável: pula jobs cujo CSV já existe. Uso: bash scripts/run_grid_b27b.sh [n_procs]
+# B2.7b explanatory (results/b27b_td3_constante/ADENDO2.md): 4 systems × 3 cells × seeds 42-51, H = 150 (120 runs).
+# Resumable: skips jobs whose CSV already exists. Usage: bash scripts/run_grid_b27b.sh [n_procs]
 set -u
 cd "$(dirname "$0")/.."
 P=${1:-12}

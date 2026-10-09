@@ -1,11 +1,11 @@
 """
-B2.4r (results/b24r_limiar_oficial/PLANO.md): varredura reduzida do limiar a₅
-no AdaAggRL oficial, sob EB. Ação fixa [0,475]*4 + [a₅].
+B2.4r (results/b24r_limiar_oficial/PLANO.md): reduced sweep of the threshold a₅
+in the official AdaAggRL, under EB. Fixed action [0.475]*4 + [a₅].
 
-Reusa `run_oficial.run` (o runner do Passo 2, de onde vem o centro a₅ = 0,475)
-sem alterá-lo: só troca `run_oficial.A_FIXED` neste processo. Um diretório por a₅.
+Reuses `run_oficial.run` (the Step 2 runner, where the center a₅ = 0.475 comes from)
+without changing it: it only replaces `run_oficial.A_FIXED` in this process. One directory per a₅.
 
-Uso (venv oficial):
+Usage (official venv):
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_b24r.py --a5 0.1 --seed 100
 """
 
@@ -22,7 +22,7 @@ OUT = os.path.join(R.REPO, "results", "b24r_limiar_oficial", "raw")
 
 
 def run(a5: float, seed: int, rounds: int = 500, out_root: str = OUT) -> str:
-    R.A_FIXED = [0.475] * 4 + [float(a5)]  # vale só neste processo
+    R.A_FIXED = [0.475] * 4 + [float(a5)]  # applies to this process only
     return R.run("EB", "fixed", seed, rounds, 0.5, "MNIST", os.path.join(out_root, f"a5_{a5:g}"))
 
 

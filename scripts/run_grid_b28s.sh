@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# B2.8s (results/b28s_sensibilidade_metrica/PLANO.md): 21 células × sementes 42-51 (9 sistemas por job). Retomável.
-# Uso: bash scripts/run_grid_b28s.sh [n_procs]
+# B2.8s (results/b28s_sensibilidade_metrica/PLANO.md): 21 cells × seeds 42-51 (9 systems per job). Resumable.
+# Usage: bash scripts/run_grid_b28s.sh [n_procs]
 set -u
 cd "$(dirname "$0")/.."
 P=${1:-10}
