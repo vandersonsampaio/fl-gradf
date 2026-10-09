@@ -1,0 +1,35 @@
+{
+  "A1_weights_exist": true,
+  "A1_max_abs_diff_vs_fresh_init_per_tensor": [
+    0.6000966429710388,
+    0.04510439187288284,
+    0.5568566918373108,
+    0.0930706039071083,
+    0.45768478512763977,
+    0.04481259360909462,
+    0.8247400522232056,
+    0.036695148795843124
+  ],
+  "A1_classifier_acc_on_train_pool_sample": 0.9783333333333334,
+  "A1_feature_submodel_matches_classifier": true,
+  "A1_feature_stats_real_images": {
+    "mean": 3.1457440853118896,
+    "frac_zero_relu": 0.37234375
+  },
+  "A2_layer_types": [
+    "InputLayer",
+    "Conv2D",
+    "MaxPooling2D",
+    "Conv2D",
+    "MaxPooling2D",
+    "Flatten",
+    "Dense"
+  ],
+  "A2_has_dropout_or_bn": false,
+  "A3_client_X_train_range": [
+    0.0,
+    1.0
+  ],
+  "A3_client_X_shape_flat": 784,
+  "A4_client_test_rows_found_in_raw_X_test": "10000/10000"
+}

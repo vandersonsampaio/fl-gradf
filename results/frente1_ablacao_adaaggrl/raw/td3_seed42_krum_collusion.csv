@@ -1,0 +1,4 @@
+alpha,attack_type,mode,accuracy,seed
+0.5,krum_collusion,td3,0.8961,42
+0.1,krum_collusion,td3,0.8436999999999999,42
+0.05,krum_collusion,td3,0.8053000000000001,42

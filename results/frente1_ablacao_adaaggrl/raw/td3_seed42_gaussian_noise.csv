@@ -1,0 +1,4 @@
+alpha,attack_type,mode,accuracy,seed
+0.5,gaussian_noise,td3,0.8967,42
+0.1,gaussian_noise,td3,0.8416,42
+0.05,gaussian_noise,td3,0.8037000000000001,42

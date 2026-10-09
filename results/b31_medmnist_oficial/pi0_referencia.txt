@@ -1,0 +1,23 @@
+B3.2 — post-hoc reference (descriptive): π₀ vs. π₅₀₀ on the states of rounds 401–500
+
+Median per attack:
+attack                EB     LMP
+sd_estados_pi0    0.0637  0.0090
+S_swap_pi0        0.0186  0.0186
+S_shuffle_pi0     0.0287  0.0106
+sd_estados_pi500  0.0676  0.0095
+S_swap_pi500      0.0208  0.0210
+S_shuffle_pi500   0.0284  0.0110
+
+Overall median (n=20):
+sd_estados_pi0      0.0288
+S_swap_pi0          0.0186
+S_shuffle_pi0       0.0155
+sd_estados_pi500    0.0299
+S_swap_pi500        0.0210
+S_shuffle_pi500     0.0177
+
+Ratio π₅₀₀/π₀ per run (median):
+  sd_estados: 1.03 (min 0.84, max 1.18)
+  S_swap: 1.04 (min 0.95, max 1.16)
+  S_shuffle: 1.04 (min 0.83, max 1.21)
