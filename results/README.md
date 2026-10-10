@@ -55,7 +55,7 @@ Launchers are resumable (they skip runs whose final file exists) and write `grid
 | `b25_ipm_oficial/` (B2.5) | `run_b25.py`, `test_b25_ipm.py`, `analisar_b25.py` | Fixed vs. TD3 under the IPM attack | The official IPM is a **null update**. With the real IPM (ε = 2): inconclusive (reset cascades, sd 12.8 p.p.); TD3 still does not learn |
 | `b30_medmnist_sanity/` (B3.0) | `bloodmnist_shim.py`, `treinar_extrator_bloodmnist.py`, `run_b3.py`, `analisar_b30.py` | Does the official code converge on BloodMNIST? Which attacks and margin? | Converges (77.8%); LMP and EB included; margin capped at ±3.0 p.p. (weak equivalence) |
 | `b31_medmnist_oficial/` (B3.1 + B3.2) | `run_b3.py`, `analisar_b31.py`, `b31_pi0_referencia.py` | Fixed vs. TD3 on BloodMNIST (seeds 135–144) | **Equivalence confirmed** (+0.13 p.p., CI90 −0.64 to +0.90); H4/H5 confirmed, H3 not. Both run in a degraded, periodic-reset regime (~31% accuracy) |
-| `b33_limiar_bloodmnist/` (B3.3) | `run_b33.py`, `analisar_b33.py` | Does a higher threshold fix the BloodMNIST regime? | Planned, not run yet |
+| `b33_limiar_bloodmnist/` (B3.3) | `run_b33.py`, `analisar_b33.py` | Does a higher threshold fix the BloodMNIST regime? (EB, seeds 145–149) | **No constant beats the center** (Δ −0.64 and −0.14 p.p., CI95 include 0). Higher thresholds exclude more clients and halve the resets, but accuracy stays at ~31%: a limit of the published mechanism, not a tuning problem |
 
 ### In-house framework (`scripts/`)
 
