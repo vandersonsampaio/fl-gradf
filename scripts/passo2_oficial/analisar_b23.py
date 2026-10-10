@@ -1,26 +1,26 @@
 """
-Análise do B2.3 (steelman do TD3), conforme results/b23_steelman_oficial/PLANO.md.
-Escrita antes de existir qualquer resultado. Exploratória (sementes gastas 100-104).
+B2.3 analysis (TD3 steelman), following results/b23_steelman_oficial/PLANO.md.
+Written before any result existed. Exploratory (already-used seeds 100-104).
 
-Pareamento por (ataque, semente) com os runs do Passo 2:
-  fixed, td3 (oficial): results/frente1_passo2_oficial/raw/
-  steelman:             results/b23_steelman_oficial/raw/
+Pairing by (attack, seed) with the Step 2 runs:
+  fixed, td3 (official): results/frente1_passo2_oficial/raw/
+  steelman:              results/b23_steelman_oficial/raw/
 
-Métricas (runs truncados em 500 passos):
-  primária: mediana da acurácia nas rodadas 401-500 (a mesma do B2.1)
-  secundária: média 451-500 (a do Passo 2)
-Comparações (n=10 pares, Wilcoxon bilateral, Δ, IC95, d; Holm por ataque):
-  C1 steelman − fixed   <- define o Portão B-a
-  C2 steelman − td3 oficial
-Mecanismo (política determinística reconstruída dos checkpoints):
-  drift_t = média |π_t(s) − π_0(s)| nos estados das rodadas 401-500, t = 50..500
-  S_swap  = média |π_500(s_ataque,t) − π_500(s_outro,t)|, t em 401-500
-  comparados com σ_a = 0,0475 (ruído de exploração).
-Critério do Portão B-a (fixado no PLANO antes dos dados):
-  "o steelman aprende e supera a fixa" = C1 com Δ > 0 e Wilcoxon p < 0,05 (primária)
-  E mediana de drift_500 > σ_a E mediana de S_swap > σ_a.
+Metrics (runs truncated at 500 steps):
+  primary: median accuracy over rounds 401-500 (the same as B2.1)
+  secondary: mean 451-500 (the Step 2 one)
+Comparisons (n=10 pairs, two-sided Wilcoxon, Δ, CI95, d; Holm per attack):
+  C1 steelman − fixed   <- defines Gate B-a
+  C2 steelman − official td3
+Mechanism (deterministic policy rebuilt from the checkpoints):
+  drift_t = mean |π_t(s) − π_0(s)| on the states of rounds 401-500, t = 50..500
+  S_swap  = mean |π_500(s_attack,t) − π_500(s_other,t)|, t in 401-500
+  compared with σ_a = 0.0475 (exploration noise).
+Gate B-a criterion (fixed in the PLANO before the data):
+  "the steelman learns and beats the fixed action" = C1 with Δ > 0 and Wilcoxon p < 0.05 (primary)
+  AND median drift_500 > σ_a AND median S_swap > σ_a.
 
-Uso:
+Usage:
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_b23.py
 """
 
@@ -60,7 +60,7 @@ def compare(tab, a, b, label, lines):
     d = (pair[a] - pair[b]).to_numpy()
     desc = P2.describe(d)
     lines += [f"== {label}: {a} − {b} (pooled, n={desc['n']}) ==",
-              f"  Δ={desc['delta_pp']:+.2f} p.p.  IC95=({desc['ci95_pp'][0]:+.2f}, {desc['ci95_pp'][1]:+.2f})  d={desc['d']:+.2f}  Wilcoxon p={desc['wilcoxon_p']:.4f}"]
+              f"  Δ={desc['delta_pp']:+.2f} p.p.  CI95=({desc['ci95_pp'][0]:+.2f}, {desc['ci95_pp'][1]:+.2f})  d={desc['d']:+.2f}  Wilcoxon p={desc['wilcoxon_p']:.4f}"]
     per = []
     for att in ATTACKS:
         if att in pair.index.get_level_values(0):
@@ -70,7 +70,7 @@ def compare(tab, a, b, label, lines):
     if per:
         adj = P2.holm(np.array([x[1]["wilcoxon_p"] for x in per]))
         for (att, ds), pa in zip(per, adj):
-            lines.append(f"    {att}: Δ={ds['delta_pp']:+.2f} p.p. IC95=({ds['ci95_pp'][0]:+.2f}, {ds['ci95_pp'][1]:+.2f}) d={ds['d']:+.2f} Wilcoxon p={ds['wilcoxon_p']:.4f} Holm={pa:.4f}")
+            lines.append(f"    {att}: Δ={ds['delta_pp']:+.2f} p.p. CI95=({ds['ci95_pp'][0]:+.2f}, {ds['ci95_pp'][1]:+.2f}) d={ds['d']:+.2f} Wilcoxon p={ds['wilcoxon_p']:.4f} Holm={pa:.4f}")
     lines.append("")
     return desc
 
@@ -91,18 +91,18 @@ def main():
                     rows.append({"attack": att, "seed": s, "condition": cond, **_metrics(path)})
     df = pd.DataFrame(rows)
     n_st = int((df["condition"] == "steelman").sum())
-    lines = [f"B2.3 steelman — runs steelman carregados: {n_st} (esperados 10); pareados com Passo 2 (fixed, td3)", ""]
+    lines = [f"B2.3 steelman — steelman runs loaded: {n_st} (expected 10); paired with Step 2 (fixed, td3)", ""]
 
     tab = df.pivot_table(index=["attack", "seed"], columns="condition", values="median_401_500")
-    lines += ["Primária (mediana 401–500):", tab.round(4).to_string(), ""]
-    c1 = compare(tab, "steelman", "fixed", "C1 [primária]", lines)
-    compare(tab, "steelman", "td3", "C2 [primária]", lines)
+    lines += ["Primary (median 401–500):", tab.round(4).to_string(), ""]
+    c1 = compare(tab, "steelman", "fixed", "C1 [primary]", lines)
+    compare(tab, "steelman", "td3", "C2 [primary]", lines)
     tab2 = df.pivot_table(index=["attack", "seed"], columns="condition", values="mean_451_500")
-    compare(tab2, "steelman", "fixed", "C1 [secundária: média 451–500]", lines)
-    lines += ["Resets extras (média por ataque × condição):",
+    compare(tab2, "steelman", "fixed", "C1 [secondary: mean 451–500]", lines)
+    lines += ["Extra resets (mean per attack × condition):",
               df.groupby(["attack", "condition"])["n_resets_extra"].mean().round(2).to_string(), ""]
 
-    # Mecanismo do steelman
+    # Steelman mechanism
     policy = B21A.make_actor_evaluator()
     mech, curve = [], []
     for att in ATTACKS:
@@ -128,22 +128,22 @@ def main():
     m = pd.DataFrame(mech)
     cv = pd.DataFrame(curve)
     if len(m):
-        lines += [f"== Mecanismo do steelman (σ_a = {SIGMA_A:.4f}) ==",
+        lines += [f"== Steelman mechanism (σ_a = {SIGMA_A:.4f}) ==",
                   m.round(4).to_string(index=False),
-                  f"  mediana drift_500={m['drift_500'].median():.4f}  mediana S_swap={m['S_swap'].median():.4f}",
-                  "  drift ao longo do treino (mediana entre runs):",
+                  f"  median drift_500={m['drift_500'].median():.4f}  median S_swap={m['S_swap'].median():.4f}",
+                  "  drift over training (median across runs):",
                   cv.groupby("step")["drift"].median().round(4).to_string(), ""]
 
     moved = len(m) and m["drift_500"].median() > SIGMA_A
     uses_input = len(m) and m["S_swap"].median() > SIGMA_A
     beats = c1["delta_pp"] > 0 and c1["wilcoxon_p"] < 0.05
-    lines += ["== Portão B-a (critério do PLANO) ==",
-              f"  C1 steelman > fixed (Δ>0 e p<0,05): {'SIM' if beats else 'NÃO'}",
-              f"  política se moveu (drift_500 > σ_a): {'SIM' if moved else 'NÃO'}",
-              f"  política usa a entrada (S_swap > σ_a): {'SIM' if uses_input else 'NÃO'}",
-              "  VEREDITO: " + ("o steelman APRENDE E SUPERA a fixa" if (beats and moved and uses_input)
-                               else "o steelman NÃO supera a fixa (tese do P2 fortalecida)" if not beats
-                               else "supera a fixa, mas sem evidência de aprendizado dependente da entrada (investigar)")]
+    lines += ["== Gate B-a (PLANO criterion) ==",
+              f"  C1 steelman > fixed (Δ>0 and p<0.05): {'YES' if beats else 'NO'}",
+              f"  policy moved (drift_500 > σ_a): {'YES' if moved else 'NO'}",
+              f"  policy uses its input (S_swap > σ_a): {'YES' if uses_input else 'NO'}",
+              "  VERDICT: " + ("the steelman LEARNS AND BEATS the fixed action" if (beats and moved and uses_input)
+                               else "the steelman does NOT beat the fixed action (P2 thesis strengthened)" if not beats
+                               else "beats the fixed action, but with no evidence of input-dependent learning (investigate)")]
 
     out_dir = os.path.dirname(a.out)
     os.makedirs(out_dir, exist_ok=True)

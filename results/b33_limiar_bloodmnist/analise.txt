@@ -1,0 +1,17 @@
+B3.3 — threshold a₅ in the official AdaAggRL, BloodMNIST, EB, seeds 145–149, 500 rounds
+runs: 15 (expected 15)
+
+Descriptive by a₅ (mean across seeds):
+       primaria  auc_1_500  auc_251_500  resets  intervalo_reset_mediano  reset_401_500  massa_atac  excluidos  atac_excluidos
+a5                                                                                                                            
+0.475    0.3204     0.3071       0.3080    20.8                     23.0            1.0      0.0164     5.3828          1.2452
+0.750    0.3139     0.3154       0.3086    15.8                     29.5            1.0      0.0159     5.9820          1.4460
+0.950    0.3190     0.3066       0.3138    10.0                     41.8            0.8      0.0202     7.3020          1.6408
+
+Δ vs. the center (a₅ = 0.475), paired by seed, t CI95 (descriptive Wilcoxon; n = 5 → min. p 0.0625):
+  a5  primaria_delta_pp  primaria_ic95_lo  primaria_ic95_hi  primaria_wilcoxon_p  n  auc_1_500_delta_pp  auc_1_500_ic95_lo  auc_1_500_ic95_hi  auc_1_500_wilcoxon_p  auc_251_500_delta_pp  auc_251_500_ic95_lo  auc_251_500_ic95_hi  auc_251_500_wilcoxon_p
+0.75             -0.643            -2.106             0.820                0.312  5               0.837             -0.559              2.232                 0.188                 0.053               -2.169                2.275                   1.000
+0.95             -0.136            -5.144             4.873                1.000  5              -0.046             -0.562              0.469                 0.625                 0.576               -1.360                2.512                   0.312
+
+Criterion (Δ > 2.0 p.p. with CI95 > 0 on the primary): NO CONSTANT BEATS THE CENTER in this sweep
+Exploratory, no multiplicity correction (2 comparisons).

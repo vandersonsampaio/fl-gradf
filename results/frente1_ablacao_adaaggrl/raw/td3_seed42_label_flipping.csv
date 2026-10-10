@@ -1,0 +1,4 @@
+alpha,attack_type,mode,accuracy,seed
+0.5,label_flipping,td3,0.7853,42
+0.1,label_flipping,td3,0.6306999999999999,42
+0.05,label_flipping,td3,0.7194,42

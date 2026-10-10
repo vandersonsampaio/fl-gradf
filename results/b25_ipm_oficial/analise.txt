@@ -1,0 +1,24 @@
+B2.5 — real IPM ε=2, MNIST q=0.5, seeds 105–114, 500 rounds
+runs: 20 (expected 20)
+
+== H1 (PRIMARY: median 401–500): fixed − td3, n=10 seeds ==
+  Δ=+2.78 p.p.  CI90=(-4.63, +10.19)  CI95=(-6.37, +11.92)  d=+0.22
+  TOST ±1.0 p.p.: p=0.6646   Wilcoxon: p=0.6250
+  VERDICT: INCONCLUSIVE
+
+== H1 (secondary: mean 451–500): fixed − td3, n=10 seeds ==
+  Δ=+4.23 p.p.  CI90=(-5.65, +14.12)  CI95=(-7.96, +16.43)  d=+0.25
+  TOST ±1.0 p.p.: p=0.7182   Wilcoxon: p=0.5566
+  VERDICT: INCONCLUSIVE
+
+== Descriptive by condition (median across seeds) ==
+           primary_median_401_500  mean_451_500  n_resets_extra  att_mass_mean
+condition                                                                     
+fixed                      0.9544        0.9501             2.5         0.0893
+td3                        0.9402        0.9354             2.5         0.0958
+
+== Mechanism (descriptive, no test) ==
+  σ_a = 0.0475; n=10 td3 runs
+  drift |π500−π0|: median=0.0107 max=0.0168
+  sd_estados of π500: median=0.0029 max=0.0106
+

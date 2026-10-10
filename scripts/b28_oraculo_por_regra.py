@@ -1,27 +1,26 @@
 """
-B2.8 (references/roadmap_tese_gradf_v3.md §4.1): teto oracular da seleção
-POR RODADA (eixo da granularidade). Exploratório; plano em
+B2.8: oracle ceiling of PER-ROUND selection (granularity axis). Exploratory; plan in
 results/b28_oraculo_por_regra/PLANO.md.
 
-Pergunta: se uma política escolhesse, a cada rodada, a MELHOR das 7 regras
-robustas (oráculo guloso, com acesso ao teste), ela alcançaria a filtragem
-por cliente do esqueleto (fixed / sr_only / AdaAggRL)? Se nem o oráculo
-alcança, a diferença que o Paper 1 atribuiu a "discreto contra contínuo" é
-de GRANULARIDADE (uma regra para todos contra peso por cliente), não de
-aprendizado.
+Question: if a policy chose, every round, the BEST of the 7 robust
+rules (greedy oracle, with access to the test set), would it reach the
+per-client filtering of the skeleton (fixed / sr_only / AdaAggRL)? If not even the oracle
+reaches it, the difference that Paper 1 attributed to "discrete vs. continuous" is
+one of GRANULARITY (one rule for everyone vs. per-client weights), not of
+learning.
 
-Oráculo guloso: a cada rodada, os updates (com ataque) são calculados uma vez;
-cada regra do arsenal de 7 (o mesmo do exp10) agrega esses updates; o
-candidato com maior acurácia (mesma métrica do C.0: média sobre os X_test dos
-10 clientes) vira o novo global. É um LIMITE SUPERIOR da seleção por regra,
-não um método implantável (usa o teste para escolher).
+Greedy oracle: every round, the updates (with the attack) are computed once;
+each rule of the 7-rule arsenal (the same as exp10) aggregates those updates; the
+candidate with the highest accuracy (same metric as C.0: mean over the 10 clients'
+X_test) becomes the new global model. It is an UPPER BOUND on per-rule selection,
+not a deployable method (it uses the test set to choose).
 
-Regime idêntico ao C.0/ablação/exp9: MNIST, 10 clientes, bizantinos [0, 1],
-15 rodadas, root 100, sementes 42-51, 3 alphas x 7 ataques.
+Regime identical to C.0/ablation/exp9: MNIST, 10 clients, Byzantine [0, 1],
+15 rounds, root 100, seeds 42-51, 3 alphas x 7 attacks.
 
-Uso (CPU, baixa prioridade; o framework próprio não usa GPU):
-  rodar:    CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.b28_oraculo_por_regra run --seeds 42 43
-  analisar: venv/bin/python -m scripts.b28_oraculo_por_regra analisar
+Usage (CPU, low priority; the in-house framework does not use the GPU):
+  run:      CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.b28_oraculo_por_regra run --seeds 42 43
+  analyze:  venv/bin/python -m scripts.b28_oraculo_por_regra analisar
 """
 
 import argparse
@@ -42,7 +41,7 @@ ABL = "results/frente1_ablacao_adaaggrl/grade_combined_raw.csv"
 EXP9 = "results/tables/exp9_dominance_grid_10seeds_ALL_root100_raw.csv"
 C0_CEIL = "results/c0_espaco_restante/teto_fedavg_sem_ataque_raw.csv"
 SKELETON = ["fixed", "sr_only", "td3_ref"]
-EXCLUDED = {(0.05, "fltrust_aligned"), (0.1, "fltrust_aligned")}  # artefato do ataque (C.0 NOTAS §2)
+EXCLUDED = {(0.05, "fltrust_aligned"), (0.1, "fltrust_aligned")}  # attack artifact (C.0 NOTAS §2)
 
 
 def build_learner_cls():
@@ -52,7 +51,7 @@ def build_learner_cls():
 
     class GreedyRuleOracleLearner(AttackedFederatedLearner):
         def __init__(self, *args, **kwargs):
-            kwargs.setdefault("aggregation", "fedavg")  # placeholder; a regra é escolhida por rodada
+            kwargs.setdefault("aggregation", "fedavg")  # placeholder; the rule is chosen per round
             super().__init__(*args, **kwargs)
             self.choices = []
 
@@ -96,7 +95,7 @@ def run(seeds):
     for seed in seeds:
         path = f"{OUT}/raw/seed{seed}.csv"
         if os.path.exists(path):
-            print(f"seed {seed}: já existe, pulando", flush=True)
+            print(f"seed {seed}: already exists, skipping", flush=True)
             continue
         rows = []
         for alpha in ALPHAS:
@@ -111,7 +110,7 @@ def run(seeds):
                              "choices": "|".join(lr.choices),
                              **{f"n_{r}": cnt.get(r, 0) for r in arsenal}})
                 print(f"seed={seed} alpha={alpha} attack={attack} acc={acc:.4f} ({time.time() - t0:.0f}s) "
-                      f"regras={dict(cnt)}", flush=True)
+                      f"rules={dict(cnt)}", flush=True)
         pd.DataFrame(rows).to_csv(path, index=False)
 
 
@@ -133,9 +132,9 @@ def analisar():
         fx = ex9[(ex9.alpha == alpha) & (ex9.attack_type == attack)].pivot_table(
             index="seed", columns="strategy", values="accuracy")
         best_sk, best_fx = sk.mean().idxmax(), fx.mean().idxmax()
-        q, qlo, qhi = ci95((o - sk[best_sk]).dropna())            # oráculo por regra − melhor esqueleto
-        w, wlo, whi = ci95((sk[best_sk] - fx[best_fx]).dropna())  # esqueleto − melhor regra fixa estática
-        g2, glo, ghi = ci95((o - fx[best_fx]).dropna())            # ganho do oráculo por rodada sobre o estático
+        q, qlo, qhi = ci95((o - sk[best_sk]).dropna())            # per-rule oracle − best skeleton
+        w, wlo, whi = ci95((sk[best_sk] - fx[best_fx]).dropna())  # skeleton − best static fixed rule
+        g2, glo, ghi = ci95((o - fx[best_fx]).dropna())            # gain of the per-round oracle over the static one
         t = ceil[ceil.alpha == alpha]["accuracy"].mean()
         choices = Counter("|".join(g["choices"]).split("|"))
         rows.append({
@@ -151,33 +150,33 @@ def analisar():
     res.to_csv(f"{OUT}/oraculo_por_celula.csv", index=False)
 
     valid = res[~res.excluida]
-    s_cells = valid[valid.W_ic95_lo > 0]  # esqueleto supera a melhor regra fixa estática (IC95 > 0)
+    s_cells = valid[valid.W_ic95_lo > 0]  # skeleton beats the best static fixed rule (CI95 > 0)
     below = s_cells[s_cells.Q_ic95_hi < 0]
     above = s_cells[s_cells.Q_ic95_lo > 0]
     half = len(s_cells) / 2
     if len(s_cells) == 0:
-        verdict = "SEM CÉLULAS-ALVO (o esqueleto não supera a melhor regra estática em nenhuma célula válida)"
+        verdict = "NO TARGET CELLS (the skeleton does not beat the best static rule in any valid cell)"
     elif len(below) >= half:
-        verdict = "A GRANULARIDADE EXPLICA: nem o oráculo por rodada alcança o esqueleto na maioria das células-alvo"
+        verdict = "GRANULARITY EXPLAINS: not even the per-round oracle reaches the skeleton in most target cells"
     elif len(above) >= half:
-        verdict = "A GRANULARIDADE NÃO EXPLICA: o oráculo por rodada supera o esqueleto na maioria das células-alvo"
+        verdict = "GRANULARITY DOES NOT EXPLAIN: the per-round oracle beats the skeleton in most target cells"
     else:
-        verdict = "INCONCLUSIVO"
+        verdict = "INCONCLUSIVE"
     cols = ["alpha", "attack_type", "oraculo_por_rodada", "melhor_esqueleto", "acc_esqueleto",
             "melhor_regra_estatica", "acc_regra_estatica", "Q_oraculo_menos_esqueleto_pp", "Q_ic95_lo",
             "Q_ic95_hi", "W_esqueleto_menos_estatica_pp", "G_oraculo_menos_estatica_pp"]
-    lines = [f"B2.8 — oráculo guloso por rodada (7 regras), {len(ora)} runs; 19 células válidas "
-             "(fltrust_aligned α ≤ 0,1 excluídas)", "",
+    lines = [f"B2.8 — greedy per-round oracle (7 rules), {len(ora)} runs; 19 valid cells "
+             "(fltrust_aligned α ≤ 0.1 excluded)", "",
              valid[cols].round(3).to_string(index=False), "",
-             "Regras escolhidas pelo oráculo (contagem de rodadas por célula):",
+             "Rules chosen by the oracle (round counts per cell):",
              valid[["alpha", "attack_type", "regras_escolhidas"]].to_string(index=False), "",
-             f"Células-alvo (esqueleto > melhor regra estática, IC95 > 0): {len(s_cells)}/19 — "
+             f"Target cells (skeleton > best static rule, CI95 > 0): {len(s_cells)}/19 — "
              + "; ".join(f"{r.attack_type} α={r.alpha}" for r in s_cells.itertuples()),
-             f"  nelas, oráculo por rodada ABAIXO do esqueleto (IC95 < 0): {len(below)}"
+             f"  in them, per-round oracle BELOW the skeleton (CI95 < 0): {len(below)}"
              + ("  [" + "; ".join(f"{r.attack_type} α={r.alpha}" for r in below.itertuples()) + "]" if len(below) else ""),
-             f"  nelas, oráculo por rodada ACIMA do esqueleto (IC95 > 0): {len(above)}"
+             f"  in them, per-round oracle ABOVE the skeleton (CI95 > 0): {len(above)}"
              + ("  [" + "; ".join(f"{r.attack_type} α={r.alpha}" for r in above.itertuples()) + "]" if len(above) else ""),
-             f"VEREDITO (critério do PLANO §4): {verdict}"]
+             f"VERDICT (PLANO §4 criterion): {verdict}"]
     text = "\n".join(lines)
     open(f"{OUT}/analise.txt", "w").write(text + "\n")
     print(text)

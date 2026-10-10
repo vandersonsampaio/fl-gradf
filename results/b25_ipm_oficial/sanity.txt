@@ -1,0 +1,8 @@
+B2.5 sanity — seed 100, 100 rounds; metric = mean accuracy over rounds 81–100
+criterion: degrades FedAvg if ≥ 5 p.p. below FedAvg without attack; not fully excluded if the mean mass on attackers under fixed > 0.01
+
+FedAvg without attack: 93.38%  (extra resets: 0)
+ε=2: FedAvg 87.48% (drop +5.90 p.p., degrades=True, extra resets 0); fixed: mean mass on attackers=0.1408 over 92 rounds with real attackers (not excluded=True), acc 81–100 88.80%; FedAvg mass (reference)=0.2261
+ε=10: FedAvg 29.91% (drop +63.48 p.p., degrades=True, extra resets 8); fixed: mean mass on attackers=0.0103 over 92 rounds with real attackers (not excluded=True), acc 81–100 92.13%; FedAvg mass (reference)=0.1537
+
+CHOICE: ε = 2.0 — meets both criteria (tie-break: smallest ε)

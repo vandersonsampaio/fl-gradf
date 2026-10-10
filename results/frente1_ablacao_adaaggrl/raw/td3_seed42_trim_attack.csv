@@ -1,0 +1,4 @@
+alpha,attack_type,mode,accuracy,seed
+0.5,trim_attack,td3,0.8963000000000001,42
+0.1,trim_attack,td3,0.8346,42
+0.05,trim_attack,td3,0.8045000000000002,42

@@ -1,10 +1,9 @@
 """
-Gera as Tabelas 1-5 (LaTeX) e Figuras 1-3 (PNG) sugeridas em
-docs/paperA/paper1_completo_secoes_1a9.md, a partir dos CSVs reais
-produzidos por src/experiments/exp9_dominance_grid.py e
+Generates Tables 1-5 (LaTeX) and Figures 1-3 (PNG) for the P1 paper, from the real CSVs
+produced by src/experiments/exp9_dominance_grid.py and
 src/experiments/exp10_selector_comparison.py.
 
-Nenhum número é inventado: tudo vem dos CSVs em results/tables/.
+No number is made up: everything comes from the CSVs in results/tables/.
 """
 import os
 import pandas as pd
@@ -282,9 +281,9 @@ plt.close(fig)
 print("Wrote figura1_heatmap_dominancia_root.png")
 
 # =========================================================== FIGURE 2
-# Definicao operacional: uma celula tem "headroom capturado" por um sistema/familia
-# quando a acuracia media desse sistema supera a da melhor regra fixa da celula
-# (mesmo criterio de negrito usado na Tabela 3).
+# Operational definition: a cell has "captured headroom" for a system/family
+# when that system's mean accuracy exceeds that of the cell's best fixed rule
+# (the same bold criterion used in Table 3).
 best_fixed_map = bf["best_fixed_rule_accuracy"]
 oracle_acc = pivot["Oracle (decoupled)"]
 gradf_acc = pivot["GRADF"]
@@ -322,7 +321,7 @@ plt.close(fig)
 print("Wrote figura2_headroom_capturado.png")
 
 # =========================================================== FIGURE 3
-# Media sobre os 3 niveis de alpha, por tipo de ataque e sistema
+# Mean over the 3 alpha levels, per attack type and system
 avg = variantb_summary.groupby(["attack_type", "system"])["accuracy_mean"].mean().unstack()
 sys3 = ["GRADF", "FedStrategist", "AdaAggRL"]
 colors3 = {"GRADF": ORANGE, "FedStrategist": AQUA, "AdaAggRL": YELLOW}
@@ -337,7 +336,7 @@ for i, sysname in enumerate(sys3):
     ax.bar([xi + offs for xi in x], vals, width=bar_w, color=colors3[sysname], label=sysname,
            edgecolor=SURFACE, linewidth=0.8)
 
-# Random como linha de referencia por grupo
+# Random as a reference line per group
 group_w = bar_w * n_sys
 for xi, atk in zip(x, ATTACKS):
     rnd = avg.loc[atk, "Random"]
@@ -361,7 +360,7 @@ fig.savefig(os.path.join(FIG_OUT, "figura3_barras_sistemas_por_ataque.png"), dpi
 plt.close(fig)
 print("Wrote figura3_barras_sistemas_por_ataque.png")
 
-print("\nResumo numerico para conferencia:")
+print("\nNumeric summary for checking:")
 print("Table1 rows:", rows_t1)
 print("Table2 rows:", rows_t2)
 print("Fig2 counts: oracle", n_oracle, "implementable", n_implementable, "discrete", n_discrete, "continuous", n_continuous)

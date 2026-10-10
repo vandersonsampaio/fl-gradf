@@ -1,6 +1,6 @@
-C.0 — teto ORÁCULO = FedAvg sem ataque só com os 8 honestos (mesmas partições; métrica sobre os 10 test sets)
+C.0 — ORACLE ceiling = FedAvg without attack with the 8 honest clients only (same partitions; metric over the 10 test sets)
 
-Teto por alpha (média de 10 sementes):
+Ceiling per alpha (mean of 10 seeds):
        accuracy  accuracy_8_honestos  fedavg_10_sem_ataque
 alpha                                                     
 0.05     0.7716               0.7740                0.8535
@@ -28,9 +28,9 @@ alpha
   0.10   gaussian_noise         0.790          sr_only            -5.165       sr_only              0.841         -5.165            -5.218            -5.112       False
   0.10   krum_collusion         0.790            fixed            -5.370         fixed              0.843         -5.370            -5.525            -5.215       False
 
-Critério (NOTAS.md §5): gap global > 2 p.p. com IC95 > 0, 19 células válidas
-  células COM espaço: 2/19
+Criterion (NOTAS.md §5): global gap > 2 p.p. with CI95 > 0, 19 valid cells
+  cells WITH headroom: 2/19
     label_flipping α=0.1; label_flipping α=0.05
-  células SEM espaço: 17/19
+  cells WITHOUT headroom: 17/19
     sign_flipping α=0.05; label_flipping α=0.5; sign_flipping α=0.5; krum_collusion α=0.5; gaussian_noise α=0.5; trim_attack α=0.5; low_mag_backdoor α=0.5; fltrust_aligned α=0.5; low_mag_backdoor α=0.05; sign_flipping α=0.1; trim_attack α=0.1; gaussian_noise α=0.05; krum_collusion α=0.05; trim_attack α=0.05; low_mag_backdoor α=0.1; gaussian_noise α=0.1; krum_collusion α=0.1
-  esqueleto perde para regra fixa em: label_flipping α=0.5 (trimmed_mean); low_mag_backdoor α=0.5 (trimmed_mean); fltrust_aligned α=0.5 (median); low_mag_backdoor α=0.1 (trimmed_mean)
+  skeleton loses to a fixed rule in: label_flipping α=0.5 (trimmed_mean); low_mag_backdoor α=0.5 (trimmed_mean); fltrust_aligned α=0.5 (median); low_mag_backdoor α=0.1 (trimmed_mean)

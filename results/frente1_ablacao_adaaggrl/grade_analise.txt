@@ -1,0 +1,102 @@
+=== mean accuracy (210 cells×seed) ===
+mode
+cosmed_only       0.7331
+cosserver_only    0.8071
+fixed             0.8103
+random            0.7622
+sr_only           0.8058
+td3_ref           0.7924
+
+=== cells with headroom over the best fixed rule (out of 21) ===
+td3_ref: 9
+random: 3
+cosmed_only: 6
+cosserver_only: 6
+fixed: 11
+sr_only: 12
+
+=== pooled (mean per seed over the 21 cells; TOST ±0.01 + Wilcoxon) ===
+              comparison  n_seeds   delta  ci90_lo  ci90_hi  p_tost  equivalent_pm0.01  p_wilcoxon  cohen_d
+         fixed - td3_ref       10  0.0179   0.0059   0.0298  0.8699              False      0.0488   0.8634
+       sr_only - td3_ref       10  0.0134  -0.0050   0.0317  0.6280              False      0.2754   0.4229
+   cosmed_only - td3_ref       10 -0.0593  -0.0777  -0.0409  0.9996              False      0.0020  -1.8662
+   cosmed_only - sr_only       10 -0.0726  -0.0782  -0.0670  1.0000              False      0.0020  -7.5162
+          fixed - random       10  0.0480   0.0400   0.0560  1.0000              False      0.0020   3.4788
+        sr_only - random       10  0.0435   0.0339   0.0532  0.9999              False      0.0020   2.6072
+    cosmed_only - random       10 -0.0291  -0.0377  -0.0205  0.9986              False      0.0020  -1.9604
+cosserver_only - td3_ref       10  0.0147  -0.0093   0.0387  0.6367              False      0.2754   0.3557
+cosserver_only - sr_only       10  0.0014  -0.0091   0.0118  0.0821              False      0.7695   0.0751
+ cosserver_only - random       10  0.0449   0.0302   0.0596  0.9991              False      0.0020   1.7708
+
+=== per attack (mean per seed over 3 alphas; Holm over 7) ===
+              comparison      attack_type   delta  ci90_lo  ci90_hi  p_tost  p_wilcoxon  cohen_d  p_wilcoxon_holm  p_tost_holm  sig_diff  equivalent
+         fixed - td3_ref  fltrust_aligned  0.0192  -0.0023   0.0406  0.7735      0.1309   0.5181           0.6543       1.0000     False       False
+         fixed - td3_ref   gaussian_noise  0.0011  -0.0004   0.0026  0.0000      0.1836   0.4279           0.7344       0.0000     False        True
+         fixed - td3_ref   krum_collusion  0.0035   0.0004   0.0066  0.0020      0.0488   0.6593           0.2930       0.0119     False        True
+         fixed - td3_ref   label_flipping  0.0781   0.0260   0.1301  0.9800      0.0098   0.8700           0.0684       1.0000     False       False
+         fixed - td3_ref low_mag_backdoor  0.0113  -0.0133   0.0358  0.5363      0.3750   0.2662           0.9668       1.0000     False       False
+         fixed - td3_ref    sign_flipping  0.0069  -0.0034   0.0172  0.2989      0.5566   0.3902           0.9668       1.0000     False       False
+         fixed - td3_ref      trim_attack  0.0049  -0.0008   0.0107  0.0703      0.3223   0.5007           0.9668       0.3517     False       False
+       sr_only - td3_ref  fltrust_aligned  0.0350   0.0015   0.0684  0.8978      0.1934   0.6061           1.0000       1.0000     False       False
+       sr_only - td3_ref   gaussian_noise  0.0012  -0.0004   0.0028  0.0000      0.2324   0.4359           1.0000       0.0000     False        True
+       sr_only - td3_ref   krum_collusion -0.0006  -0.0037   0.0025  0.0002      0.4316  -0.1150           1.0000       0.0011     False        True
+       sr_only - td3_ref   label_flipping  0.0654  -0.0034   0.1342  0.9131      0.1602   0.5513           1.0000       1.0000     False       False
+       sr_only - td3_ref low_mag_backdoor -0.0058  -0.0336   0.0220  0.3943      0.8457  -0.1209           1.0000       1.0000     False       False
+       sr_only - td3_ref    sign_flipping -0.0035  -0.0246   0.0176  0.2936      0.4922  -0.0969           1.0000       1.0000     False       False
+       sr_only - td3_ref      trim_attack  0.0019  -0.0038   0.0077  0.0148      0.6250   0.1941           1.0000       0.0738     False       False
+   cosmed_only - td3_ref  fltrust_aligned  0.0571   0.0251   0.0891  0.9877      0.0059   1.0331           0.0176       1.0000      True       False
+   cosmed_only - td3_ref   gaussian_noise -0.1033  -0.1142  -0.0924  1.0000      0.0020  -5.4909           0.0137       1.0000      True       False
+   cosmed_only - td3_ref   krum_collusion -0.0433  -0.0597  -0.0269  0.9976      0.0039  -1.5324           0.0156       1.0000      True       False
+   cosmed_only - td3_ref   label_flipping  0.0810   0.0171   0.1449  0.9639      0.0371   0.7346           0.0742       1.0000     False       False
+   cosmed_only - td3_ref low_mag_backdoor -0.0011  -0.0200   0.0178  0.2040      0.8457  -0.0323           0.8457       1.0000     False       False
+   cosmed_only - td3_ref    sign_flipping -0.0728  -0.0920  -0.0535  0.9999      0.0020  -2.1933           0.0137       1.0000      True       False
+   cosmed_only - td3_ref      trim_attack -0.3326  -0.3540  -0.3111  1.0000      0.0020  -8.9996           0.0137       1.0000      True       False
+   cosmed_only - sr_only  fltrust_aligned  0.0221   0.0102   0.0341  0.9519      0.0039   1.0716           0.0137       1.0000      True       False
+   cosmed_only - sr_only   gaussian_noise -0.1045  -0.1146  -0.0944  1.0000      0.0020  -5.9920           0.0137       1.0000      True       False
+   cosmed_only - sr_only   krum_collusion -0.0427  -0.0572  -0.0282  0.9987      0.0020  -1.7118           0.0137       1.0000      True       False
+   cosmed_only - sr_only   label_flipping  0.0156  -0.0046   0.0358  0.6875      0.2324   0.4465           0.4648       1.0000     False       False
+   cosmed_only - sr_only low_mag_backdoor  0.0048  -0.0075   0.0170  0.2261      0.4922   0.2251           0.4922       1.0000     False       False
+   cosmed_only - sr_only    sign_flipping -0.0692  -0.0874  -0.0511  0.9999      0.0020  -2.2151           0.0137       1.0000      True       False
+   cosmed_only - sr_only      trim_attack -0.3345  -0.3552  -0.3137  1.0000      0.0020  -9.3346           0.0137       1.0000      True       False
+          fixed - random  fltrust_aligned -0.0192  -0.0437   0.0054  0.7447      0.1934  -0.4526           0.1934       1.0000     False       False
+          fixed - random   gaussian_noise  0.0450   0.0368   0.0531  1.0000      0.0020   3.2157           0.0137       1.0000      True       False
+          fixed - random   krum_collusion  0.1375   0.1221   0.1528  1.0000      0.0020   5.1991           0.0137       1.0000      True       False
+          fixed - random   label_flipping -0.0334  -0.0555  -0.0113  0.9577      0.0273  -0.8749           0.0547       1.0000     False       False
+          fixed - random low_mag_backdoor -0.0394  -0.0524  -0.0263  0.9987      0.0039  -1.7491           0.0137       1.0000      True       False
+          fixed - random    sign_flipping  0.1253   0.1070   0.1437  1.0000      0.0020   3.9672           0.0137       1.0000      True       False
+          fixed - random      trim_attack  0.1204   0.1015   0.1392  1.0000      0.0020   3.6989           0.0137       1.0000      True       False
+        sr_only - random  fltrust_aligned -0.0034  -0.0197   0.0129  0.2377      0.4316  -0.1208           0.4316       1.0000     False       False
+        sr_only - random   gaussian_noise  0.0450   0.0370   0.0531  1.0000      0.0020   3.2335           0.0137       1.0000      True       False
+        sr_only - random   krum_collusion  0.1333   0.1180   0.1487  1.0000      0.0020   5.0306           0.0137       1.0000      True       False
+        sr_only - random   label_flipping -0.0460  -0.0643  -0.0277  0.9971      0.0059  -1.4567           0.0137       1.0000      True       False
+        sr_only - random low_mag_backdoor -0.0564  -0.0692  -0.0436  1.0000      0.0020  -2.5604           0.0137       1.0000      True       False
+        sr_only - random    sign_flipping  0.1149   0.0939   0.1358  1.0000      0.0020   3.1791           0.0137       1.0000      True       False
+        sr_only - random      trim_attack  0.1173   0.1005   0.1342  1.0000      0.0020   4.0394           0.0137       1.0000      True       False
+    cosmed_only - random  fltrust_aligned  0.0187   0.0032   0.0343  0.8359      0.0645   0.7007           0.0645       1.0000     False       False
+    cosmed_only - random   gaussian_noise -0.0595  -0.0727  -0.0463  1.0000      0.0020  -2.6132           0.0137       1.0000      True       False
+    cosmed_only - random   krum_collusion  0.0906   0.0673   0.1139  0.9999      0.0020   2.2559           0.0137       1.0000      True       False
+    cosmed_only - random   label_flipping -0.0304  -0.0377  -0.0231  0.9997      0.0020  -2.3992           0.0137       1.0000      True       False
+    cosmed_only - random low_mag_backdoor -0.0517  -0.0583  -0.0450  1.0000      0.0020  -4.4987           0.0137       1.0000      True       False
+    cosmed_only - random    sign_flipping  0.0456   0.0226   0.0687  0.9901      0.0020   1.1457           0.0137       1.0000      True       False
+    cosmed_only - random      trim_attack -0.2171  -0.2345  -0.1997  1.0000      0.0020  -7.2338           0.0137       1.0000      True       False
+cosserver_only - td3_ref  fltrust_aligned -0.0016  -0.0428   0.0396  0.3583      0.7695  -0.0222           1.0000       1.0000     False       False
+cosserver_only - td3_ref   gaussian_noise -0.0425  -0.0621  -0.0229  0.9930      0.0098  -1.2577           0.0684       1.0000     False       False
+cosserver_only - td3_ref   krum_collusion -0.0154  -0.0303  -0.0004  0.7365      0.0645  -0.5960           0.3223       1.0000     False       False
+cosserver_only - td3_ref   label_flipping  0.1572   0.0780   0.2364  0.9961      0.0098   1.1513           0.0684       1.0000     False       False
+cosserver_only - td3_ref low_mag_backdoor  0.0113  -0.0216   0.0442  0.5284      0.4316   0.1993           1.0000       1.0000     False       False
+cosserver_only - td3_ref    sign_flipping  0.0108  -0.0203   0.0420  0.5189      0.6250   0.2015           1.0000       1.0000     False       False
+cosserver_only - td3_ref      trim_attack -0.0169  -0.0371   0.0034  0.7252      0.3223  -0.4826           1.0000       1.0000     False       False
+cosserver_only - sr_only  fltrust_aligned -0.0365  -0.0487  -0.0244  0.9985      0.0039  -1.7495           0.0273       1.0000      True       False
+cosserver_only - sr_only   gaussian_noise -0.0437  -0.0640  -0.0233  0.9929      0.0059  -1.2439           0.0293       1.0000      True       False
+cosserver_only - sr_only   krum_collusion -0.0147  -0.0281  -0.0014  0.7341      0.1309  -0.6392           0.4219       1.0000     False       False
+cosserver_only - sr_only   label_flipping  0.0918   0.0591   0.1245  0.9993      0.0039   1.6284           0.0273       1.0000      True       False
+cosserver_only - sr_only low_mag_backdoor  0.0171  -0.0113   0.0456  0.6715      0.3223   0.3491           0.4219       1.0000     False       False
+cosserver_only - sr_only    sign_flipping  0.0143  -0.0045   0.0332  0.6590      0.1055   0.4417           0.4219       1.0000     False       False
+cosserver_only - sr_only      trim_attack -0.0188  -0.0387   0.0011  0.7804      0.1602  -0.5470           0.4219       1.0000     False       False
+ cosserver_only - random  fltrust_aligned -0.0399  -0.0610  -0.0189  0.9858      0.0137  -1.0999           0.0547       1.0000     False       False
+ cosserver_only - random   gaussian_noise  0.0013  -0.0197   0.0224  0.2355      1.0000   0.0369           1.0000       1.0000     False       False
+ cosserver_only - random   krum_collusion  0.1186   0.0925   0.1446  1.0000      0.0020   2.6370           0.0137       1.0000      True       False
+ cosserver_only - random   label_flipping  0.0458   0.0186   0.0730  0.9805      0.0195   0.9761           0.0586       1.0000     False       False
+ cosserver_only - random low_mag_backdoor -0.0393  -0.0658  -0.0128  0.9633      0.0273  -0.8593           0.0586       1.0000     False       False
+ cosserver_only - random    sign_flipping  0.1292   0.0989   0.1596  1.0000      0.0020   2.4705           0.0137       1.0000      True       False
+ cosserver_only - random      trim_attack  0.0985   0.0768   0.1202  1.0000      0.0020   2.6326           0.0137       1.0000      True       False

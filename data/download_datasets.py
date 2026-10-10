@@ -246,8 +246,8 @@ def _load_raw(raw_root: str, name: str):
 
 
 def _add_extra_alpha_splits(data_dir: str, alphas, n_clients: int, seed: int):
-    """Generate additional non-IID partitions (see
-    references/estrategia_B_recriar_headroom.md: severe non-IID, α=0.1/0.05)
+    """Generate additional non-IID partitions (severe non-IID, α=0.1/0.05,
+    used to recreate headroom for adaptive defenses)
     from the raw arrays ALREADY downloaded, WITHOUT touching `iid/` or
     `non_iid/` (α=0.5) — saves each extra α to `non_iid_a{alpha}/`, same
     structure as `_save_split`. Does not re-download or rewrite the default

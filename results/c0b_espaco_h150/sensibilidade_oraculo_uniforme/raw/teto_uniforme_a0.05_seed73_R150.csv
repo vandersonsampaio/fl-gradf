@@ -1,0 +1,7 @@
+alpha,seed,system,H,accuracy
+0.05,73,teto_fedavg10_uniforme,15,0.8708
+0.05,73,teto_fedavg10_uniforme,50,0.8950000000000001
+0.05,73,teto_fedavg10_uniforme,150,0.9047000000000003
+0.05,73,teto_oraculo8_uniforme,15,0.8028000000000001
+0.05,73,teto_oraculo8_uniforme,50,0.8574999999999999
+0.05,73,teto_oraculo8_uniforme,150,0.8793

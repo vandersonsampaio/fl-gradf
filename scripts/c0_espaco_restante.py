@@ -1,20 +1,20 @@
 """
-C.0 (references/roadmap_tese_gradf_v2.md §5): espaço restante por célula no
-framework próprio. Descritivo, sem hipótese a testar.
+C.0: remaining headroom per cell in the in-house framework.
+Descriptive, no hypothesis to test.
 
-Para cada célula (alpha x ataque) da grade da ablação (MNIST, 10 clientes,
-2 bizantinos, 15 rodadas, root 100, sementes 42-51):
-  teto   = FedAvg SEM ataque (mesmo regime, mesma métrica global_accuracy)
-  melhor = melhor média entre {fixed, sr_only, td3_ref (AdaAggRL)}
-  gap    = teto - melhor, pareado por semente (média, IC95)
-Contexto: melhor regra fixa do exp9 (root 100) e cosserver_only (exploratório).
+For each cell (alpha x attack) of the ablation grid (MNIST, 10 clients,
+2 Byzantine, 15 rounds, root 100, seeds 42-51):
+  teto   = FedAvg WITHOUT attack (same regime, same global_accuracy metric)
+  melhor = best mean among {fixed, sr_only, td3_ref (AdaAggRL)}
+  gap    = teto - melhor, paired by seed (mean, CI95)
+Context: best exp9 fixed rule (root 100) and cosserver_only (exploratory).
 
-O único cálculo novo é o teto (30 runs de regressão logística, só CPU).
-As demais acurácias vêm de:
+The only new computation is the ceiling (30 logistic-regression runs, CPU only).
+The other accuracies come from:
   results/frente1_ablacao_adaaggrl/grade_combined_raw.csv
   results/tables/exp9_dominance_grid_10seeds_ALL_root100_raw.csv
 
-Uso (CPU, baixa prioridade, sem GPU):
+Usage (CPU, low priority, no GPU):
   CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 nice -n 19 venv/bin/python -m scripts.c0_espaco_restante
 """
 
@@ -33,7 +33,7 @@ CANDIDATES = ["fixed", "sr_only", "td3_ref"]
 
 
 def ceiling() -> pd.DataFrame:
-    """FedAvg sem ataque, mesmo regime da ablação."""
+    """FedAvg without attack, same regime as the ablation."""
     path = os.path.join(OUT, "teto_fedavg_sem_ataque_raw.csv")
     if os.path.exists(path):
         return pd.read_csv(path)
@@ -53,7 +53,7 @@ def ceiling() -> pd.DataFrame:
             )
             acc = learner.train(participants, root_data=root, verbose=False)[-1].global_accuracy
             rows.append({"alpha": alpha, "seed": seed, "accuracy": acc})
-            print(f"teto alpha={alpha} seed={seed} acc={acc:.4f}", flush=True)
+            print(f"ceiling alpha={alpha} seed={seed} acc={acc:.4f}", flush=True)
     df = pd.DataFrame(rows)
     df.to_csv(path, index=False)
     return df
@@ -92,15 +92,15 @@ def main():
     res = pd.DataFrame(rows).sort_values("gap_pp", ascending=False)
     res.to_csv(os.path.join(OUT, "espaco_restante_por_celula.csv"), index=False)
 
-    lines = ["C.0 — espaço restante (teto = FedAvg sem ataque; melhor entre fixed, sr_only, AdaAggRL)", ""]
-    lines.append("Teto por alpha (média de 10 sementes): " + ", ".join(
+    lines = ["C.0 — remaining headroom (ceiling = FedAvg without attack; best of fixed, sr_only, AdaAggRL)", ""]
+    lines.append("Ceiling per alpha (mean of 10 seeds): " + ", ".join(
         f"α={a}: {teto[teto.alpha == a].teto.mean():.4f}" for a in ALPHAS))
     lines += ["", res[["alpha", "attack_type", "melhor_metodo", "melhor_acc", "teto_fedavg_sem_ataque",
                        "gap_pp", "gap_ic95_lo_pp", "gap_ic95_hi_pp", "melhor_regra_fixa_exp9",
                        "acc_melhor_regra_fixa_exp9"]].round(4).to_string(index=False), ""]
     for thr in (1.0, 2.0, 5.0):
-        lines.append(f"células com gap > {thr:.0f} p.p.: {(res.gap_pp > thr).sum()}/21")
-    lines.append(f"células com IC95 do gap acima de 0 (espaço estatisticamente > 0): {(res.gap_ic95_lo_pp > 0).sum()}/21")
+        lines.append(f"cells with gap > {thr:.0f} p.p.: {(res.gap_pp > thr).sum()}/21")
+    lines.append(f"cells with gap CI95 above 0 (headroom statistically > 0): {(res.gap_ic95_lo_pp > 0).sum()}/21")
     text = "\n".join(lines)
     open(os.path.join(OUT, "analise.txt"), "w").write(text + "\n")
     print(text)

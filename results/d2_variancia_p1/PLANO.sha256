@@ -1,0 +1,4 @@
+b33546df9a320a9a9b499d4bfc39ff5a3c7f9b237896256d7a372be3c6528412  results/d2_variancia_p1/PLANO.md  # congelado 2026-10-04 20:22:48 -0300, antes de qualquer run
+35a8961e712f49e05e875746079e4c34ba9aa68ba399bdaf123c17f9842fa670  scripts/d2_variancia_p1.py  # código no congelamento
+80c0b10f8af49ff8ab55e323340bd42ceb37001779c5ca06e4bfca53b4864c2d  scripts/run_grid_d2.sh  # código no congelamento
+# código executado: tag p1.0.0 (3beb0f8), via git worktree; data/processed por link simbólico

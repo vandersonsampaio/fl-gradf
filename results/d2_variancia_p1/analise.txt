@@ -1,0 +1,35 @@
+D2 — P1 run-to-run variance (tag p1.0.0; seeds 42–44; 3 repetitions + original execution)
+rows: 1260 (expected 1260)
+
+SD_exec per system (across the 4 executions, per cell × seed; mean and max):
+                       std         amplitude        
+                      mean     max      mean     max
+system                                              
+AdaAggRL            0.0000  0.0000    0.0000  0.0000
+FedStrategist       0.0007  0.0125    0.0014  0.0251
+GRADF               0.0932  0.3104    0.1940  0.6295
+Oracle (decoupled)  0.0003  0.0118    0.0006  0.0230
+Random              0.0001  0.0022    0.0002  0.0048
+
+Aggregate Δ (system − Random, mean of the 21 cells) per execution × seed:
+ seed  rep   GRADF  FedStrategist  AdaAggRL
+   42    0 -0.0882        -0.0604    0.0499
+   42    1 -0.0793        -0.0604    0.0497
+   42    2 -0.0370        -0.0613    0.0497
+   42    3 -0.0785        -0.0599    0.0498
+   43    0 -0.0268        -0.0488    0.0201
+   43    1 -0.0501        -0.0485    0.0201
+   43    2 -0.0416        -0.0493    0.0202
+   43    3 -0.0425        -0.0499    0.0201
+   44    0 -0.0699        -0.0506    0.0491
+   44    1 -0.0270        -0.0502    0.0492
+   44    2 -0.0287        -0.0506    0.0490
+   44    3 -0.0335        -0.0503    0.0490
+
+SD_exec of the aggregate Δ (mean over the 3 seeds): GRADF 0.0177, FedStrategist 0.0005, AdaAggRL 0.0001
+SD across the 10 seeds of the original P1:   GRADF 0.0335, FedStrategist 0.0184, AdaAggRL 0.0271
+Published Δ (Table 4):                       GRADF -0.042, FedStrategist -0.044, AdaAggRL +0.030
+
+Signs in all 12 combinations (GRADF<0, FedStrat<0, AdaAggRL>0): True
+SD_exec < ½|published Δ| for all three: True
+READING RULE (PLANO §4): P1 CONCLUSION ROBUST TO RUN-TO-RUN VARIANCE

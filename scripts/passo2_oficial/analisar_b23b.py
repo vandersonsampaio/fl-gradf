@@ -1,26 +1,26 @@
 """
-Análise do B2.3b (último steelman), conforme results/b23b_steelman_normalizado/PLANO.md.
-Escrita antes de existir qualquer resultado. Exploratória (sementes gastas 100-104).
-Reusa `analisar_b23.py` e `analisar_b21.py` sem alterá-los.
+B2.3b analysis (last steelman), following results/b23b_steelman_normalizado/PLANO.md.
+Written before any result existed. Exploratory (already-used seeds 100-104).
+Reuses `analisar_b23.py` and `analisar_b21.py` without changing them.
 
-Pareamento por (ataque, semente):
-  fixed, td3 (oficial): results/frente1_passo2_oficial/raw/
-  steelman B2.3:        results/b23_steelman_oficial/raw/
-  steelman B2.3b:       results/b23b_steelman_normalizado/raw/
+Pairing by (attack, seed):
+  fixed, td3 (official): results/frente1_passo2_oficial/raw/
+  steelman B2.3:         results/b23_steelman_oficial/raw/
+  steelman B2.3b:        results/b23b_steelman_normalizado/raw/
 
-Primária: mediana 401-500 (a mesma do B2.1/B2.3). Secundária: média 451-500.
-  C1 b23b − fixed   <- define o Portão B-a definitivo
-  C2 b23b − td3 oficial
+Primary: median 401-500 (the same as B2.1/B2.3). Secondary: mean 451-500.
+  C1 b23b − fixed   <- defines the definitive Gate B-a
+  C2 b23b − official td3
   C3 b23b − steelman B2.3
-Mecanismo (política determinística reconstruída dos checkpoints):
-  drift_500    = média |π_500(s) − π_0(s)|, estados das rodadas 401-500
-  sd_estados   = média sobre as 5 dims do desvio-padrão de π_500(s) entre esses
-                 estados  <- estatística de constância (o S_swap satura com o tanh)
-  S_swap       = reportado, sem critério
-Critério (PLANO §5): "aprende e supera" = C1 com Δ > 0 e p < 0,05
-  E mediana de drift_500 > σ_a E mediana de sd_estados > σ_a  (σ_a = 0,0475).
+Mechanism (deterministic policy rebuilt from the checkpoints):
+  drift_500    = mean |π_500(s) − π_0(s)|, states of rounds 401-500
+  sd_estados   = mean over the 5 dims of the standard deviation of π_500(s) across those
+                 states  <- constancy statistic (S_swap saturates with the tanh)
+  S_swap       = reported, no criterion
+Criterion (PLANO §5): "learns and beats" = C1 with Δ > 0 and p < 0.05
+  AND median drift_500 > σ_a AND median sd_estados > σ_a  (σ_a = 0.0475).
 
-Uso:
+Usage:
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_b23b.py
 """
 
@@ -58,16 +58,16 @@ def main():
                     rows.append({"attack": att, "seed": s, "condition": cond, **B23A._metrics(path)})
     df = pd.DataFrame(rows)
     n_st = int((df["condition"] == "steelman_b23b").sum())
-    lines = [f"B2.3b (último steelman) — runs carregados: {n_st} (esperados 10); pareados com Passo 2 e B2.3", ""]
+    lines = [f"B2.3b (last steelman) — runs loaded: {n_st} (expected 10); paired with Step 2 and B2.3", ""]
 
     tab = df.pivot_table(index=["attack", "seed"], columns="condition", values="median_401_500")
-    lines += ["Primária (mediana 401–500):", tab.round(4).to_string(), ""]
-    c1 = B23A.compare(tab, "steelman_b23b", "fixed", "C1 [primária]", lines)
-    B23A.compare(tab, "steelman_b23b", "td3", "C2 [primária]", lines)
-    B23A.compare(tab, "steelman_b23b", "steelman_b23", "C3 [primária]", lines)
+    lines += ["Primary (median 401–500):", tab.round(4).to_string(), ""]
+    c1 = B23A.compare(tab, "steelman_b23b", "fixed", "C1 [primary]", lines)
+    B23A.compare(tab, "steelman_b23b", "td3", "C2 [primary]", lines)
+    B23A.compare(tab, "steelman_b23b", "steelman_b23", "C3 [primary]", lines)
     tab2 = df.pivot_table(index=["attack", "seed"], columns="condition", values="mean_451_500")
-    B23A.compare(tab2, "steelman_b23b", "fixed", "C1 [secundária: média 451–500]", lines)
-    lines += ["Resets extras (média por ataque × condição):",
+    B23A.compare(tab2, "steelman_b23b", "fixed", "C1 [secondary: mean 451–500]", lines)
+    lines += ["Extra resets (mean per attack × condition):",
               df.groupby(["attack", "condition"])["n_resets_extra"].mean().round(2).to_string(), ""]
 
     policy = B21A.make_actor_evaluator()
@@ -96,24 +96,24 @@ def main():
             mech.append(row)
     m, cv = pd.DataFrame(mech), pd.DataFrame(curve)
     if len(m):
-        lines += [f"== Mecanismo do B2.3b (σ_a = {SIGMA_A:.4f}) ==", m.round(4).to_string(index=False),
-                  f"  mediana drift_500={m['drift_500'].median():.4f}  mediana sd_estados={m['sd_estados'].median():.4f}"
-                  + (f"  mediana S_swap={m['S_swap'].median():.4f}" if "S_swap" in m else ""),
-                  "  drift ao longo do treino (mediana entre runs):",
+        lines += [f"== B2.3b mechanism (σ_a = {SIGMA_A:.4f}) ==", m.round(4).to_string(index=False),
+                  f"  median drift_500={m['drift_500'].median():.4f}  median sd_estados={m['sd_estados'].median():.4f}"
+                  + (f"  median S_swap={m['S_swap'].median():.4f}" if "S_swap" in m else ""),
+                  "  drift over training (median across runs):",
                   cv.groupby("step")["drift"].median().round(4).to_string(), ""]
 
     beats = c1["delta_pp"] > 0 and c1["wilcoxon_p"] < 0.05
     moved = bool(len(m)) and m["drift_500"].median() > SIGMA_A
     state_dep = bool(len(m)) and m["sd_estados"].median() > SIGMA_A
-    lines += ["== Portão B-a definitivo (critério do PLANO §5) ==",
-              f"  C1 b23b > fixed (Δ>0 e p<0,05): {'SIM' if beats else 'NÃO'}",
-              f"  política se moveu (drift_500 > σ_a): {'SIM' if moved else 'NÃO'}",
-              f"  política depende do estado (sd_estados > σ_a): {'SIM' if state_dep else 'NÃO'}",
-              "  VEREDITO: " + ("o steelman APRENDE E SUPERA a fixa -> confirmar no B2.3c (sementes 115–124)"
+    lines += ["== Definitive Gate B-a (PLANO §5 criterion) ==",
+              f"  C1 b23b > fixed (Δ>0 and p<0.05): {'YES' if beats else 'NO'}",
+              f"  policy moved (drift_500 > σ_a): {'YES' if moved else 'NO'}",
+              f"  policy depends on the state (sd_estados > σ_a): {'YES' if state_dep else 'NO'}",
+              "  VERDICT: " + ("the steelman LEARNS AND BEATS the fixed action -> confirm in B2.3c (seeds 115–124)"
                                if (beats and moved and state_dep)
-                               else "o steelman NÃO supera a fixa -> B-a definitivo; fim da busca de configuração"
+                               else "the steelman does NOT beat the fixed action -> B-a definitive; configuration search ends"
                                if not beats
-                               else "supera a fixa sem política dependente do estado (investigar; não dispara o B2.3c)")]
+                               else "beats the fixed action without a state-dependent policy (investigate; does not trigger B2.3c)")]
 
     out_dir = os.path.dirname(a.out)
     os.makedirs(out_dir, exist_ok=True)

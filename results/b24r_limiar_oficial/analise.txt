@@ -1,0 +1,23 @@
+B2.4r — threshold a₅ in the official AdaAggRL, EB, seeds 100–104, 500 rounds
+runs: 25 (expected 25, with the re-run center) + Step 2 center (descriptive): 5
+
+Descriptive by a₅ (mean across seeds):
+               primaria  secundaria  resets  massa_atac  excluidos  atac_excluidos
+a5                                                                                
+0.0              0.3444      0.3456    62.2      0.0011     1.0060          0.4468
+0.1              0.7814      0.6582    14.4      0.0015     2.1444          1.4108
+0.25             0.9660      0.9221     0.8      0.0001     2.2756          1.9624
+0.475            0.9665      0.9276     0.4      0.0001     2.5580          1.9792
+0.95             0.9627      0.9029     1.2      0.0001     4.8756          1.9468
+centro_passo2    0.9488      0.9191     0.6      0.0002     2.5808          1.9660
+
+Δ vs. the center (a₅ = 0.475), paired by seed, t CI95 (descriptive Wilcoxon; n = 5 → min. p 0.0625):
+  a5  primaria_delta_pp  primaria_ic95_lo  primaria_ic95_hi  primaria_wilcoxon_p  n  secundaria_delta_pp  secundaria_ic95_lo  secundaria_ic95_hi  secundaria_wilcoxon_p
+0.00            -62.216           -64.198           -60.233                0.062  5              -58.202             -60.576             -55.829                  0.062
+0.10            -18.513           -24.263           -12.762                0.062  5              -26.941             -28.606             -25.276                  0.062
+0.25             -0.053            -0.381             0.275                0.812  5               -0.554              -2.429               1.322                  0.625
+0.95             -0.379            -0.639            -0.118                0.062  5               -2.473              -6.058               1.113                  0.125
+
+Q1 (causal effect: |Δ| > 2.0 p.p. with CI95 excluding 0): YES — a₅=0.0 (primaria), a₅=0.0 (secundaria), a₅=0.1 (primaria), a₅=0.1 (secundaria)
+Q2 (constant better than the center): NO
+Exploratory, no multiplicity correction (4 comparisons).

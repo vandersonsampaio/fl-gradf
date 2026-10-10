@@ -7,10 +7,9 @@ GRADFFederatedLearner: orchestrates the full GRADF pipeline per FL round —
 on top of the existing FL/attack infrastructure (AttackedFederatedLearner),
 following the same `_run_round` override pattern used there.
 
-Online selector learning (post-Gate-1 correction, see `src/defense/rl_selector.py`):
-`RLDefenseSelector` used to be trained only once, offline, before the first
-round — "adaptive" described only the architecture, not the learning
-behavior. `_run_round` now tracks the previous round's accuracy/fairness/
+Online selector learning (see `src/defense/rl_selector.py`):
+besides offline pretraining, `RLDefenseSelector` keeps learning during
+deployment. `_run_round` tracks the previous round's accuracy/fairness/
 latency (`self._prev_*`), passes that as `round_context` to
 `HardeningPipeline.full_pipeline` (which uses it to give the selector the
 rich 5-dimensional state via `select_action`), and calls
@@ -166,8 +165,7 @@ class GRADFFederatedLearner(AttackedFederatedLearner):
         round_t -> round_{t+1} temporal chain (that would require deferring
         the update by one step, since the NEXT round's classification
         doesn't exist yet), but a genuine transition (before/after this
-        decision), not the degenerate copy (`next_state = state`) previously
-        used when generating offline experiences.
+        decision), rather than a degenerate copy (`next_state = state`).
 
         The action used for credit/blame is the strategy ACTUALLY applied
         this round (`hardening_results["selected_strategy"]`, the majority

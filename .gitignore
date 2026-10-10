@@ -232,3 +232,24 @@ data/raw/mnist/*
 /results/_pre_fix_backup_20260804_202647/
 /results/_pre_gate1_backup_20260805_114757/
 /results/_pre_online_rl_backup_20260805_210107/
+
+# Local-only files and generated artifacts not versioned
+# (files already tracked under these paths are unaffected)
+CLAUDE.md
+data/raw/medmnist/
+data/raw/mimic/
+data/models/*.pt
+results/tables/*
+results/figures/*
+results/models/*
+results/audit_trail/
+results/audit_trail.jsonl
+notebooks/results/
+results/*/raw/grid.pgid
+results/b30_medmnist_sanity/raw/obs/
+results/*/raw/actors/*_step*.pt
+!results/*/raw/actors/*_step000.pt
+!results/*/raw/actors/*_step500.pt
+src/fl/local_trainer.py
+src/fl/server.py
+src/xai/tests/

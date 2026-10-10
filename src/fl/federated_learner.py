@@ -230,7 +230,7 @@ class _LogisticModel:
 class _CNNModel:
     """
     CNN local model (Keras), used when `FederatedLearner(model_type='cnn',
-    input_shape=...)` — Decision A4 (`references/plano_gradf_iclr2027.md`):
+    input_shape=...)` — Decision A4:
     stepping up from logistic regression to a small CNN.
 
     Deliberately implements the SAME public interface as `_LogisticModel`
@@ -471,7 +471,7 @@ class FederatedLearner:
         FLTrust server root dataset when no root_data is supplied.
     model_type : str
         'logistic' (default, `_LogisticModel`) or 'cnn' (`_CNNModel` — see
-        Decision A4, `references/plano_gradf_iclr2027.md`). With 'cnn',
+        Decision A4). With 'cnn',
         `input_shape` is required.
     input_shape : (int, int, int) | None
         Original image shape (e.g. `(28,28,1)` for MNIST, `(32,32,3)` for

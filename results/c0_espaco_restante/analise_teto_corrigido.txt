@@ -1,13 +1,13 @@
-C.0 — teto corrigido = melhor das 5 regras SEM ataque (mesmo regime do exp9)
+C.0 — corrected ceiling = best of the 5 rules WITHOUT attack (same regime as exp9)
 
-Acurácia sem ataque por alpha × regra (média de 10 sementes):
+Accuracy without attack per alpha × rule (mean of 10 seeds):
 rule   fedavg  fltrust    krum  median  trimmed_mean
 alpha                                               
 0.05   0.8535   0.7205  0.3277  0.6158        0.7648
 0.10   0.8554   0.7570  0.5455  0.7397        0.8311
 0.50   0.9051   0.8280  0.8842  0.8962        0.8985
 
-Regra-teto por alpha: α=0.05: fedavg, α=0.1: fedavg, α=0.5: fedavg
+Ceiling rule per alpha: α=0.05: fedavg, α=0.1: fedavg, α=0.5: fedavg
 
  alpha      attack_type  teto melhor_esqueleto  gap_esqueleto_pp melhor_global  acc_melhor_global  gap_global_pp  gap_glob_ic95_lo  gap_glob_ic95_hi
   0.10   label_flipping 0.855            fixed            14.589         fixed              0.710         14.589            10.552            18.626
@@ -32,6 +32,6 @@ Regra-teto por alpha: α=0.05: fedavg, α=0.1: fedavg, α=0.5: fedavg
   0.10  fltrust_aligned 0.855            fixed             7.476          krum              0.894         -3.906            -3.955            -3.857
   0.05  fltrust_aligned 0.854          sr_only            11.007          krum              0.896         -4.245            -4.312            -4.178
 
-[esqueleto (fixed/sr_only/AdaAggRL)] gap > 1 p.p.: 17/21 | > 2 p.p.: 13/21 | > 5 p.p.: 8/21
-[global (inclui regras fixas)] gap > 1 p.p.: 14/21 | > 2 p.p.: 10/21 | > 5 p.p.: 4/21
-[global] IC95 do gap acima de 0: 19/21 | gap negativo (algum método sob ataque supera o teto): 2/21
+[skeleton (fixed/sr_only/AdaAggRL)] gap > 1 p.p.: 17/21 | > 2 p.p.: 13/21 | > 5 p.p.: 8/21
+[global (includes fixed rules)] gap > 1 p.p.: 14/21 | > 2 p.p.: 10/21 | > 5 p.p.: 4/21
+[global] gap CI95 above 0: 19/21 | negative gap (some method under attack beats the ceiling): 2/21

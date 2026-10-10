@@ -1,0 +1,4 @@
+alpha,attack_type,mode,accuracy,seed
+0.5,low_mag_backdoor,td3,0.8968999999999999,42
+0.1,low_mag_backdoor,td3,0.8244,42
+0.05,low_mag_backdoor,td3,0.8497,42

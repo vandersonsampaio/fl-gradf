@@ -49,8 +49,7 @@ FedStrategist is evaluated with two detection configurations:
   its selection policy.
 
 - AdaAggRL detector + discrete selector (``adaaggrl_detector``,
-  ``DiscreteWithAdaAggRLDetectorLearner``; Frente 1, Etapa 1.1 of
-  ``references/1_roadmap_frentes_futuras.md``):
+  ``DiscreteWithAdaAggRLDetectorLearner``; Front 1, Stage 1.1):
   the inverse coupling of FedStrategist's shared-detection variant. It
   feeds AdaAggRL's own detector (gradient-inversion reconstruction and the
   four MMD-based cues, reused from ``src/defense/adaaggrl_agent.py``) into
@@ -281,7 +280,7 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
     `feature_extractor`: 'random' (default, reproduces the original floor
     result — `RandomCNNFeatureExtractor`, frozen random weights) or
     'pretrained' (`PretrainedCNNFeatureExtractor`, a real trained-then-
-    frozen CNN — Passo Zero, `references/1_roadmap_frentes_futuras.md`).
+    frozen CNN — Step Zero, `scripts/pretrain_adaaggrl_extractor.py`).
     `feature_dim` defaults differ between the two (16 vs. 32) to match each
     extractor's own natural width; pass explicitly to override.
     """
@@ -389,8 +388,8 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
 
 
 class DiscreteWithAdaAggRLDetectorLearner(AttackedFederatedLearner):
-    """Frente 1, Etapa 1.1 (`references/1_roadmap_frentes_futuras.md`) — the
-    experimento do detector compartilhado. Reuses AdaAggRL's REAL detector
+    """Front 1, Stage 1.1 — the
+    shared-detector experiment. Reuses AdaAggRL's REAL detector
     (gradient-inversion reconstruction + the 4 MMD-based environmental cues
     S_R/S_cl/S_cg/S_lg, `src/defense/adaaggrl_agent.py`) exactly as
     `AdaAggRLGridLearner` computes it, but hands the round-level summary to a
@@ -401,10 +400,10 @@ class DiscreteWithAdaAggRLDetectorLearner(AttackedFederatedLearner):
     the round's parameter DELTAS (the same mechanic every other discrete
     selector in this file uses), so the only thing borrowed from AdaAggRL is
     its detection signal, not its aggregation mechanic — keeping "detector"
-    and "selection family" cleanly separated, per the roadmap's own framing.
+    and "selection family" cleanly separated, per the study design.
 
-    `feature_extractor`: 'pretrained' (default here — Passo Zero's real,
-    trained-then-frozen CNN; the roadmap's Portão Zero found the pretrained
+    `feature_extractor`: 'pretrained' (default here — Step Zero's real,
+    trained-then-frozen CNN; the Step Zero gate found the pretrained
     extractor does not help AdaAggRL itself, so it is used here as the more
     faithful choice, not because it's expected to be decisive) or 'random'.
     Only supports `model_type='logistic'` (gradient inversion needs
@@ -479,8 +478,8 @@ class DiscreteWithAdaAggRLDetectorLearner(AttackedFederatedLearner):
         active = self._is_active(round_num)
         # compute_param_updates_auto: dispatches to the informed-attacker path
         # for INFORMED_ATTACK_TYPES instead of silently degrading them — see
-        # src/fl/attacked_learner.py's docstring and the bug note in
-        # references/resultado_experimento_seletores_adaptativos.md.
+        # src/fl/attacked_learner.py's docstring (blind attack paths silently
+        # degraded the informed attack types before this dispatch existed).
         param_updates, _is_byz_list = compute_param_updates_auto(self, participants, active, root_data)
         n_feat = participants[0].n_features
         K = 1 if self.n_classes == 2 else self.n_classes
@@ -535,7 +534,7 @@ def run_selector_comparison_grid(
     """`root_size=100` by default — validity condition 1 of the plan doc.
 
     `adaaggrl_feature_extractor`: 'random' (default, original floor) or
-    'pretrained' (Passo Zero real extractor) — see
+    'pretrained' (Step Zero real extractor) — see
     `AdaAggRLGridLearner`'s docstring."""
     alphas = alphas or [0.5, 0.1, 0.05]
     attack_types = attack_types or (INFORMED_ATTACKS + BLIND_ATTACKS)
@@ -663,7 +662,7 @@ if __name__ == "__main__":
     parser.add_argument("--variant", default="b", choices=["a", "b"])
     parser.add_argument(
         "--adaaggrl_feature_extractor", default="random", choices=["random", "pretrained"],
-        help="'random' reproduces the original floor result; 'pretrained' uses the Passo Zero "
+        help="'random' reproduces the original floor result; 'pretrained' uses the Step Zero "
              "real extractor (needs `python scripts/pretrain_adaaggrl_extractor.py` run first).",
     )
     parser.add_argument("--tag", default="", help="Optional suffix for output filenames.")

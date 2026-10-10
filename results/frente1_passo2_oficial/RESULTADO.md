@@ -1,77 +1,77 @@
-# Resultado — Passo 2: o TD3 contribui no AdaAggRL oficial?
+# Result — Step 2: does TD3 contribute in the official AdaAggRL?
 
-**Data:** 2026-09-27
-**Pré-registro:** `PREREGISTRO.md` (hash original e do Adendo 1 em `PREREGISTRO.sha256`)
-**Grade:** 30/30 runs (LMP, EB × td3/fixed/random × sementes 100–104; MNIST, q=0,5, 500 rodadas), 2026-09-25 12:46 → 2026-09-27 09:51, 0 falhas.
-**Análise:** `scripts/passo2_oficial/analisar.py` → `analise.txt`, `resumo_runs.csv`, `curvas_acc.csv`. Exploratórias rodadas à parte (comandos no §4).
+**Date:** 2026-09-27
+**Pre-registration:** `PREREGISTRO.md` (English translation in `PREREGISTRO.en.md`; original hash and Addendum 1 hash in `PREREGISTRO.sha256`)
+**Grid:** 30/30 runs (LMP, EB × td3/fixed/random × seeds 100–104; MNIST, q=0.5, 500 rounds), 2026-09-25 12:46 → 2026-09-27 09:51, 0 failures.
+**Analysis:** `scripts/passo2_oficial/analisar.py` → `analise.txt`, `resumo_runs.csv`, `curvas_acc.csv`. Exploratory checks run separately (see §4b).
 
 ---
 
-## 1. Resultado confirmatório (como pré-registrado)
+## 1. Confirmatory result (as pre-registered)
 
-Métrica primária: acurácia média nas rodadas 451–500 (runs truncados em 500 passos, Adendo 1).
+Primary metric: mean accuracy over rounds 451–500 (runs truncated at 500 steps, Addendum 1).
 
-| ataque | semente | fixed | random | td3 |
+| attack | seed | fixed | random | td3 |
 |---|---|---|---|---|
-| EB | 100 | 0,8811 | 0,9163 | 0,8250 |
-| EB | 101 | 0,9674 | 0,6995 | 0,9656 |
-| EB | 102 | 0,9671 | 0,8142 | 0,9660 |
-| EB | 103 | 0,9639 | 0,7969 | 0,9664 |
-| EB | 104 | 0,9622 | 0,6630 | 0,9679 |
-| LMP | 100 | 0,9659 | 0,9686 | 0,9648 |
-| LMP | 101 | 0,9654 | 0,9663 | 0,9696 |
-| LMP | 102 | 0,9680 | 0,9679 | 0,9657 |
-| LMP | 103 | 0,9631 | 0,9641 | 0,9668 |
-| LMP | 104 | 0,9655 | 0,9687 | 0,9675 |
+| EB | 100 | 0.8811 | 0.9163 | 0.8250 |
+| EB | 101 | 0.9674 | 0.6995 | 0.9656 |
+| EB | 102 | 0.9671 | 0.8142 | 0.9660 |
+| EB | 103 | 0.9639 | 0.7969 | 0.9664 |
+| EB | 104 | 0.9622 | 0.6630 | 0.9679 |
+| LMP | 100 | 0.9659 | 0.9686 | 0.9648 |
+| LMP | 101 | 0.9654 | 0.9663 | 0.9696 |
+| LMP | 102 | 0.9680 | 0.9679 | 0.9657 |
+| LMP | 103 | 0.9631 | 0.9641 | 0.9668 |
+| LMP | 104 | 0.9655 | 0.9687 | 0.9675 |
 
-**H1 (fixed − td3), pooled n=10:** Δ = **+0,45 p.p.**, IC95 (−0,87; +1,76), d = +0,24. TOST ±1,0 p.p.: p = 0,18. Wilcoxon: p = 0,56.
-→ **VEREDITO PRÉ-REGISTRADO: INCONCLUSIVO.** Não há evidência de que o TD3 seja melhor que a ação fixa (a estimativa pontual favorece a fixa), **mas a equivalência dentro de ±1 p.p. não foi demonstrada**.
-- LMP: Δ = −0,13 p.p., IC95 (−0,49; +0,23), Holm p = 0,88.
-- EB: Δ = +1,02 p.p., IC95 (−2,19; +4,23), Holm p = 1,00. A largura vem de **um** par (semente 100, ver §2.1).
+**H1 (fixed − td3), pooled n=10:** Δ = **+0.45 p.p.**, CI95 (−0.87; +1.76), d = +0.24. TOST ±1.0 p.p.: p = 0.18. Wilcoxon: p = 0.56.
+→ **PRE-REGISTERED VERDICT: INCONCLUSIVE.** There is no evidence that TD3 is better than the fixed action (the point estimate favors the fixed one), **but equivalence within ±1 p.p. was not shown**.
+- LMP: Δ = −0.13 p.p., CI95 (−0.49; +0.23), Holm p = 0.88.
+- EB: Δ = +1.02 p.p., CI95 (−2.19; +4.23), Holm p = 1.00. The width comes from **one** pair (seed 100, see §2.1).
 
-**H2 (random − td3), pooled n=10:** Δ = −8,00 p.p., IC95 (−17,53; +1,54), d = −0,60. TOST p = 0,93, Wilcoxon p = 0,19 → **INCONCLUSIVO**.
-- LMP: Δ = +0,02 p.p. (a ação é irrelevante sob LMP).
-- EB: Δ = −16,02 p.p., Holm p = 0,25 (ação aleatória colapsa sob EB em 4/5 sementes, mas n=5 não basta para Wilcoxon + Holm).
+**H2 (random − td3), pooled n=10:** Δ = −8.00 p.p., CI95 (−17.53; +1.54), d = −0.60. TOST p = 0.93, Wilcoxon p = 0.19 → **INCONCLUSIVE**.
+- LMP: Δ = +0.02 p.p. (the action is irrelevant under LMP).
+- EB: Δ = −16.02 p.p., Holm p = 0.25 (a random action collapses under EB in 4/5 seeds, but n=5 is not enough for Wilcoxon + Holm).
 
-## 2. Resultados exploratórios (não confirmatórios)
+## 2. Exploratory results (not confirmatory)
 
-### 2.1 O único par discrepante é um artefato de reset tardio
-O ambiente oficial reinicializa o modelo de FL do zero quando a recompensa < −80 (auditoria §2.5). Em EB, semente 100, **fixed resetou na rodada 421 e td3 na 441** — a janela 451–500 mede a recuperação de um modelo recém-reinicializado, não o regime estável (fixed: mín 0,72 na janela; td3: mín 0,56). Nos outros 9 pares, |Δ| ≤ 0,5 p.p. Excluir o par não é permitido pelo pré-registro; registra-se como a causa da largura do IC.
+### 2.1 The only discrepant pair is a late-reset artifact
+The official environment re-initializes the FL model from scratch when the reward is < −80. In EB, seed 100, **fixed reset at round 421 and td3 at 441** — the 451–500 window measures the recovery of a freshly re-initialized model, not the stable regime (fixed: min 0.72 in the window; td3: min 0.56). In the other 9 pairs, |Δ| ≤ 0.5 p.p. The pre-registration does not allow excluding the pair; it is recorded as the cause of the CI width.
 
-Contagem de resets extras (5 sementes somadas):
+Extra-reset counts (5 seeds summed):
 
 | | fixed | td3 | random |
 |---|---|---|---|
 | EB | 3 | 14 | 60 |
 | LMP | 1 | 3 | 0 |
 
-Os resets do td3 se concentram antes da rodada 122 — na fase de aquecimento de 100 rodadas com ação uniformemente aleatória do SB3. Depois do aquecimento, só 1 reset (s100, rodada 441). **O custo do TD3 sob EB é o aquecimento aleatório, não a política aprendida.**
+The td3 resets concentrate before round 122 — in SB3's 100-round warm-up phase with uniformly random actions. After the warm-up, only 1 reset (s100, round 441). **TD3's cost under EB is the random warm-up, not the learned policy.**
 
-### 2.2 A política TD3 não se afasta do ponto inicial e não depende do ataque
-- Deriva média da ação em relação ao centro do Box (0,475) nas rodadas 101–500: ≤ 0,023 por dimensão (média entre sementes); máximo por semente/dimensão 0,079. Sem tendência entre janelas de 100 rodadas.
-- **Mesma semente, ataques diferentes → quase a mesma sequência de ações:** correlação passo a passo das ações após a rodada 100 entre EB e LMP = **0,91 / 0,99 / 0,99 / 0,94 / 0,99** (sementes 100–104), com ações médias iguais até a 3ª casa decimal. Os estados e recompensas diferem muito entre os ataques (p.ex. a regra `sim_lc ≥ 0,9` dispara 1,4×/rodada em EB e ~0 em LMP). A trajetória é determinada pela inicialização da rede e pela sequência de ruído (ambas fixadas pela semente), **não pelo que o agente observa**.
-- Coerente com o orçamento calculado na auditoria: ~133 passos de crítico / ~66 de ator com lr 1e-5.
+### 2.2 The TD3 policy does not move away from its starting point and does not depend on the attack
+- Mean drift of the action relative to the Box center (0.475) over rounds 101–500: ≤ 0.023 per dimension (mean across seeds); maximum per seed/dimension 0.079. No trend across 100-round windows.
+- **Same seed, different attacks → almost the same action sequence:** step-by-step correlation of the actions after round 100 between EB and LMP = **0.91 / 0.99 / 0.99 / 0.94 / 0.99** (seeds 100–104), with mean actions equal to the 3rd decimal place. States and rewards differ a lot between the attacks (e.g. the `sim_lc ≥ 0.9` rule fires 1.4×/round under EB and ~0 under LMP). The trajectory is determined by the network initialization and the noise sequence (both fixed by the seed), **not by what the agent observes**.
+- Consistent with the learning budget of the published configuration: ~133 critic steps / ~66 actor steps at lr 1e-5.
 
-### 2.3 O filtro com memória exclui os atacantes em qualquer condição
-Massa de peso agregada aos atacantes reais, média por rodada: ≤ 0,0011 em todas as 6 combinações (inclusive `random`). Sob LMP a ação não importa (as três condições empatam); sob EB, ação aleatória prejudica via resets, e a fixa é tão boa quanto o TD3.
+### 2.3 The memory filter excludes the attackers in every condition
+Weight mass aggregated onto real attackers, mean per round: ≤ 0.0011 in all 6 combinations (including `random`). Under LMP the action does not matter (the three conditions tie); under EB, a random action hurts through resets, and the fixed one is as good as TD3.
 
-## 3. Leitura e consequências para o plano
+## 3. Reading and consequences for the plan
 
-**O que se pode afirmar:**
-1. (confirmatório) No código e horizonte publicados, **não há evidência de que o TD3 supere uma ação fixa**; a estimativa pontual favorece a fixa (+0,45 p.p.).
-2. (confirmatório) A equivalência em ±1 p.p. **não foi estabelecida** com 5 sementes — sobretudo por um reset tardio em EB.
-3. (exploratório, forte) A política aprendida **é essencialmente a política inicial mais ruído**: não se afasta do centro e é quase idêntica entre ataques com estados e recompensas muito diferentes.
+**What can be claimed:**
+1. (confirmatory) In the published code and horizon, **there is no evidence that TD3 beats a fixed action**; the point estimate favors the fixed one (+0.45 p.p.).
+2. (confirmatory) Equivalence within ±1 p.p. **was not established** with 5 seeds — mainly because of one late reset under EB.
+3. (exploratory, strong) The learned policy **is essentially the initial policy plus noise**: it does not move away from the center and is almost identical across attacks with very different states and rewards.
 
-**O que não se pode afirmar:** "o TD3 é equivalente à ação fixa" (TOST falhou); "o TD3 atrapalha" (nenhum teste significativo).
+**What cannot be claimed:** "TD3 is equivalent to the fixed action" (TOST failed); "TD3 hurts" (no significant test).
 
-**Ramos do plano (§6):** nenhum dos dois desfechos pré-registrados se concretizou de forma limpa. A leitura mais honesta é "o RL não contribui neste horizonte, e o mecanismo é que ele não chega a aprender", o que sustenta a tese central em caráter **exploratório**, e não o ramo "o RL só se paga depois de N rodadas" (não há nenhuma tendência de aprendizado ao longo das 500 rodadas).
+**Branches of the plan (§6 of the pre-registration):** neither pre-registered outcome materialized cleanly. The most honest reading is "RL does not contribute at this horizon, and the mechanism is that it never gets to learn", which supports the central thesis on an **exploratory** basis, and not the branch "RL only pays off after N rounds" (there is no learning trend over the 500 rounds).
 
-## 4. Opções de próximo passo (decisão do autor)
+## 4. Next-step options (author's decision)
 
-1. **Replicação confirmatória da equivalência**, com novo pré-registro: sementes novas (p.ex. 105–114), mesma margem. Declarar como estudo novo, nunca como extensão sequencial das sementes 100–104 sem correção. Considerar pré-registrar também uma métrica robusta a resets (p.ex. janela estável: rodadas sem reset nas 50 anteriores), justificada por §2.1. Custo: ~9 h por lote de 6 runs (só fixed e td3: 20 runs ≈ 30 h).
-2. **Confirmar o achado mecanístico (§2.2)** como hipótese pré-registrada: "correlação EB×LMP das ações ≥ 0,9 por semente" e "|deriva| < ruído de exploração". Barato: os dados já existem para as sementes 100–104 (exploratórios), a confirmação exigiria sementes novas — pode rodar junto com a opção 1.
-3. **Seguir para os Passos 3–5** tratando o Passo 2 como: "sem evidência de contribuição do TD3; política não aprende no orçamento publicado" (exploratório), e reservar a opção 1 para antes da submissão.
+1. **Confirmatory replication of the equivalence**, with a new pre-registration: new seeds (e.g. 105–114), same margin. Declare it as a new study, never as a sequential extension of seeds 100–104 without correction. Consider also pre-registering a reset-robust metric (e.g. a stable window: rounds with no reset in the previous 50), justified by §2.1. Cost: ~9 h per batch of 6 runs (fixed and td3 only: 20 runs ≈ 30 h).
+2. **Confirm the mechanistic finding (§2.2)** as a pre-registered hypothesis: "EB×LMP action correlation ≥ 0.9 per seed" and "|drift| < exploration noise". Cheap: the data already exist for seeds 100–104 (exploratory); confirmation would need new seeds — it can run together with option 1.
+3. **Move on to Steps 3–5**, treating Step 2 as: "no evidence of a TD3 contribution; the policy does not learn within the published budget" (exploratory), and keep option 1 for before submission.
 
-## 4b. Comandos das exploratórias
+## 4b. Commands for the exploratory checks
 
-As checagens do §2 foram rodadas ad hoc sobre `raw/*.json` (resets por run, deriva da ação por janela, correlação EB×LMP das ações por semente). Para reproduzir, ler `steps[:500]` de cada JSON: campos `action`, `acc`, e `resets[1:]`.
+The §2 checks were run ad hoc on `raw/*.json` (resets per run, action drift per window, EB×LMP action correlation per seed). To reproduce, read `steps[:500]` of each JSON: fields `action`, `acc`, and `resets[1:]`.

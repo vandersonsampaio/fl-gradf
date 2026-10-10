@@ -1,20 +1,20 @@
 """
-B2.1 + B2.2 (references/roadmap_tese_gradf_v2.md §4): replicação confirmatória
-no AdaAggRL oficial, sementes 105-114, `fixed` contra `td3`, mais a
-instrumentação para as hipóteses mecanísticas do B2.2.
+B2.1 + B2.2 (results/b21_replicacao_oficial/PREREGISTRO.md): confirmatory replication
+in the official AdaAggRL, seeds 105-114, `fixed` vs. `td3`, plus the
+instrumentation for the B2.2 mechanistic hypotheses.
 
-Reusa `run_oficial.py` (Passo 2) sem alterá-lo: mesmo ambiente oficial, mesmo
-adaptador Gymnasium, mesmas condições, mesmos hiperparâmetros do TD3 e mesmo
-controle de sementes. Acrescenta só logging:
+Reuses `run_oficial.py` (Step 2) without changing it: same official environment, same
+Gymnasium adapter, same conditions, same TD3 hyperparameters and same
+seed control. It only adds logging:
 
-  1. Estados observados: o estado que a política recebe antes de cada ação
-     (10 clientes x 4 cues) é salvo em `obs/<tag>.npy`, com shape (passos, 10, 4).
-  2. Checkpoints do ator do TD3: `model.actor.state_dict()` no início do
-     treino (passo 0, política inicial) e a cada 50 passos do ambiente, em
-     `actors/<tag>_stepNNN.pt`. Com isso o B2.2 avalia a política determinística
-     (sem ruído de exploração) em estados trocados.
+  1. Observed states: the state the policy receives before each action
+     (10 clients x 4 cues) is saved to `obs/<tag>.npy`, with shape (steps, 10, 4).
+  2. TD3 actor checkpoints: `model.actor.state_dict()` at the start of
+     training (step 0, initial policy) and every 50 environment steps, in
+     `actors/<tag>_stepNNN.pt`. With this, B2.2 evaluates the deterministic policy
+     (without exploration noise) on swapped states.
 
-Uso (sempre com o venv isolado):
+Usage (always with the isolated venv):
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_b21.py \
       --attack EB --condition td3 --seed 105
 """
@@ -27,7 +27,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-import run_oficial as R  # noqa: E402  (também configura sys.path para o shim e o código oficial)
+import run_oficial as R  # noqa: E402  (also sets sys.path for the shim and the official code)
 
 import numpy as np  # noqa: E402
 import torch  # noqa: E402
@@ -40,8 +40,8 @@ DEFAULT_OUT = os.path.join(R.REPO, "results", "b21_replicacao_oficial", "raw")
 
 
 class ObsRecordingAdapter(R.OfficialEnvAdapter):
-    """Igual ao adaptador do Passo 2, mais o registro do estado que a política
-    vê antes de cada ação (a observação devolvida pelo reset ou step anterior)."""
+    """Same as the Step 2 adapter, plus recording the state the policy
+    sees before each action (the observation returned by the previous reset or step)."""
 
     def __init__(self, inner, log_stream):
         super().__init__(inner, log_stream)
@@ -61,7 +61,7 @@ class ObsRecordingAdapter(R.OfficialEnvAdapter):
 
 
 class ActorCheckpoint(BaseCallback):
-    """Salva o state_dict do ator no início do treino e a cada ACTOR_EVERY passos."""
+    """Saves the actor state_dict at the start of training and every ACTOR_EVERY steps."""
 
     def __init__(self, prefix: str):
         super().__init__()
@@ -99,7 +99,7 @@ def run(attack: str, condition: str, seed: int, rounds: int, q: float, dataset: 
         t_start = time.perf_counter()
         with open(log_path, "w", buffering=1) as log_stream:
             with contextlib.redirect_stdout(log_stream):
-                inner = E.FL_mnist(R._official_args(dataset, attack, q))  # faz random.seed(150)
+                inner = E.FL_mnist(R._official_args(dataset, attack, q))  # calls random.seed(150)
             set_random_seed(seed, using_cuda=torch.cuda.is_available())
             env = ObsRecordingAdapter(inner, log_stream)
             env.action_space.seed(seed)
@@ -127,7 +127,7 @@ def run(attack: str, condition: str, seed: int, rounds: int, q: float, dataset: 
                     if term:
                         env.reset()
             else:
-                raise ValueError(f"B2.1 só tem as condições td3 e fixed, não '{condition}'")
+                raise ValueError(f"B2.1 only has the td3 and fixed conditions, not '{condition}'")
         elapsed = time.perf_counter() - t_start
     finally:
         os.chdir(cwd)

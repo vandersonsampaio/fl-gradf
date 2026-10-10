@@ -49,39 +49,39 @@ class XAIExplainer:
         self, decision: str, old_accuracy: Optional[float], new_accuracy: Optional[float]
     ) -> Dict[str, str]:
         if old_accuracy is None or new_accuracy is None:
-            return {"if_accepted": "não avaliado", "if_rejected": "não avaliado"}
+            return {"if_accepted": "not evaluated", "if_rejected": "not evaluated"}
 
         if decision == 'REJECTED':
             return {
                 'if_accepted': (
-                    f"Acurácia cairia de {old_accuracy:.2%} para {new_accuracy:.2%} "
+                    f"Accuracy would drop from {old_accuracy:.2%} to {new_accuracy:.2%} "
                     f"({new_accuracy - old_accuracy:+.2%})"
                 ),
-                'if_rejected': f"Acurácia mantida em {old_accuracy:.2%}",
+                'if_rejected': f"Accuracy kept at {old_accuracy:.2%}",
             }
         return {
-            'if_accepted': f"Acurácia em {new_accuracy:.2%}",
-            'if_rejected': f"Acurácia permaneceria em {old_accuracy:.2%} (update descartado)",
+            'if_accepted': f"Accuracy at {new_accuracy:.2%}",
+            'if_rejected': f"Accuracy would stay at {old_accuracy:.2%} (update discarded)",
         }
 
     def _create_narrative(self, hospital_id: str, evidence: Dict, decision: str) -> str:
         """Generates natural-language explanatory text"""
         if decision == 'REJECTED':
             return f"""
-            Este update foi rejeitado porque:
-            1. Gradientes {evidence['gradient_magnitude']:.1f}x maiores que normal
-            2. Causaria degradação de acurácia de {evidence['accuracy_drop']:.1%}
-            3. Padrão similar ao ataque {evidence.get('attack_type', 'desconhecido')}
-            4. Comportamento inconsistente com histórico
+            This update was rejected because:
+            1. Gradients {evidence['gradient_magnitude']:.1f}x larger than normal
+            2. It would degrade accuracy by {evidence['accuracy_drop']:.1%}
+            3. Pattern similar to the {evidence.get('attack_type', 'unknown')} attack
+            4. Behavior inconsistent with history
 
-            Recomendação: Investigar {hospital_id} imediatamente.
+            Recommendation: Investigate {hospital_id} immediately.
             """
         return f"""
-            Este update foi aceito:
-            1. Gradientes dentro de limites normais
-            2. Não degrada acurácia do modelo
-            3. Padrão consistente com histórico
-            4. Confiança: {evidence['confidence']:.1%}
+            This update was accepted:
+            1. Gradients within normal limits
+            2. Does not degrade model accuracy
+            3. Pattern consistent with history
+            4. Confidence: {evidence['confidence']:.1%}
             """
 
 

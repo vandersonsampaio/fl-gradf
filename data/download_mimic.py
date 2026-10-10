@@ -1,32 +1,32 @@
 """
-Baixa o dataset MIMIC-III (v1.4) do PhysioNet para data/raw/mimic/.
+Downloads the MIMIC-III (v1.4) dataset from PhysioNet into data/raw/mimic/.
 
-Requer uma conta credenciada no PhysioNet com acesso ao MIMIC-III (inclui
-completar o treinamento CITI) — ver https://physionet.org/content/mimiciii/.
-Edite `username` abaixo antes de rodar; a senha é pedida interativamente
-(não fica visível em `ps`/histórico do shell).
+Requires a credentialed PhysioNet account with MIMIC-III access (includes
+completing the CITI training) — see https://physionet.org/content/mimiciii/.
+Edit `username` below before running; the password is asked interactively
+(it is not visible in `ps`/shell history).
 
-Depois de baixar, rode `python data/merge_mimic_tables.py` para gerar o
-`merged_data.csv` que `src/utils/hospital_splitter.py` espera.
+After downloading, run `python data/merge_mimic_tables.py` to build the
+`merged_data.csv` that `src/utils/hospital_splitter.py` expects.
 """
 
 import getpass
 import glob
 import subprocess
 
-username = "seu_email@example.com"
+username = "your_email@example.com"
 
 
 if __name__ == "__main__":
-    if username == "seu_email@example.com":
+    if username == "your_email@example.com":
         raise SystemExit(
-            "Edite a variável `username` neste arquivo com seu e-mail do PhysioNet antes de rodar."
+            "Edit the `username` variable in this file with your PhysioNet e-mail before running."
         )
 
-    password = getpass.getpass("Senha PhysioNet: ")
+    password = getpass.getpass("PhysioNet password: ")
 
-    # -nH --cut-dirs=3 evita que o wget replique a árvore de diretórios do URL
-    # (physionet.org/files/mimiciii/1.4/...) dentro de data/raw/mimic/.
+    # -nH --cut-dirs=3 keeps wget from replicating the URL's directory tree
+    # (physionet.org/files/mimiciii/1.4/...) inside data/raw/mimic/.
     subprocess.run(
         [
             "wget", "-r", "-N", "-c", "-np", "-nH", "--cut-dirs=3",
@@ -38,5 +38,5 @@ if __name__ == "__main__":
     )
 
     csv_files = glob.glob("data/raw/mimic/**/*.csv", recursive=True)
-    print(f"✓ {len(csv_files)} arquivos CSV encontrados em data/raw/mimic/")
-    print("Próximo passo: python data/merge_mimic_tables.py")
+    print(f"✓ {len(csv_files)} CSV files found in data/raw/mimic/")
+    print("Next step: python data/merge_mimic_tables.py")

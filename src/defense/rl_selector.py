@@ -223,8 +223,9 @@ class RLDefenseSelector:
         `tests/test_defense.py::test_selector_trains_on_real_experiences`,
         which assumes `len(losses) == len(experiences)`) means a SINGLE
         training step per experience, which is not enough to reliably
-        converge with the small experience buffers used in practice — see
-        CLAUDE.md. Production callers (`exp1_baseline.py`, `exp4_adaptive.py`)
+        converge with the small experience buffers used in practice (a
+        single pass was verified to pick the wrong strategy for label_flipping,
+        while epochs=200 converges on all attack types). Production callers (`exp1_baseline.py`, `exp4_adaptive.py`)
         pass `epochs=200` explicitly."""
         rng = np.random.default_rng(seed)
         order = list(range(len(experiences)))

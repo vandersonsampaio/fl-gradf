@@ -9,7 +9,7 @@ class RLAttackClassifier:
     """Classifies the attack type from the 4 detection modality scores.
 
     Design note: despite the name (kept for consistency with the papers'
-    narrative in references/), this component is trained as a supervised
+    narrative), this component is trained as a supervised
     classifier — the ground-truth attack label is known during training
     (comes from AttackSimulator), so there is no real "environment" to
     explore via DQN. `src.defense.rl_selector.RLDefenseSelector` is the

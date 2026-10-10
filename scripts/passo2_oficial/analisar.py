@@ -1,19 +1,19 @@
 """
-Análise do Passo 2, conforme results/frente1_passo2_oficial/PREREGISTRO.md §5-6.
+Step 2 analysis, following results/frente1_passo2_oficial/PREREGISTRO.md §5-6.
 
-Escrita antes de existir qualquer resultado da grade. Unidade = par
-(ataque, semente); D = métrica(cond) - métrica(td3).
+Written before any grid result existed. Unit = (attack, seed)
+pair; D = metric(cond) - metric(td3).
 
-  Primária: acurácia média nas `window` últimas rodadas (padrão 50, rodadas
-            451-500), tomada dos passos do ambiente (1 passo = 1 rodada).
-  H1: fixed - td3. TOST pareado (t), margem ±1,0 p.p., alfa 0,05;
-      Wilcoxon pareado para diferença.
-  H2: random - td3, mesmo procedimento.
-  Por ataque: Δ, IC 95%, d, Wilcoxon + Holm (descritivo).
-  Exploratório: distância das ações do TD3 ao centro (0,475) após a rodada
-  100, massa de peso nos atacantes reais, resets, disparos da regra sim_lc.
+  Primary: mean accuracy over the last `window` rounds (default 50, rounds
+           451-500), taken from the environment steps (1 step = 1 round).
+  H1: fixed - td3. Paired TOST (t), margin ±1.0 p.p., alpha 0.05;
+      paired Wilcoxon for a difference.
+  H2: random - td3, same procedure.
+  Per attack: Δ, 95% CI, d, Wilcoxon + Holm (descriptive).
+  Exploratory: distance of the TD3 actions to the center (0.475) after round
+  100, weight mass on real attackers, resets, sim_lc rule firings.
 
-Uso:
+Usage:
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar.py
 """
 
@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-MARGIN = 0.010  # 1,0 p.p.
+MARGIN = 0.010  # 1.0 p.p.
 ALPHA = 0.05
 CENTER = 0.475
 ATTACKS = ["LMP", "EB"]
@@ -37,9 +37,9 @@ def load(raw_dir: str, rounds: int) -> pd.DataFrame:
     rows = []
     for f in sorted(glob.glob(os.path.join(raw_dir, f"*_R{rounds}.json"))):
         d = json.load(open(f))
-        # O SB3 coleta em blocos de train_freq=3, então o td3 roda 501 passos
-        # (o main.py oficial também). Truncar em `rounds` iguala as janelas
-        # entre condições (adendo 1 do PREREGISTRO).
+        # SB3 collects in blocks of train_freq=3, so td3 runs 501 steps
+        # (so does the official main.py). Truncating at `rounds` equalizes the windows
+        # across conditions (addendum 1 of the PREREGISTRO).
         n_raw = len(d["steps"])
         steps = d["steps"][:rounds]
         acc = np.array([s["acc"] for s in steps])
@@ -94,10 +94,10 @@ def holm(pvals):
 
 def verdict(desc: dict, p_tost: float) -> str:
     if p_tost < ALPHA:
-        return "EQUIVALENTE (TOST)"
+        return "EQUIVALENT (TOST)"
     if desc["wilcoxon_p"] < ALPHA:
-        return "td3 MELHOR" if desc["delta_pp"] < 0 else "condição MELHOR que td3 (não afirmar 'atrapalha')"
-    return "INCONCLUSIVO"
+        return "td3 BETTER" if desc["delta_pp"] < 0 else "condition BETTER than td3 (do not claim 'td3 hurts')"
+    return "INCONCLUSIVE"
 
 
 def main():
@@ -110,13 +110,13 @@ def main():
 
     df = load(a.raw_dir, a.rounds)
     df["primary"] = df["acc"].apply(lambda x: float(np.mean(x[-a.window:])))
-    lines = [f"Passo 2 — {len(df)} runs carregados (esperados {len(ATTACKS) * 3 * len(SEEDS)})", ""]
+    lines = [f"Step 2 — {len(df)} runs loaded (expected {len(ATTACKS) * 3 * len(SEEDS)})", ""]
     incomplete = df[df["n_steps"] != a.rounds]
     if len(incomplete):
-        lines.append(f"ATENÇÃO: runs com número de passos != {a.rounds}:\n{incomplete[['attack','condition','seed','n_steps']]}")
+        lines.append(f"WARNING: runs with number of steps != {a.rounds}:\n{incomplete[['attack','condition','seed','n_steps']]}")
 
     tab = df.pivot_table(index=["attack", "seed"], columns="condition", values="primary")
-    lines += ["Métrica primária (acurácia média nas últimas %d rodadas):" % a.window, tab.round(4).to_string(), ""]
+    lines += ["Primary metric (mean accuracy over the last %d rounds):" % a.window, tab.round(4).to_string(), ""]
 
     for cond, label in [("fixed", "H1: fixed − td3"), ("random", "H2: random − td3")]:
         if cond not in tab or "td3" not in tab:
@@ -128,10 +128,10 @@ def main():
         desc = describe(d)
         pl, ph = tost_paired(d, MARGIN)
         p_tost = max(pl, ph)
-        lines += [f"== {label} (pooled, pares ataque×semente) ==",
-                  f"  n={desc['n']}  Δ={desc['delta_pp']:+.2f} p.p.  IC95=({desc['ci95_pp'][0]:+.2f}, {desc['ci95_pp'][1]:+.2f})  d={desc['d']:+.2f}",
+        lines += [f"== {label} (pooled, attack×seed pairs) ==",
+                  f"  n={desc['n']}  Δ={desc['delta_pp']:+.2f} p.p.  CI95=({desc['ci95_pp'][0]:+.2f}, {desc['ci95_pp'][1]:+.2f})  d={desc['d']:+.2f}",
                   f"  TOST ±{100*MARGIN:.1f} p.p.: p={p_tost:.4f}   Wilcoxon: p={desc['wilcoxon_p']:.4f}",
-                  f"  VEREDITO: {verdict(desc, p_tost)}"]
+                  f"  VERDICT: {verdict(desc, p_tost)}"]
         per = []
         for att in ATTACKS:
             if att in pair.index.get_level_values(0):
@@ -141,10 +141,10 @@ def main():
         if per:
             adj = holm(np.array([x[1]["wilcoxon_p"] for x in per]))
             for (att, ds), pa in zip(per, adj):
-                lines.append(f"    {att}: n={ds['n']} Δ={ds['delta_pp']:+.2f} p.p. IC95=({ds['ci95_pp'][0]:+.2f}, {ds['ci95_pp'][1]:+.2f}) d={ds['d']:+.2f} Wilcoxon p={ds['wilcoxon_p']:.4f} Holm={pa:.4f}")
+                lines.append(f"    {att}: n={ds['n']} Δ={ds['delta_pp']:+.2f} p.p. CI95=({ds['ci95_pp'][0]:+.2f}, {ds['ci95_pp'][1]:+.2f}) d={ds['d']:+.2f} Wilcoxon p={ds['wilcoxon_p']:.4f} Holm={pa:.4f}")
         lines.append("")
 
-    lines += ["== Secundárias / exploratórias (média por ataque × condição) ==",
+    lines += ["== Secondary / exploratory (mean per attack × condition) ==",
               df.groupby(["attack", "condition"])[["final_acc", "att_mass_mean", "n_resets_extra",
                                                     "simlc_rows_per_round", "act_dist_center_post100",
                                                     "act_std_post100"]].mean().round(4).to_string()]
