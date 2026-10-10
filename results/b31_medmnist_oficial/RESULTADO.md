@@ -58,6 +58,23 @@ sd_estados is the standard deviation of π₅₀₀'s output across the states o
 - **Under EB, π₅₀₀ varies more across states (sd 0.068 > σ_a)** than under LMP (0.0095). The most likely explanation is in §3: with resets every ~23 rounds, the observed states change a lot over the run and the same almost-static network produces more spread-out outputs. This is exploratory. The variation still does not turn into a performance difference (§1).
 - **H3 fails:** the actions executed under EB and LMP with the same seed correlate ~0.6, vs. ~0.99 on MNIST. B2.1 already noted that this correlation comes from the **shared noise sequence** and drops when the runs have different reset histories (s110, r = 0.899). On BloodMNIST there are ~20 resets per run, vs. 0.2–2.2 on MNIST (§3), and that is what desynchronizes the runs. This interpretation is exploratory: the confirmatory result is only that H3 does not repeat.
 
+### Post-hoc reference: the initial actor π₀ on the same states (descriptive, not pre-registered)
+
+Added after the analysis, like B2.2's "initial actor" reference on MNIST. The same three sensitivity measures were computed for the **initial actor π₀** of each td3 run, on the same states of rounds 401–500 used for π₅₀₀. Script: `scripts/passo2_oficial/b31_pi0_referencia.py`; outputs `pi0_referencia.txt` and `pi0_referencia.csv` (per run).
+
+| attack | sd_estados π₀ | sd_estados π₅₀₀ | S_swap π₀ | S_swap π₅₀₀ | S_shuffle π₀ | S_shuffle π₅₀₀ |
+|---|---|---|---|---|---|---|
+| EB | 0.0637 | 0.0676 | 0.0186 | 0.0208 | 0.0287 | 0.0284 |
+| LMP | 0.0090 | 0.0095 | 0.0186 | 0.0210 | 0.0106 | 0.0110 |
+
+Medians per attack (n = 10 each). Per-run ratio π₅₀₀/π₀ (median, n = 20): sd_estados 1.03 (0.84–1.18), S_swap 1.04 (0.95–1.16), S_shuffle 1.04 (0.83–1.21).
+
+**Reading:**
+- **The final policy is as sensitive to its input as a freshly initialized network.** All three ratios are ≈ 1. In 500 rounds, training did not make the actor respond more (or less) to the state. This is the same conclusion as B2.2 on MNIST, now on BloodMNIST.
+- **The larger spread under EB is already present in π₀** (sd_estados 0.064 vs. 0.009 under LMP). It comes from the states that the EB runs visit, not from anything learned. This supports the explanation given above (periodic resets make the observed states vary more).
+- **The ~4× higher S_swap than on MNIST is also already present in π₀** (0.0186). It reflects BloodMNIST's states, not a policy that came to depend on them.
+- This reference is descriptive and does not change the pre-registered verdicts for H3–H5.
+
 ## 3. Exploratory findings (not confirmatory): periodic-reset regime
 
 - **All 40 runs are in a periodic-reset regime.**
@@ -92,4 +109,5 @@ sd_estados is the standard deviation of π₅₀₀'s output across the states o
 - `analise.txt`: full output of the pre-registered analysis.
 - `resumo_runs.csv`: per run, the primary, the AUCs, the resets, the reset in 401–500 and the mass on attackers.
 - `mecanismo.csv`: per td3 run, drift, sd_estados, S_swap and S_shuffle.
+- `pi0_referencia.txt`, `pi0_referencia.csv`: the post-hoc π₀ reference (§2), not pre-registered.
 - `raw/`: the 40 JSONs, the `obs` and the actor checkpoints. Intermediate checkpoints are not versioned (pre-registration §8).

@@ -14,7 +14,7 @@ It also contains from-spec reproductions of four competing adaptive defenses: **
 |---|---|
 | this file | overview, the p1.0.0 paper, quick start, audit summary |
 | [`src/README.md`](src/README.md) | architecture, implementation status, known simplifications, design notes, tests |
-| [`results/README.md`](results/README.md) | the post-p1.0.0 AdaAggRL audit: layout, conventions, how to run, full results |
+| [`results/README.md`](results/README.md) | the post-p1.0.0 AdaAggRL audit: conventions, **reproduction guide** (seeds, commands and result document per experiment), full results |
 
 ---
 
