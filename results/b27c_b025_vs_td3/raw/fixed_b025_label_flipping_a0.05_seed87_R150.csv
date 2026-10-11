@@ -1,0 +1,4 @@
+alpha,attack_type,seed,system,H,accuracy,sec
+0.05,label_flipping,87,fixed_b025,15,0.7036,1552.2324409484863
+0.05,label_flipping,87,fixed_b025,50,0.7227,1552.2324435710907
+0.05,label_flipping,87,fixed_b025,150,0.7597000000000002,1552.2324447631836

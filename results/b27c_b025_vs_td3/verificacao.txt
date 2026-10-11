@@ -1,0 +1,2 @@
+td3_ref: new 0.719400 vs reference 0.719400 |Δ| = 0.00e+00 OK
+fixed_b025: new 0.725400 vs reference 0.725400 |Δ| = 0.00e+00 OK

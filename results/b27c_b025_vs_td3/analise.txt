@@ -1,0 +1,23 @@
+B2.7c reformulated (CONFIRMATORY) — fixed_b025 vs td3_ref, seeds 82–91, 3 cells
+runs at H = 150: 60 (expected 60)
+
+D = fixed_b025 − td3_ref (p.p.), paired by seed; one-sided t; Holm over 3 cells at H = 150:
+  H  alpha      attack_type  n  td3_ref  fixed_b025   D_pp  ic95_lo  ic95_hi  ic90_unilat_lo     d_z  p_t_unilat  p_wilcoxon_unilat holm_rejeita
+ 15   0.05   label_flipping 10   64.869      70.374  5.505  -1.2895  12.2995         -0.0009  0.5796      0.0500             0.0527          NaN
+ 15   0.10   label_flipping 10   67.438      66.728 -0.710  -6.8409   5.4209         -5.6781 -0.0828      0.6004             0.7217          NaN
+ 15   0.05 low_mag_backdoor 10   75.869      84.243  8.374   2.7165  14.0315          3.7895  1.0588      0.0043             0.0020          NaN
+ 50   0.05   label_flipping 10   63.958      72.373  8.415   1.7392  15.0908          3.0053  0.9017      0.0095             0.0068          NaN
+ 50   0.10   label_flipping 10   65.259      68.688  3.429   0.6419   6.2161          1.1705  0.8801      0.0106             0.0322          NaN
+ 50   0.05 low_mag_backdoor 10   78.860      86.074  7.214   3.1336  11.2944          3.9075  1.2647      0.0016             0.0020          NaN
+150   0.05   label_flipping 10   66.728      75.785  9.057   3.3876  14.7264          4.4629  1.1428      0.0028             0.0010         True
+150   0.10   label_flipping 10   69.741      78.830  9.089   2.4448  15.7332          3.7050  0.9786      0.0064             0.0010         True
+150   0.05 low_mag_backdoor 10   81.850      87.884  6.034   2.7488   9.3192          3.3719  1.3139      0.0012             0.0010         True
+
+PRIMARY (H1): Holm rejects in 3/3 cells; any mean D < 0: False -> H1 CONFIRMED in all cells (b = 0.25 beats td3_ref)
+SECONDARY (H1b): mean D over cells per seed = 8.060 p.p. (n = 10), one-sided p = 0.0005097 -> CONFIRMED
+
+Descriptive: D at H = 150 vs B2.7b (seeds 42–51; b chosen in hindsight there):
+ alpha      attack_type  D_pp_seeds82_91  D_pp_b27b_seeds42_51
+  0.05   label_flipping            9.057                 6.857
+  0.10   label_flipping            9.089                 4.415
+  0.05 low_mag_backdoor            6.034                 4.449
