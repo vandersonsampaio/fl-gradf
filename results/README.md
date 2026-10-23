@@ -60,6 +60,7 @@ In the tables below, `$OF` stands for `external/.venv_adaaggrl/bin/python script
 | B3.0 | [`b30_medmnist_sanity/`](b30_medmnist_sanity/RESULTADO.md) | 130–132 × {BloodMNIST none/LMP/EB, MNIST none}, FedAvg (12) | `G/run_grid_b30.sh` | `$OF/analisar_b30.py` |
 | B3.1 + B3.2 | [`b31_medmnist_oficial/`](b31_medmnist_oficial/RESULTADO.md) | 135–144 × {LMP, EB} × {td3, fixed}, BloodMNIST (40) | `G/run_grid_b31.sh "LMP EB"` | `$OF/analisar_b31.py --margem 3.0 --ataques LMP EB`; post hoc `$OF/b31_pi0_referencia.py` |
 | B3.3 | [`b33_limiar_bloodmnist/`](b33_limiar_bloodmnist/RESULTADO.md) | a₅ ∈ {0.475, 0.75, 0.95} × 145–149, EB, BloodMNIST (15) | `G/run_grid_b33.sh` | `$OF/analisar_b33.py` |
+| W1 (frozen, **not run yet**) | [`w1_protocolo_independente_oficial/`](w1_protocolo_independente_oficial/PLANO.md) | MNIST 160–169, BloodMNIST 170–179 × {LMP, EB} × {td3, fixed} + 6 fedavg/none (86) | `G/run_grid_w1.sh` | `$OF/run_w1.py verificar`; `$OF/analisar_w1.py` |
 
 All official runs use q = 0.5 and 500 rounds unless stated. Row order is the order of execution; A0's TD3-regime analysis reads B2.1/B2.3/B2.3b outputs.
 
@@ -80,6 +81,8 @@ MNIST, logistic model, 10 clients (clients 0 and 1 Byzantine), root 100. Cells a
 | B2.7c (reformulated) | [`b27c_b025_vs_td3/`](b27c_b025_vs_td3/RESULTADO.md) | 82–91 × 3 cells × {td3_ref, fixed_b025}, H = 150 (60) | `G/run_grid_b27c.sh` | `$IN.b27c_b025_vs_td3 verificar`; `$IN.b27c_b025_vs_td3 analisar` |
 | C0b | [`c0b_espaco_h150/`](c0b_espaco_h150/RESULTADO.md) (+ `VERIFICACOES.md`) | 72–81 × 19 cells, H = 150 + 30 ceilings | `G/run_grid_c0b.sh`; uniform-oracle sensitivity: `$IN.c0b_sensibilidade_oraculo_uniforme teto --alpha <α> --seed <s>` | `$IN.c0b_espaco_h150 analisar`; `$IN.c0b_sensibilidade_oraculo_uniforme analisar` |
 | C0b-iii | [`c0b_iii_metrica/`](c0b_iii_metrica/CANCELADO.md) | planned 72–81; **cancelled before running** | — | — |
+| W2 (frozen, **not run yet**) | [`w2_backdoor_asr/`](w2_backdoor_asr/PLANO.md) | gate 92–96 (FedAvg only); confirmation 180–189 × 3 α × 6 systems (180) | `G/run_grid_w2.sh gate\|confirm <rung>` | `$IN.w2_backdoor_asr verificar`; `gate`; `analisar` |
+| W3 (frozen, **not run yet**) | [`w3_adaptativo_limiar/`](w3_adaptativo_limiar/PLANO.md) | gate 125–129; confirmation 190–199 × 3 α × 4 systems (120) | `G/run_grid_w3.sh gate\|confirm <rung>` | `$IN.w3_adaptativo_limiar verificar`; `gate`; `analisar` |
 | D2 | [`d2_variancia_p1/`](d2_variancia_p1/RESULTADO.md) | 42–44 × 3 repetitions of exp10 from tag `p1.0.0` (9) | `git worktree add ../p1 p1.0.0`; `G/run_grid_d2.sh ../p1` | `venv/bin/python scripts/d2_variancia_p1.py analisar` |
 
 Some analyses read the outputs of earlier rows (C.0 and A0 read Front 1; A0 reads B2.6). The in-house analyses also read the P1 tables that are versioned in `results/tables/` (`exp9_dominance_grid_10seeds_ALL_root100_raw.csv`, `exp10_selector_comparison_variantb_full_seed*_raw.csv`, `exp10_FULL_variantb_raw.csv`), produced at tag `p1.0.0`.

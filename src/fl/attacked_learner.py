@@ -38,6 +38,8 @@ class AttackedFederatedLearner(FederatedLearner):
         self.byzantine_ids = set(byzantine_ids or [])
         self.pretense_rounds = pretense_rounds
         self.n_classes_data = n_classes_data
+        # pixel_backdoor only (W2 PLANO §1 rung 1; the script overrides it for later rungs)
+        self.backdoor_kwargs: Dict = {"poison_fraction": 0.5, "target_class": 0, "trigger_size": 4}
         self._sim = AttackSimulator(seed=seed)
 
     def _is_active(self, round_num: int) -> bool:
@@ -63,6 +65,9 @@ class AttackedFederatedLearner(FederatedLearner):
                     n_classes=self.n_classes_data,
                 )
                 delta = model.fit(p.X_train, y_p)
+            elif is_byz and self.attack_type == "pixel_backdoor":
+                X_p, y_p = self._sim.poison_data(p.X_train, p.y_train, "pixel_backdoor", **self.backdoor_kwargs)
+                delta = model.fit(X_p, y_p)
             else:
                 delta = model.fit(p.X_train, p.y_train)
                 if is_byz:
