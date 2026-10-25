@@ -110,6 +110,17 @@ def preserved_rng():
         random.setstate(states[3])
 
 
+def rng_states():
+    return (torch.get_rng_state(), torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+            np.random.get_state(), random.getstate())
+
+
+def same_states(a, b):
+    cuda = (a[1] is None and b[1] is None) or all(torch.equal(x, y) for x, y in zip(a[1], b[1]))
+    np_same = a[2][0] == b[2][0] and np.array_equal(a[2][1], b[2][1]) and a[2][2:] == b[2][2:]
+    return bool(torch.equal(a[0], b[0]) and cuda and np_same and a[3] == b[3])
+
+
 class HeldOutAdapter(B21.ObsRecordingAdapter):
     """ObsRecordingAdapter plus the held-out test evaluation after every step."""
 
@@ -118,14 +129,18 @@ class HeldOutAdapter(B21.ObsRecordingAdapter):
         self.E = E
         self.evaluate = evaluate
         self.test_hist = []
+        self.rng_intact = []
         self.loader = torch.utils.data.DataLoader(HELD["test"], batch_size=inner.args.batch_size, shuffle=False,
                                                   drop_last=True, generator=torch.Generator().manual_seed(0))
 
     def step(self, action):
         out = super().step(action)
         if self.evaluate:
+            before, training = rng_states(), self.inner.net.training
             with preserved_rng():
                 loss, acc = self.E.test(self.inner.net, self.loader)
+            self.inner.net.train(training)  # the official test() leaves the net in eval mode
+            self.rng_intact.append(same_states(before, rng_states()))
             self.test_hist.append({"t": self._t, "test_loss": float(loss), "test_acc": float(acc)})
         return out
 
@@ -170,7 +185,8 @@ def run(dataset, attack, condition, seed, rounds, out_dir, q=0.5, evaluate=True)
                                 time.perf_counter() - t_start)
                 rec.update({"protocol": "W1 independent evaluation", "split": HELD["info"],
                             "n_val_batches": len(inner.testloader), "n_test_batches": len(env.loader),
-                            "held_out": env.test_hist, "num_clients": args.num_clients,
+                            "held_out": env.test_hist, "rng_intact": all(env.rng_intact),
+                            "num_clients": args.num_clients,
                             "subsample_rate": args.subsample_rate, "num_class": args.num_class})
                 return rec
 
@@ -244,6 +260,54 @@ def verificar(rounds=5):
     print(text)
 
 
+NOISE_SEEDS = [150, 151, 152, 153, 154]  # unused elsewhere; development only (addendum 1)
+NOISE_RATIO = 1.5
+
+
+def verificar_ruido(rounds=5, procs=15):
+    """Check 2, statistical form (addendum 1): the official code is not deterministic even on CPU,
+    so |Δ| = 0 cannot hold. Per seed, two runs without and one with the held-out evaluation:
+      noise_s = mean over rounds 1..R of |A − B| (history_acc, the two no-eval repeats)
+      eval_s  = mean over rounds 1..R of (|E − A| + |E − B|) / 2
+    PASS if mean(eval_s) ≤ 1.5 × mean(noise_s), the one-sided Wilcoxon (eval_s > noise_s) has
+    p ≥ 0.05, and every eval run reports rng_intact."""
+    import subprocess
+    from scipy import stats
+    vdir = os.path.join(OUT, "verificacao", "ruido")
+    jobs = [(s, rep) for s in NOISE_SEEDS for rep in ("eval", "noeval_a", "noeval_b")]
+    env = dict(os.environ, CUDA_VISIBLE_DEVICES="", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1")
+    running = []
+    for s, rep in jobs:
+        cmd = [sys.executable, os.path.abspath(__file__), "run", "--dataset", "MNIST", "--attack", "EB",
+               "--condition", "fixed", "--seed", str(s), "--rounds", str(rounds),
+               "--out_dir", os.path.join(vdir, rep)] + ([] if rep == "eval" else ["--no_eval"])
+        running.append(subprocess.Popen(cmd, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+        while sum(p.poll() is None for p in running) >= procs:
+            time.sleep(2)
+    if any(p.wait() != 0 for p in running):
+        raise SystemExit("a noise-check run failed")
+    tag = lambda s: f"MNIST_EB_q0.5_fixed_seed{s}_R{rounds}.json"  # noqa: E731
+    noise, ev, intact = [], [], []
+    for s in NOISE_SEEDS:
+        a, b, e = (json.load(open(os.path.join(vdir, rep, tag(s)))) for rep in ("noeval_a", "noeval_b", "eval"))
+        A, B, Ev = (np.array(r["history_acc"][1:rounds + 1]) for r in (a, b, e))
+        noise.append(float(np.mean(np.abs(A - B))))
+        ev.append(float(np.mean((np.abs(Ev - A) + np.abs(Ev - B)) / 2)))
+        intact.append(bool(e.get("rng_intact")))
+    noise, ev = np.array(noise), np.array(ev)
+    p = float(stats.wilcoxon(ev, noise, alternative="greater").pvalue)
+    ok = ev.mean() <= NOISE_RATIO * noise.mean() and p >= 0.05 and all(intact)
+    lines = [f"[2'] MNIST EB fixed, seeds {NOISE_SEEDS}, {rounds} rounds on cpu (1 thread), history_acc (p.p.):"]
+    lines += [f"     seed {s}: noise (no-eval vs no-eval) {100 * n:.3f}; eval vs no-eval {100 * x:.3f}; "
+              f"rng_intact {i}" for s, n, x, i in zip(NOISE_SEEDS, noise, ev, intact)]
+    lines.append(f"     mean noise {100 * noise.mean():.3f}; mean eval {100 * ev.mean():.3f} "
+                 f"(ratio {ev.mean() / noise.mean():.2f}, limit {NOISE_RATIO}); Wilcoxon eval > noise p={p:.4f} "
+                 f"(limit ≥ 0.05) -> {'OK' if ok else 'FAIL'}")
+    text = "\n".join(lines) + "\n"
+    open(os.path.join(OUT, "verificacao_ruido.txt"), "w").write(text)
+    print(text)
+
+
 def main():
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -254,18 +318,27 @@ def main():
     r.add_argument("--seed", type=int, required=True)
     r.add_argument("--rounds", type=int, default=500)
     r.add_argument("--out_dir", default=os.path.join(OUT, "raw"))
+    r.add_argument("--no_eval", action="store_true", help="skip the held-out evaluation (checks only)")
     v = sub.add_parser("verificar")
     v.add_argument("--rounds", type=int, default=5)
+    vr = sub.add_parser("verificar_ruido")
+    vr.add_argument("--rounds", type=int, default=5)
+    vr.add_argument("--procs", type=int, default=15)
     a = p.parse_args()
     if a.cmd == "verificar":
         verificar(a.rounds)
         return
+    if a.cmd == "verificar_ruido":
+        verificar_ruido(a.rounds, a.procs)
+        return
+    if a.no_eval and a.out_dir == os.path.join(OUT, "raw"):
+        raise SystemExit("--no_eval is for checks only")
     allowed = FEDAVG_SEEDS if a.condition == "fedavg" else SEEDS
     if a.out_dir == os.path.join(OUT, "raw") and a.seed not in allowed[a.dataset]:
         raise SystemExit(f"W1 seeds for {a.dataset}/{a.condition}: {allowed[a.dataset]} (PLANO §3)")
     if a.condition == "fedavg" and a.attack != "none":
         raise SystemExit("fedavg is the no-attack reference (PLANO §3)")
-    print(run(a.dataset, a.attack, a.condition, a.seed, a.rounds, a.out_dir))
+    print(run(a.dataset, a.attack, a.condition, a.seed, a.rounds, a.out_dir, evaluate=not a.no_eval))
 
 
 if __name__ == "__main__":

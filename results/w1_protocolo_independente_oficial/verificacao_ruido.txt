@@ -1,0 +1,7 @@
+[2'] MNIST EB fixed, seeds [150, 151, 152, 153, 154], 5 rounds on cpu (1 thread), history_acc (p.p.):
+     seed 150: noise (no-eval vs no-eval) 0.801; eval vs no-eval 1.168; rng_intact True
+     seed 151: noise (no-eval vs no-eval) 2.296; eval vs no-eval 2.390; rng_intact True
+     seed 152: noise (no-eval vs no-eval) 1.601; eval vs no-eval 1.415; rng_intact True
+     seed 153: noise (no-eval vs no-eval) 1.244; eval vs no-eval 1.339; rng_intact True
+     seed 154: noise (no-eval vs no-eval) 1.897; eval vs no-eval 1.950; rng_intact True
+     mean noise 1.568; mean eval 1.652 (ratio 1.05, limit 1.5); Wilcoxon eval > noise p=0.2188 (limit ≥ 0.05) -> OK
