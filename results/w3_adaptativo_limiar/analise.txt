@@ -1,0 +1,25 @@
+W3 confirmatory analysis, rung 1 {'c': 2.0, 'step': 0.1}: 120/120 runs
+
+H1, H = 150, D = td3_ref − constant (p.p.), Holm over 6:
+  fixed_center a0.05: D = -0.34 CI95 (-26.10; +25.42) CI90 (-21.21; +20.53) p_diff_holm 1.0000 p_tost_holm 1.0000 -> inconclusive
+  fixed_center a0.1: D = +2.59 CI95 (-33.47; +38.64) CI90 (-26.63; +31.80) p_diff_holm 1.0000 p_tost_holm 1.0000 -> inconclusive
+  fixed_center a0.5: D = -0.64 CI95 (-1.53; +0.24) CI90 (-1.36; +0.07) p_diff_holm 0.3973 p_tost_holm 1.0000 -> inconclusive
+  fixed_b025   a0.05: D = -17.04 CI95 (-32.16; -1.92) CI90 (-29.29; -4.78) p_diff_holm 0.1875 p_tost_holm 1.0000 -> inconclusive
+  fixed_b025   a0.1: D = -23.33 CI95 (-45.10; -1.56) CI90 (-40.97; -5.69) p_diff_holm 0.1918 p_tost_holm 1.0000 -> inconclusive
+  fixed_b025   a0.5: D = -0.77 CI95 (-1.67; +0.14) CI90 (-1.50; -0.03) p_diff_holm 0.3481 p_tost_holm 1.0000 -> inconclusive
+Overall reading: no advantage (TD3 superior to both constants in 0/3 cells)
+
+Descriptive (mean over seeds): accuracy at H=150 (%), acceptance rate, mean ε, mean b:
+ alpha       system  acc_H150  acceptance  eps_mean  b_mean  b_sd_rounds
+  0.05       fedavg    83.955      1.0000    0.9700     NaN          NaN
+  0.05   fixed_b025    86.593      0.6707    0.3524  0.2500       0.0000
+  0.05 fixed_center    69.896      0.5860    0.3067  0.5000       0.0000
+  0.05      td3_ref    69.556      0.5580    0.2685  0.4981       0.1482
+  0.10       fedavg    74.490      1.0000    0.9700     NaN          NaN
+  0.10   fixed_b025    87.567      0.7287    0.4361  0.2500       0.0000
+  0.10 fixed_center    61.652      0.6420    0.3318  0.5000       0.0000
+  0.10      td3_ref    64.239      0.6283    0.3245  0.5025       0.1486
+  0.50       fedavg    90.853      1.0000    0.9700     NaN          NaN
+  0.50   fixed_b025    91.535      0.7483    0.4840  0.2500       0.0000
+  0.50 fixed_center    91.415      0.6623    0.3637  0.5000       0.0000
+  0.50      td3_ref    90.770      0.6423    0.3356  0.5140       0.1476
