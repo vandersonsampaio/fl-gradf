@@ -82,6 +82,7 @@ Example:
 
 import argparse
 import os
+import zlib
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -96,8 +97,10 @@ from src.defense.adaaggrl_agent import (
     cue_similarity,
     mmd_rbf,
     reconstruct_client_distribution,
+    reconstruct_client_distribution_cnn,
 )
 from src.defense.aggregation_methods import KrumStrategy
+from src.defense.hardening import legacy_dp_epsilon_for
 from src.defense.fedstrategist_selector import DiagnosticStateVector, LinUCBAgent
 from src.defense.rl_selector import RLDefenseSelector
 from src.defense.tars_selector import cross_entropy_loss
@@ -112,7 +115,7 @@ from src.experiments.exp1_baseline import (
 )
 from src.experiments.exp9_dominance_grid import BLIND_ATTACKS, INFORMED_ATTACKS, _split_name
 from src.fl.attacked_learner import AttackedFederatedLearner, compute_param_updates_auto
-from src.fl.federated_learner import RoundResult, _STRATEGIES
+from src.fl.federated_learner import RoundResult, _CNNModel, _STRATEGIES
 from src.fl.gradf_learner import GRADFFederatedLearner
 from src.utils.data_loader import generate_selector_experiences, load_dataset_participants
 from src.utils.logger import get_logger
@@ -273,9 +276,9 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
     rules; its "action" only ever weights clients, never picks/blends
     aggregation FUNCTIONS). No `variant` parameter: see the module
     docstring for why a "shared GRADF detection" mode doesn't apply here.
-    Only supports `model_type='logistic'` (needs `_LogisticModel`'s flat
-    W/b packing for gradient inversion) — every call site in this
-    experiment already uses that default.
+    With `model_type='logistic'` the inversion uses `_LogisticModel`'s flat
+    W/b packing; with `model_type='cnn'` (P1 CIFAR-10 campaign) it runs on
+    the CNN itself (`reconstruct_client_distribution_cnn`).
 
     `feature_extractor`: 'random' (default, reproduces the original floor
     result — `RandomCNNFeatureExtractor`, frozen random weights) or
@@ -294,9 +297,9 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
     ):
         kwargs.setdefault("aggregation", "fedavg")  # placeholder to satisfy FederatedLearner's validation; unused
         kwargs.setdefault("seed", seed)
+        if kwargs.get("model_type") == "cnn":
+            kwargs.setdefault("input_shape", input_shape)
         super().__init__(*args, **kwargs)
-        if self.model_type != "logistic":
-            raise ValueError("AdaAggRLGridLearner only supports model_type='logistic'")
         self.input_shape = input_shape
         self.num_images = num_images
         self.max_iters = max_iters
@@ -331,13 +334,21 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
 
         v_current: Dict[str, np.ndarray] = {}
         s_r_list = []
+        inv_model = self._instantiate_model(n_feat) if self.model_type == "cnn" else None
         for p, theta_k, u in zip(participants, theta_list, param_updates):
-            W = theta_k[: n_feat * K].reshape(n_feat, K).astype(np.float32)
-            b = theta_k[n_feat * K:].astype(np.float32)
-            D_rec, S_R = reconstruct_client_distribution(
-                W, b, u, self.local_lr, n_feat, K,
-                num_images=self.num_images, max_iters=self.max_iters, seed=round_num,
-            )
+            if inv_model is not None:
+                inv_model.set_params(theta_k)
+                D_rec, S_R = reconstruct_client_distribution_cnn(
+                    inv_model._model, u, self.local_lr, self.input_shape, self.n_classes,
+                    num_images=self.num_images, max_iters=self.max_iters, seed=round_num,
+                )
+            else:
+                W = theta_k[: n_feat * K].reshape(n_feat, K).astype(np.float32)
+                b = theta_k[n_feat * K:].astype(np.float32)
+                D_rec, S_R = reconstruct_client_distribution(
+                    W, b, u, self.local_lr, n_feat, K,
+                    num_images=self.num_images, max_iters=self.max_iters, seed=round_num,
+                )
             v_current[p.id] = self.feature_extractor.extract(D_rec)  # (num_images, feature_dim)
             s_r_list.append(S_R)
 
@@ -448,13 +459,21 @@ class DiscreteWithAdaAggRLDetectorLearner(AttackedFederatedLearner):
         byte-for-byte comparable on the detection side."""
         v_current: Dict[str, np.ndarray] = {}
         s_r_list = []
+        inv_model = self._instantiate_model(n_feat) if self.model_type == "cnn" else None
         for p, theta_k, u in zip(participants, theta_list, param_updates):
-            W = theta_k[: n_feat * K].reshape(n_feat, K).astype(np.float32)
-            b = theta_k[n_feat * K:].astype(np.float32)
-            D_rec, S_R = reconstruct_client_distribution(
-                W, b, u, self.local_lr, n_feat, K,
-                num_images=self.num_images, max_iters=self.max_iters, seed=round_num,
-            )
+            if inv_model is not None:
+                inv_model.set_params(theta_k)
+                D_rec, S_R = reconstruct_client_distribution_cnn(
+                    inv_model._model, u, self.local_lr, self.input_shape, self.n_classes,
+                    num_images=self.num_images, max_iters=self.max_iters, seed=round_num,
+                )
+            else:
+                W = theta_k[: n_feat * K].reshape(n_feat, K).astype(np.float32)
+                b = theta_k[n_feat * K:].astype(np.float32)
+                D_rec, S_R = reconstruct_client_distribution(
+                    W, b, u, self.local_lr, n_feat, K,
+                    num_images=self.num_images, max_iters=self.max_iters, seed=round_num,
+                )
             v_current[p.id] = self.feature_extractor.extract(D_rec)
             s_r_list.append(S_R)
 
@@ -530,12 +549,23 @@ def run_selector_comparison_grid(
     systems: Optional[List[str]] = None,
     variant: str = "b",
     adaaggrl_feature_extractor: str = "random",
+    model_type: str = "logistic",
+    local_epochs: int = 5,
+    local_lr: float = 0.01,
+    seed_rng: bool = False,
 ) -> pd.DataFrame:
     """`root_size=100` by default — validity condition 1 of the plan doc.
 
     `adaaggrl_feature_extractor`: 'random' (default, original floor) or
     'pretrained' (Step Zero real extractor) — see
-    `AdaAggRLGridLearner`'s docstring."""
+    `AdaAggRLGridLearner`'s docstring.
+
+    P1 CIFAR-10 campaign: `model_type='cnn'` runs every system (and GRADF's
+    pretraining) on the small CNN, with GRADF's legacy Layer-2 epsilon
+    rescaled to the CNN's parameter count (`legacy_dp_epsilon_for`).
+    `seed_rng` seeds each system run from (seed, alpha, attack, system), as
+    in `exp9_dominance_grid.run_dominance_grid`. Defaults keep the
+    historical behavior."""
     alphas = alphas or [0.5, 0.1, 0.05]
     attack_types = attack_types or (INFORMED_ATTACKS + BLIND_ATTACKS)
     systems = systems or ["random", "oracle", "gradf", "fedstrategist", "adaaggrl"]
@@ -544,6 +574,28 @@ def run_selector_comparison_grid(
     needs_pretrain = bool({"gradf", "oracle"} & set(systems)) or (
         variant == "b" and "fedstrategist" in systems
     )
+
+    model_kwargs = {"local_epochs": local_epochs, "local_lr": local_lr}
+    gradf_kwargs = dict(model_kwargs)
+    if model_type == "cnn":
+        input_shape = DATASET_INPUT_SHAPE[dataset]
+        model_kwargs.update(model_type="cnn", input_shape=input_shape)
+        n_params = _CNNModel(int(np.prod(input_shape)), input_shape=input_shape,
+                             n_classes=n_classes).params.size
+        gradf_kwargs = dict(model_kwargs, dp_epsilon=legacy_dp_epsilon_for(n_params))
+        if seed_rng:
+            import tensorflow as tf
+            tf.config.experimental.enable_op_determinism()
+
+    def _seeded(alpha, attack_type, system):
+        if not seed_rng:
+            return {}
+        run_seed = zlib.crc32(f"{seed}|{alpha}|{attack_type}|{system}".encode())
+        np.random.seed(run_seed)
+        if model_type == "cnn":
+            import tensorflow as tf
+            tf.keras.utils.set_random_seed(run_seed)
+        return {"server_rng_seed": run_seed + 1}
 
     rows = []
     for alpha in alphas:
@@ -556,8 +608,10 @@ def run_selector_comparison_grid(
 
             classifier = selector = oracle_map = None
             if needs_pretrain:
+                _seeded(alpha, attack_type, "pretrain")
                 classifier, selector, _labels, oracle_map = train_gradf_models(
                     participants, attack_type, byzantine_fraction, n_classes, n_rounds=8, seed=seed,
+                    model_kwargs=model_kwargs,
                 )
 
             def _add(system_label: str, sys_variant: str, acc: float) -> None:
@@ -572,6 +626,7 @@ def run_selector_comparison_grid(
                     selector=RandomSelector(RLDefenseSelector().actions, seed=seed),
                     attack_labels=attack_labels, n_rounds=n_rounds, n_classes=n_classes,
                     attack_type=attack_type, byzantine_ids=byzantine_ids, seed=seed,
+                    **gradf_kwargs, **_seeded(alpha, attack_type, "random"),
                 )
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
                 _add("Random", "n/a", acc)
@@ -582,6 +637,7 @@ def run_selector_comparison_grid(
                     selector=OracleSelector(oracle_map), attack_labels=attack_labels,
                     n_rounds=n_rounds, n_classes=n_classes, attack_type=attack_type,
                     byzantine_ids=byzantine_ids, seed=seed,
+                    **gradf_kwargs, **_seeded(alpha, attack_type, "oracle"),
                 )
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
                 _add("Oracle (decoupled)", "n/a", acc)
@@ -591,6 +647,7 @@ def run_selector_comparison_grid(
                     aggregation="fedavg", classifier=classifier, selector=selector,
                     attack_labels=attack_labels, n_rounds=n_rounds, n_classes=n_classes,
                     attack_type=attack_type, byzantine_ids=byzantine_ids, seed=seed,
+                    **gradf_kwargs, **_seeded(alpha, attack_type, "gradf"),
                 )
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
                 _add("GRADF", "shared (own)", acc)
@@ -600,6 +657,7 @@ def run_selector_comparison_grid(
                     n_rounds=n_rounds, n_classes=n_classes, attack_type=attack_type,
                     byzantine_ids=byzantine_ids, seed=seed, variant=variant,
                     shared_classifier=classifier, n_labels=len(attack_labels),
+                    **model_kwargs, **_seeded(alpha, attack_type, "fedstrategist"),
                 )
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
                 _add("FedStrategist", variant, acc)
@@ -610,7 +668,10 @@ def run_selector_comparison_grid(
                     byzantine_ids=byzantine_ids, seed=seed,
                     input_shape=DATASET_INPUT_SHAPE[dataset],
                     feature_extractor=adaaggrl_feature_extractor, dataset=dataset,
+                    **model_kwargs, **_seeded(alpha, attack_type, "adaaggrl"),
                 )
+                # RandomCNNFeatureExtractor resets the global seeds; seed the run again.
+                _seeded(alpha, attack_type, "adaaggrl")
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
                 _add("AdaAggRL", f"own (gradient-inversion, {adaaggrl_feature_extractor} extractor)", acc)
 
@@ -620,6 +681,7 @@ def run_selector_comparison_grid(
                     byzantine_ids=byzantine_ids, seed=seed,
                     input_shape=DATASET_INPUT_SHAPE[dataset],
                     feature_extractor=adaaggrl_feature_extractor, dataset=dataset,
+                    **model_kwargs, **_seeded(alpha, attack_type, "adaaggrl_detector"),
                 )
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
                 _add(
@@ -666,6 +728,12 @@ if __name__ == "__main__":
              "real extractor (needs `python scripts/pretrain_adaaggrl_extractor.py` run first).",
     )
     parser.add_argument("--tag", default="", help="Optional suffix for output filenames.")
+    parser.add_argument("--model", default="logistic", choices=["logistic", "cnn"])
+    parser.add_argument("--local_epochs", type=int, default=5)
+    parser.add_argument("--local_lr", type=float, default=0.01)
+    parser.add_argument("--seed_rng", action="store_true",
+                        help="Reproducible runs (see run_selector_comparison_grid).")
+    parser.add_argument("--out_dir", default="results/tables")
     args = parser.parse_args()
 
     raw = run_over_seeds(
@@ -675,30 +743,39 @@ if __name__ == "__main__":
         byzantine_fraction=args.byzantine_fraction, n_classes=args.n_classes,
         root_size=args.root_size, systems=args.systems, variant=args.variant,
         adaaggrl_feature_extractor=args.adaaggrl_feature_extractor,
+        model_type=args.model, local_epochs=args.local_epochs, local_lr=args.local_lr,
+        seed_rng=args.seed_rng,
     )
 
     suffix = f"_variant{args.variant}" + (f"_{args.tag}" if args.tag else "")
-    os.makedirs("results/tables", exist_ok=True)
-    raw.to_csv(f"results/tables/exp10_selector_comparison{suffix}_raw.csv", index=False)
+    if args.model == "cnn":
+        suffix += f"_{args.dataset}_cnn"
+    if args.seed_rng:
+        suffix += "_seeded"
+    out = args.out_dir
+    os.makedirs(out, exist_ok=True)
+    raw.to_csv(f"{out}/exp10_selector_comparison{suffix}_raw.csv", index=False)
     print("=== raw (per seed) ===")
     print(raw.to_string(index=False))
 
     summary = summarize(raw, ["alpha", "attack_type", "system"], "accuracy")
     summary = summary.rename(columns={"mean": "accuracy_mean", "std": "accuracy_std"})
-    summary.to_csv(f"results/tables/exp10_selector_comparison{suffix}_summary.csv", index=False)
+    summary.to_csv(f"{out}/exp10_selector_comparison{suffix}_summary.csv", index=False)
     print("\n=== summary (mean/std over seeds) ===")
     print(summary.to_string(index=False))
 
-    best_fixed = _load_best_fixed_rule_reference("results/tables/exp9_dominance_grid_10seeds_ALL_root100_summary.csv")
+    # The stored best-fixed reference is the MNIST logistic grid only.
+    best_fixed = None if (args.dataset, args.model) != ("mnist", "logistic") else \
+        _load_best_fixed_rule_reference("results/tables/exp9_dominance_grid_10seeds_ALL_root100_summary.csv")
     if best_fixed is not None:
         merged = summary.merge(best_fixed, on=["alpha", "attack_type"], how="left")
-        merged.to_csv(f"results/tables/exp10_selector_comparison{suffix}_vs_best_fixed.csv", index=False)
+        merged.to_csv(f"{out}/exp10_selector_comparison{suffix}_vs_best_fixed.csv", index=False)
         print("\n=== vs. best fixed rule (root=100, 10-seed reference) ===")
         print(merged.to_string(index=False))
 
     per_run = raw.groupby(["seed", "system"])["accuracy"].mean().reset_index()
     if "Random" in per_run["system"].unique():
         sig = paired_significance(per_run, "system", "accuracy", baseline_label="Random")
-        sig.to_csv(f"results/tables/exp10_selector_comparison{suffix}_vs_random_significance.csv", index=False)
+        sig.to_csv(f"{out}/exp10_selector_comparison{suffix}_vs_random_significance.csv", index=False)
         print("\n=== paired t-test vs. Random (pooled over grid cells, by seed) ===")
         print(sig.to_string(index=False))

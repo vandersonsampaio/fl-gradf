@@ -52,6 +52,7 @@ logger = get_logger(__name__)
 
 FIXED_STRATEGIES = ["fltrust", "median", "trimmed_mean", "krum"]
 INFORMED_ATTACKS = AttackSimulator.INFORMED_ATTACK_TYPES
+INPUT_SHAPE = {"mnist": (28, 28, 1), "cifar10": (32, 32, 3)}
 BLIND_ATTACKS = ["sign_flipping", "gaussian_noise", "label_flipping"]
 
 
@@ -74,6 +75,9 @@ def run_dominance_grid(
     root_size: Optional[int] = None,
     strategies: Optional[List[str]] = None,
     seed_rng: bool = False,
+    model_type: str = "logistic",
+    local_epochs: int = 5,
+    local_lr: float = 0.01,
 ) -> pd.DataFrame:
     """`root_size`: if given, subsamples `server_val` (~3000 samples on
     MNIST) down to exactly `root_size` elements before running the grid —
@@ -92,11 +96,23 @@ def run_dominance_grid(
     shift the clients' draws. With it, the invariance of Median/Trimmed-Mean/
     Krum to `root_size` becomes testable exactly (except under
     `fltrust_aligned`, whose attacker copies the server's root update).
-    Off by default: the historical, unseeded behavior is unchanged."""
+    Off by default: the historical, unseeded behavior is unchanged.
+
+    `model_type='cnn'` uses the small CNN (`_CNNModel`) with the dataset's
+    image shape (P1 CIFAR-10 campaign). With `seed_rng`, TensorFlow is seeded
+    from the same run seed (initial global weights) and runs with
+    deterministic ops, and the mini-batch order comes from NumPy, as for the
+    logistic model. `local_epochs`/`local_lr` keep the historical defaults."""
     alphas = alphas or [0.5, 0.1, 0.05]
     attack_types = attack_types or (INFORMED_ATTACKS + BLIND_ATTACKS)
     strategies = strategies or FIXED_STRATEGIES
     byzantine_ids = list(range(max(1, int(n_clients * byzantine_fraction))))
+    model_kwargs = {"local_epochs": local_epochs, "local_lr": local_lr}
+    if model_type == "cnn":
+        model_kwargs.update(model_type="cnn", input_shape=INPUT_SHAPE[dataset])
+        if seed_rng:
+            import tensorflow as tf
+            tf.config.experimental.enable_op_determinism()
 
     rows = []
     for alpha in alphas:
@@ -116,10 +132,13 @@ def run_dominance_grid(
                     run_seed = zlib.crc32(f"{seed}|{alpha}|{attack_type}|{strategy}".encode())
                     np.random.seed(run_seed)
                     extra["server_rng_seed"] = run_seed + 1
+                    if model_type == "cnn":
+                        import tensorflow as tf
+                        tf.keras.utils.set_random_seed(run_seed)  # Keras 3 has its own seed state
                 learner = learner_cls(
                     n_rounds=n_rounds, aggregation=strategy, n_classes=n_classes,
                     attack_type=attack_type, byzantine_ids=byzantine_ids, seed=seed,
-                    **extra,
+                    **model_kwargs, **extra,
                 )
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
                 rows.append({
@@ -184,6 +203,9 @@ if __name__ == "__main__":
         help="Reproducible runs (see run_dominance_grid). Adds '_seeded' to "
              "the output names.",
     )
+    parser.add_argument("--model", default="logistic", choices=["logistic", "cnn"])
+    parser.add_argument("--local_epochs", type=int, default=5)
+    parser.add_argument("--local_lr", type=float, default=0.01)
     parser.add_argument("--out_dir", default="results/tables")
     args = parser.parse_args()
 
@@ -193,9 +215,11 @@ if __name__ == "__main__":
         n_clients=args.n_clients, n_rounds=args.n_rounds,
         byzantine_fraction=args.byzantine_fraction, n_classes=args.n_classes,
         root_size=args.root_size, strategies=args.strategies, seed_rng=args.seed_rng,
+        model_type=args.model, local_epochs=args.local_epochs, local_lr=args.local_lr,
     )
 
-    suffix = f"_root{args.root_size}" if args.root_size is not None else ""
+    suffix = f"_{args.dataset}_{args.model}" if args.model == "cnn" else ""
+    suffix += f"_root{args.root_size}" if args.root_size is not None else ""
     if args.seed_rng:
         suffix += "_seeded"
     out = args.out_dir

@@ -46,6 +46,9 @@ class AttackedFederatedLearner(FederatedLearner):
         self._server_rng = (
             None if server_rng_seed is None else np.random.default_rng(server_rng_seed)
         )
+        # Seeded runs of the CNN also take the clients' mini-batch order from
+        # NumPy's (seeded) global RNG rather than TensorFlow's.
+        self.numpy_shuffle = server_rng_seed is not None
 
     def _server_model(self, n_features: int):
         model = self._make_model(n_features)

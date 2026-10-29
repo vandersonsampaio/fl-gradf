@@ -263,6 +263,7 @@ class _CNNModel:
         lr: float = 0.01,
         n_epochs: int = 5,
         batch_size: int = 32,
+        numpy_shuffle: bool = False,
     ) -> None:
         expected_features = int(np.prod(input_shape))
         if expected_features != n_features:
@@ -276,34 +277,54 @@ class _CNNModel:
         self.lr = lr
         self.n_epochs = n_epochs
         self.batch_size = batch_size
+        # Mini-batch shuffling. By default Keras shuffles with TensorFlow's
+        # RNG (historical behavior). With numpy_shuffle=True, or when `rng` is
+        # set (as for `_LogisticModel`), the order is drawn from NumPy (global
+        # RNG, or `rng`) and Keras does not shuffle, so a seeded learner
+        # controls every draw and the server's fit can use its own stream.
+        self.numpy_shuffle = numpy_shuffle
+        self.rng = None
 
-        self._model = self._build()
-        weights = self._model.get_weights()
+        # One compiled Keras model per process and configuration, shared by
+        # every `_CNNModel`: each instance keeps its own flat parameters and
+        # loads them into the shared model before any fit/predict. Building a
+        # new Keras model for every client and round (the previous behavior)
+        # grew resident memory by ~25 MB per FL round on CIFAR-10 (E0 memory
+        # diagnosis, 2026-10-29) and ran the machine out of RAM.
+        self._keras = _shared_cnn(tuple(input_shape), n_classes, lr)
+        weights = self._keras.get_weights()
         self._shapes = [w.shape for w in weights]
         self._sizes = [int(w.size) for w in weights]
+        self._params: Optional[np.ndarray] = None  # drawn lazily (Glorot), see `params`
 
-    def _build(self):
-        # Local import: keeps the cost of importing TensorFlow (heavy) scoped
-        # to callers that actually use model_type='cnn' — the rest of the
-        # module (used by the whole test/experiment suite with
-        # `_LogisticModel`) doesn't pay that cost.
-        from tensorflow import keras
+    @property
+    def _model(self):
+        """The shared Keras model, holding this instance's parameters."""
+        self._keras.set_weights(self._unflatten(self.params))
+        return self._keras
 
-        model = keras.Sequential([
-            keras.layers.Input(shape=self.input_shape),
-            keras.layers.Conv2D(8, 3, activation="relu", padding="same"),
-            keras.layers.MaxPooling2D(2),
-            keras.layers.Conv2D(16, 3, activation="relu", padding="same"),
-            keras.layers.MaxPooling2D(2),
-            keras.layers.Flatten(),
-            keras.layers.Dense(32, activation="relu"),
-            keras.layers.Dense(self.n_classes, activation="softmax"),
-        ])
-        model.compile(
-            optimizer=keras.optimizers.SGD(learning_rate=self.lr),
-            loss="sparse_categorical_crossentropy",
-        )
-        return model
+    def _initial_params(self) -> np.ndarray:
+        """Keras' default initialization (Glorot-uniform kernels, zero
+        biases), drawn from NumPy's global RNG so that seeded runs control it
+        and it does not depend on what the process built before."""
+        out = []
+        for shape in self._shapes:
+            if len(shape) == 1:
+                out.append(np.zeros(shape))
+                continue
+            receptive = int(np.prod(shape[:-2])) if len(shape) > 2 else 1
+            fan_in, fan_out = receptive * shape[-2], receptive * shape[-1]
+            limit = np.sqrt(6.0 / (fan_in + fan_out))
+            out.append(np.random.uniform(-limit, limit, size=shape).astype(np.float32))
+        return np.concatenate([w.ravel() for w in out]).astype(np.float64)
+
+    def _unflatten(self, params: np.ndarray) -> List[np.ndarray]:
+        weights = []
+        offset = 0
+        for shape, size in zip(self._shapes, self._sizes):
+            weights.append(params[offset : offset + size].reshape(shape).astype("float32"))
+            offset += size
+        return weights
 
     def _reshape(self, X: np.ndarray) -> np.ndarray:
         return X.reshape((-1,) + self.input_shape).astype("float32")
@@ -325,25 +346,59 @@ class _CNNModel:
         """Train locally and return the parameter delta — same contract as
         `_LogisticModel.fit`."""
         p0 = self.params
-        self._model.fit(
-            self._reshape(X), y.astype("int32"),
-            epochs=self.n_epochs, batch_size=self.batch_size, verbose=0,
-        )
-        return self.params - p0
+        model = self._model
+        X, y = self._reshape(X), y.astype("int32")
+        if self.rng is None and not self.numpy_shuffle:
+            model.fit(X, y, epochs=self.n_epochs, batch_size=self.batch_size, verbose=0)
+        else:
+            draw = np.random if self.rng is None else self.rng
+            for _ in range(self.n_epochs):
+                perm = draw.permutation(len(X))
+                model.fit(X[perm], y[perm], epochs=1, batch_size=self.batch_size,
+                          shuffle=False, verbose=0)
+        self._params = np.concatenate([w.ravel() for w in model.get_weights()]).astype(np.float64)
+        return self._params - p0
 
     # -- state management ----------------------------------------------------
 
     def set_params(self, params: np.ndarray) -> None:
-        weights = []
-        offset = 0
-        for shape, size in zip(self._shapes, self._sizes):
-            weights.append(params[offset : offset + size].reshape(shape).astype("float32"))
-            offset += size
-        self._model.set_weights(weights)
+        self._params = np.asarray(params, dtype=np.float64).copy()
 
     @property
     def params(self) -> np.ndarray:
-        return np.concatenate([w.flatten() for w in self._model.get_weights()]).astype(np.float64)
+        if self._params is None:
+            self._params = self._initial_params()
+        return self._params.copy()
+
+
+_SHARED_CNN: Dict[Tuple, object] = {}
+
+
+def _shared_cnn(input_shape: Tuple[int, int, int], n_classes: int, lr: float):
+    """Builds (once per process) the compiled Keras model used by every
+    `_CNNModel` with this configuration."""
+    key = (input_shape, n_classes, lr)
+    if key not in _SHARED_CNN:
+        # Local import: keeps the cost of importing TensorFlow (heavy) scoped
+        # to callers that actually use model_type='cnn'.
+        from tensorflow import keras
+
+        model = keras.Sequential([
+            keras.layers.Input(shape=input_shape),
+            keras.layers.Conv2D(8, 3, activation="relu", padding="same"),
+            keras.layers.MaxPooling2D(2),
+            keras.layers.Conv2D(16, 3, activation="relu", padding="same"),
+            keras.layers.MaxPooling2D(2),
+            keras.layers.Flatten(),
+            keras.layers.Dense(32, activation="relu"),
+            keras.layers.Dense(n_classes, activation="softmax"),
+        ])
+        model.compile(
+            optimizer=keras.optimizers.SGD(learning_rate=lr),
+            loss="sparse_categorical_crossentropy",
+        )
+        _SHARED_CNN[key] = model
+    return _SHARED_CNN[key]
 
 
 # ---------------------------------------------------------------------------
@@ -524,6 +579,9 @@ class FederatedLearner:
         self.root_fraction = root_fraction
         self.model_type = model_type
         self.input_shape = input_shape
+        # CNN only: draw mini-batch order from NumPy instead of TensorFlow
+        # (see `_CNNModel`); set by learners that need reproducible runs.
+        self.numpy_shuffle = False
 
         self._strategy: AggregationStrategy = _STRATEGIES[aggregation]()
         self._global_params: Optional[np.ndarray] = None  # flat param vector
@@ -661,6 +719,7 @@ class FederatedLearner:
                 lr=self.local_lr,
                 n_epochs=self.local_epochs,
                 batch_size=self.local_batch_size,
+                numpy_shuffle=self.numpy_shuffle,
             )
         return _LogisticModel(
             n_features,
