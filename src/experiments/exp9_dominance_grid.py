@@ -35,8 +35,10 @@ Requires the severe non-IID partitions generated beforehand:
 
 import argparse
 import os
+import zlib
 from typing import List, Optional
 
+import numpy as np
 import pandas as pd
 
 import src.defense.aggregation_methods  # noqa: F401  registers median/trimmed_mean/krum/etc.
@@ -71,6 +73,7 @@ def run_dominance_grid(
     seed: int = 42,
     root_size: Optional[int] = None,
     strategies: Optional[List[str]] = None,
+    seed_rng: bool = False,
 ) -> pd.DataFrame:
     """`root_size`: if given, subsamples `server_val` (~3000 samples on
     MNIST) down to exactly `root_size` elements before running the grid —
@@ -80,7 +83,16 @@ def run_dominance_grid(
     Trimmed-Mean/Krum are, by construction, invariant to this parameter — so
     `strategies` lets the grid be restricted to just `["fltrust"]` for a
     sensitivity re-run, reusing (via `strategies=None`, all 4) the values
-    already measured for the others instead of recomputing them."""
+    already measured for the others instead of recomputing them.
+
+    `seed_rng`: makes each run reproducible. NumPy's global RNG (used for
+    mini-batch shuffling) is seeded from (seed, alpha, attack, strategy) —
+    never from the root size, so runs are paired across roots — and the
+    server's root-data fit gets its own RNG stream, so the root size does not
+    shift the clients' draws. With it, the invariance of Median/Trimmed-Mean/
+    Krum to `root_size` becomes testable exactly (except under
+    `fltrust_aligned`, whose attacker copies the server's root update).
+    Off by default: the historical, unseeded behavior is unchanged."""
     alphas = alphas or [0.5, 0.1, 0.05]
     attack_types = attack_types or (INFORMED_ATTACKS + BLIND_ATTACKS)
     strategies = strategies or FIXED_STRATEGIES
@@ -99,9 +111,15 @@ def run_dominance_grid(
                 else AttackedFederatedLearner
             )
             for strategy in strategies:
+                extra = {}
+                if seed_rng:
+                    run_seed = zlib.crc32(f"{seed}|{alpha}|{attack_type}|{strategy}".encode())
+                    np.random.seed(run_seed)
+                    extra["server_rng_seed"] = run_seed + 1
                 learner = learner_cls(
                     n_rounds=n_rounds, aggregation=strategy, n_classes=n_classes,
                     attack_type=attack_type, byzantine_ids=byzantine_ids, seed=seed,
+                    **extra,
                 )
                 acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
                 rows.append({
@@ -161,6 +179,12 @@ if __name__ == "__main__":
              "consumes root_data; avoids recomputing Median/Trimmed-Mean/"
              "Krum, which don't change with root_size.",
     )
+    parser.add_argument(
+        "--seed_rng", action="store_true",
+        help="Reproducible runs (see run_dominance_grid). Adds '_seeded' to "
+             "the output names.",
+    )
+    parser.add_argument("--out_dir", default="results/tables")
     args = parser.parse_args()
 
     raw = run_over_seeds(
@@ -168,23 +192,26 @@ if __name__ == "__main__":
         dataset=args.dataset, alphas=args.alphas, attack_types=args.attack_types,
         n_clients=args.n_clients, n_rounds=args.n_rounds,
         byzantine_fraction=args.byzantine_fraction, n_classes=args.n_classes,
-        root_size=args.root_size, strategies=args.strategies,
+        root_size=args.root_size, strategies=args.strategies, seed_rng=args.seed_rng,
     )
 
     suffix = f"_root{args.root_size}" if args.root_size is not None else ""
-    os.makedirs("results/tables", exist_ok=True)
-    raw.to_csv(f"results/tables/exp9_dominance_grid{suffix}_raw.csv", index=False)
+    if args.seed_rng:
+        suffix += "_seeded"
+    out = args.out_dir
+    os.makedirs(out, exist_ok=True)
+    raw.to_csv(f"{out}/exp9_dominance_grid{suffix}_raw.csv", index=False)
     print("=== raw (per seed) ===")
     print(raw.to_string(index=False))
 
     summary = summarize(raw, ["alpha", "attack_type", "strategy"], "accuracy")
     summary = summary.rename(columns={"mean": "accuracy_mean", "std": "accuracy_std"})
-    summary.to_csv(f"results/tables/exp9_dominance_grid{suffix}_summary.csv", index=False)
+    summary.to_csv(f"{out}/exp9_dominance_grid{suffix}_summary.csv", index=False)
     print("\n=== summary (mean/std over seeds) ===")
     print(summary.to_string(index=False))
 
     dom = dominance_table(summary)
-    dom.to_csv(f"results/tables/exp9_dominance_grid{suffix}_verdict.csv", index=False)
+    dom.to_csv(f"{out}/exp9_dominance_grid{suffix}_verdict.csv", index=False)
     print("\n=== dominance grid: winner per (alpha, attack_type) ===")
     print(dom.to_string(index=False))
 

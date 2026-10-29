@@ -31,6 +31,7 @@ class AttackedFederatedLearner(FederatedLearner):
         pretense_rounds: int = 0,
         n_classes_data: int = 10,
         seed: int = 42,
+        server_rng_seed: Optional[int] = None,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
@@ -39,6 +40,18 @@ class AttackedFederatedLearner(FederatedLearner):
         self.pretense_rounds = pretense_rounds
         self.n_classes_data = n_classes_data
         self._sim = AttackSimulator(seed=seed)
+        # Optional dedicated RNG for the server's root-data fit, so that the
+        # root size does not shift the random stream used by the clients.
+        # None keeps the historical behavior (shared global RNG).
+        self._server_rng = (
+            None if server_rng_seed is None else np.random.default_rng(server_rng_seed)
+        )
+
+    def _server_model(self, n_features: int):
+        model = self._make_model(n_features)
+        if self._server_rng is not None:
+            model.rng = self._server_rng
+        return model
 
     def _is_active(self, round_num: int) -> bool:
         return self.attack_type not in ("none", "") and round_num > self.pretense_rounds
@@ -84,7 +97,7 @@ class AttackedFederatedLearner(FederatedLearner):
 
         agg_kwargs: Dict = {}
         if self.aggregation == "fltrust":
-            srv = self._make_model(participants[0].n_features)
+            srv = self._server_model(participants[0].n_features)
             srv_delta = srv.fit(root_data["X"], root_data["y"])  # type: ignore[index]
             agg_kwargs["server_update"] = srv_delta
         else:
@@ -141,7 +154,7 @@ class InformedAttackedFederatedLearner(AttackedFederatedLearner):
         active = self._is_active(round_num)
 
         root = root_data or self._carve_root(participants[0])
-        server_delta = self._make_model(participants[0].n_features).fit(root["X"], root["y"])
+        server_delta = self._server_model(participants[0].n_features).fit(root["X"], root["y"])
 
         honest_updates: List[np.ndarray] = []
         for p in participants:

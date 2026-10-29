@@ -144,6 +144,9 @@ class _LogisticModel:
         # K = n_classes for softmax
         self._K = 1 if n_classes == 2 else n_classes
         self._params = np.zeros(n_features * self._K + self._K, dtype=np.float64)
+        # Mini-batch shuffling RNG; None keeps the historical behavior (NumPy's
+        # global, unseeded RNG). Set by learners that need reproducible runs.
+        self.rng = None
 
     # -- helpers -------------------------------------------------------------
 
@@ -196,7 +199,7 @@ class _LogisticModel:
         n = len(X)
 
         for _ in range(self.n_epochs):
-            perm = np.random.permutation(n)
+            perm = (np.random if self.rng is None else self.rng).permutation(n)
             for start in range(0, n, self.batch_size):
                 idx = perm[start : start + self.batch_size]
                 Xb, yb = X[idx], y[idx]
