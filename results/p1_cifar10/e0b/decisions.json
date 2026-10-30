@@ -1,0 +1,29 @@
+{
+ "R_rule": 110,
+ "stabilized": true,
+ "grid_level": 0,
+ "k": 18,
+ "R_final": 110,
+ "R_truncated_by_budget": false,
+ "costs_measured": false,
+ "costs": {
+  "s_round": {
+   "fixed": 21.0,
+   "adaaggrl": 35.0,
+   "random": 23.0,
+   "attack_aware": 23.0,
+   "gradf": 23.0,
+   "fedstrategist": 23.0
+  },
+  "pretraining_h_full_grid": 20.0
+ },
+ "cost_h": {
+  "0": 194.625,
+  "1": 159.69444444444446,
+  "2": 124.76388888888889
+ },
+ "tau_cnn": 7.86246657382396,
+ "max_honest_l2": 5.241644382549307,
+ "sigma_e0_e1": 0.7680223521052876,
+ "sigma_e0_e3": 1.230010162559643
+}
