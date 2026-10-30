@@ -1,0 +1,15 @@
+{
+ "tag": "scale_adaaggrl_k12_t1_12",
+ "gpus": [],
+ "deterministic": true,
+ "rounds_timed": 3,
+ "local_epochs": 2,
+ "n_train_total": 47500,
+ "systems": {
+  "adaaggrl": {
+   "s_per_round": 42.83617104298901,
+   "final_accuracy": 0.23809999999999998
+  }
+ },
+ "peak_rss_gb": 2.035633087158203
+}
