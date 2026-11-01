@@ -1,5 +1,6 @@
 """
-W1 confirmatory analysis (results/w1_protocolo_independente_oficial/PLANO.md §5).
+W1 rerun confirmatory analysis (results/w1_protocolo_independente_oficial/PLANO.md §5, as changed by
+results/w1_rerun_global_eval/PLAN.md: the held-out series is the global model; fresh seeds).
 Run ONCE, with the full grid (86/86), with the official venv:
   external/.venv_adaaggrl/bin/python scripts/passo2_oficial/analisar_w1.py
 
@@ -27,10 +28,11 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from scipy import stats  # noqa: E402
 
-OUT = "results/w1_protocolo_independente_oficial"
+OUT = "results/w1_rerun_global_eval"
 RAW = f"{OUT}/raw"
-SEEDS = {"MNIST": list(range(160, 170)), "BloodMNIST": list(range(170, 180))}
-FEDAVG_SEEDS = {"MNIST": [160, 161, 162], "BloodMNIST": [170, 171, 172]}
+SEEDS = {"MNIST": list(range(220, 230)), "BloodMNIST": list(range(230, 240))}
+FEDAVG_SEEDS = {"MNIST": [220, 221, 222], "BloodMNIST": [230, 231, 232]}
+CHECK_TOL = 0.001
 MARGIN = {"MNIST": 1.0, "BloodMNIST": 3.0}
 ATTACKS = ["LMP", "EB"]
 ROUNDS = 500
@@ -51,6 +53,9 @@ def load():
             missing.append(f)
             continue
         r = json.load(open(f))
+        if r.get("eval_target") != "global" or not r["global_checks"] or any(
+                abs(c["eval_val_acc"] - c["logged_val_acc"]) > CHECK_TOL for c in r["global_checks"]):
+            raise SystemExit(f"{f}: the held-out series is not verified as the global model (PLAN §4)")
         st = r["steps"][:ROUNDS]
         test = np.array([x["test_acc"] for x in r["held_out"][:ROUNDS]])
         val = np.array([x["acc"] for x in st])
@@ -59,6 +64,7 @@ def load():
         rs = [x["env_step"] for x in r["resets"][1:]]
         rows.append({"dataset": d, "attack": att, "condition": cond, "seed": s,
                      "primary": float(np.median(test[400:500])), "auc_1_500": float(test.mean()),
+                     "frac_below_50_401_500": float(np.mean(test[400:500] < 0.5)),
                      "val_primary": float(np.median(val[400:500])),
                      "gap_val_minus_test": float(np.median(val[400:500]) - np.median(test[400:500])),
                      "resets": len(rs), "reset_401_500": any(400 <= x <= 500 for x in rs),
@@ -143,7 +149,8 @@ def main():
     g = df.groupby(["dataset", "attack", "condition"])
     lines.append(g.agg(primary=("primary", "mean"), auc=("auc_1_500", "mean"), val_primary=("val_primary", "mean"),
                        gap_val_test=("gap_val_minus_test", "mean"), resets=("resets", "mean"),
-                       frac_reset_401_500=("reset_401_500", "mean"), att_mass=("att_mass", "median"))
+                       frac_reset_401_500=("reset_401_500", "mean"), att_mass=("att_mass", "median"),
+                       frac_below_50_401_500=("frac_below_50_401_500", "mean"))
                  .round(4).to_string())
     b = behaviour(df)
     if len(b):

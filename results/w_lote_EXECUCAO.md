@@ -1,6 +1,6 @@
 # W batch (W1–W3): execution guide
 
-Plans frozen on 2026-10-23 (hashes in each folder's `PLANO.sha256`). The code is written and unit-tested. **Nothing has been run yet.** Every step below runs outside the Mon–Fri 7:00–18:00 window, or under `scripts/janela_execucao.sh`.
+Plans frozen on 2026-10-23 (hashes in each folder's `PLANO.sha256`). The code is written and unit-tested. **Nothing has been run yet.** Every step below runs outside the Mon–Fri 8:00–18:00 window, or under `scripts/janela_execucao.sh`.
 
 Each plan fixes the order:
 1. code checks, then addendum 1 with the code hashes;

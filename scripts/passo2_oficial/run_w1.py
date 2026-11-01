@@ -1,6 +1,9 @@
 """
 W1 (results/w1_protocolo_independente_oficial/PLANO.md, frozen 2026-10-23): Independent
 Evaluation Protocol in the official AdaAggRL. Nothing in external/AdaAggRL is edited.
+Rerun (results/w1_rerun_global_eval/PLAN.md): the held-out evaluation now reads the global model,
+on fresh seeds. The first grid evaluated inner.net, which holds the last sampled client's update
+after a step (results/w1_protocolo_independente_oficial/RESULTS.md).
 
 Protocol (PLANO §1), installed as a wrapper around `exp_environments.construct_dataloaders`
 (after `bloodmnist_shim.install`, so it wraps the BloodMNIST loader too):
@@ -13,19 +16,22 @@ Protocol (PLANO §1), installed as a wrapper around `exp_environments.construct_
   - the environment receives (train_rest, validation) in place of (trainset, testset), so
     the reward, the resets, the EB attacker's slices and `history_acc` all use validation;
   - the official test set is used only by `HeldOutAdapter`, which evaluates the global
-    model after every step with a dedicated torch.Generator and with the torch (CPU/CUDA),
-    numpy and random states saved and restored around the evaluation (logging only).
+    model (inner.aggregate_weights, on a separate copy of the network) after every step, with
+    a dedicated torch.Generator and with the torch (CPU/CUDA), numpy and random states saved
+    and restored around the evaluation (logging only).
 
 Conditions: td3 (official main.py, via run_b21's actor checkpoints and states),
 fixed ([0.475]*5 = b*, PLANO §2) and fedavg (uniform aggregation, attack none; reference).
 
 Usage (official venv):
-  external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_w1.py run --dataset MNIST --attack EB --condition td3 --seed 160
+  external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_w1.py run --dataset MNIST --attack EB --condition td3 --seed 220
   CUDA_VISIBLE_DEVICES="" external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_w1.py verificar
+  external/.venv_adaaggrl/bin/python scripts/passo2_oficial/run_w1.py verificar_global
 """
 
 import argparse
 import contextlib
+import copy
 import json
 import os
 import random
@@ -45,9 +51,11 @@ from stable_baselines3.common.noise import NormalActionNoise  # noqa: E402
 from stable_baselines3.common.utils import set_random_seed  # noqa: E402
 
 SPLIT_SEED = 20261023
-OUT = os.path.join(R.REPO, "results", "w1_protocolo_independente_oficial")
-SEEDS = {"MNIST": list(range(160, 170)), "BloodMNIST": list(range(170, 180))}
-FEDAVG_SEEDS = {"MNIST": [160, 161, 162], "BloodMNIST": [170, 171, 172]}
+OUT = os.path.join(R.REPO, "results", "w1_rerun_global_eval")
+SEEDS = {"MNIST": list(range(220, 230)), "BloodMNIST": list(range(230, 240))}
+FEDAVG_SEEDS = {"MNIST": [220, 221, 222], "BloodMNIST": [230, 231, 232]}
+CHECK_EVERY = 10  # rounds between comparisons of the evaluation path with the logged validation acc
+CHECK_TOL = 0.001
 HELD = {}  # filled by the construct_dataloaders wrapper: official test set and split info
 
 
@@ -121,31 +129,63 @@ def same_states(a, b):
     return bool(torch.equal(a[0], b[0]) and cuda and np_same and a[3] == b[3])
 
 
-class HeldOutAdapter(B21.ObsRecordingAdapter):
-    """ObsRecordingAdapter plus the held-out test evaluation after every step."""
+class GlobalEvalMismatch(RuntimeError):
+    pass
 
-    def __init__(self, inner, log_stream, E, evaluate=True):
+
+class HeldOutAdapter(B21.ObsRecordingAdapter):
+    """ObsRecordingAdapter plus the held-out test evaluation of the global model after every step.
+    After a step, inner.net holds the last sampled client's update, so the evaluation loads
+    inner.aggregate_weights into its own copy of the network and leaves inner.net untouched.
+    record_client (checks only) also logs the accuracy of inner.net and whether it is the global model."""
+
+    def __init__(self, inner, log_stream, E, evaluate=True, record_client=False):
         super().__init__(inner, log_stream)
         self.E = E
         self.evaluate = evaluate
+        self.record_client = record_client
         self.test_hist = []
         self.rng_intact = []
+        self.global_checks = []
+        self.eval_net = None
         self.loader = torch.utils.data.DataLoader(HELD["test"], batch_size=inner.args.batch_size, shuffle=False,
                                                   drop_last=True, generator=torch.Generator().manual_seed(0))
+
+    def _load_global(self):
+        if self.eval_net is None:
+            self.eval_net = copy.deepcopy(self.inner.net)
+        self.E.set_parameters(self.eval_net, list(self.inner.aggregate_weights))
+
+    def _check_global(self):
+        _, acc = self.E.test(self.eval_net, self.inner.testloader)
+        logged = float(self.inner.history["acc"][-1])
+        self.global_checks.append({"t": self._t, "eval_val_acc": float(acc), "logged_val_acc": logged})
+        if abs(acc - logged) > CHECK_TOL:
+            raise GlobalEvalMismatch(f"round {self._t}: evaluation path {acc:.4f} vs logged validation {logged:.4f}")
 
     def step(self, action):
         out = super().step(action)
         if self.evaluate:
-            before, training = rng_states(), self.inner.net.training
+            before = rng_states()
             with preserved_rng():
-                loss, acc = self.E.test(self.inner.net, self.loader)
-            self.inner.net.train(training)  # the official test() leaves the net in eval mode
+                self._load_global()
+                loss, acc = self.E.test(self.eval_net, self.loader)
+                if self._t == 1 or self._t % CHECK_EVERY == 0:
+                    self._check_global()
+                entry = {"t": self._t, "test_loss": float(loss), "test_acc": float(acc)}
+                if self.record_client:
+                    training = self.inner.net.training
+                    entry["net_is_global"] = all(
+                        np.array_equal(a, np.asarray(b).reshape(a.shape))
+                        for a, b in zip(self.E.get_parameters(self.inner.net), self.inner.aggregate_weights))
+                    entry["inner_net_acc"] = float(self.E.test(self.inner.net, self.loader)[1])
+                    self.inner.net.train(training)
             self.rng_intact.append(same_states(before, rng_states()))
-            self.test_hist.append({"t": self._t, "test_loss": float(loss), "test_acc": float(acc)})
+            self.test_hist.append(entry)
         return out
 
 
-def run(dataset, attack, condition, seed, rounds, out_dir, q=0.5, evaluate=True):
+def run(dataset, attack, condition, seed, rounds, out_dir, q=0.5, evaluate=True, record_client=False):
     out_dir = os.path.abspath(out_dir)
     for sub in ("", "obs", "actors"):
         os.makedirs(os.path.join(out_dir, sub), exist_ok=True)
@@ -177,7 +217,7 @@ def run(dataset, attack, condition, seed, rounds, out_dir, q=0.5, evaluate=True)
             if attack == "none":
                 inner.att_ids = []
             set_random_seed(seed, using_cuda=torch.cuda.is_available())
-            env = HeldOutAdapter(inner, log_stream, E, evaluate=evaluate)
+            env = HeldOutAdapter(inner, log_stream, E, evaluate=evaluate, record_client=record_client)
             env.action_space.seed(seed)
 
             def _rec():
@@ -186,6 +226,7 @@ def run(dataset, attack, condition, seed, rounds, out_dir, q=0.5, evaluate=True)
                 rec.update({"protocol": "W1 independent evaluation", "split": HELD["info"],
                             "n_val_batches": len(inner.testloader), "n_test_batches": len(env.loader),
                             "held_out": env.test_hist, "rng_intact": all(env.rng_intact),
+                            "eval_target": "global", "global_checks": env.global_checks,
                             "num_clients": args.num_clients,
                             "subsample_rate": args.subsample_rate, "num_class": args.num_class})
                 return rec
@@ -260,6 +301,40 @@ def verificar(rounds=5):
     print(text)
 
 
+def verificar_global(rounds=25, seed=150):
+    """Checks of results/w1_rerun_global_eval/PLAN.md §2, on a development seed."""
+    vdir = os.path.join(OUT, "verificacao_global")
+    lines, ok = [], True
+    for dataset, condition in (("MNIST", "fixed"), ("MNIST", "td3"), ("BloodMNIST", "fixed")):
+        path = run(dataset, "EB", condition, seed, rounds, vdir, record_client=True)  # aborts on check 1
+        r = json.load(open(path))
+        held, val = r["held_out"][:rounds], np.array([x["acc"] for x in r["steps"][:rounds]])
+        test, client = np.array([x["test_acc"] for x in held]), np.array([x["inner_net_acc"] for x in held])
+        frac_differs = float(np.mean([not x["net_is_global"] for x in held]))
+        gap = float(np.mean(np.abs(test - val)))
+        max_diff = max(abs(c["eval_val_acc"] - c["logged_val_acc"]) for c in r["global_checks"])
+        checks = {"1 validation reproduced": len(r["global_checks"]) >= 3 and max_diff <= CHECK_TOL,
+                  "2 inner.net differs from global >= 90%": frac_differs >= 0.9,
+                  "4 rng_intact": bool(r["rng_intact"]),
+                  "5 fields": r["eval_target"] == "global" and len(held) >= rounds}
+        if dataset == "MNIST":
+            checks["3 mean |held-out - validation| <= 3 p.p."] = gap <= 0.03
+        ok = ok and all(checks.values())
+        lines.append(f"{dataset} EB {condition} seed {seed}, {rounds} rounds on {r['device']}: "
+                     f"max |eval path - logged validation| {max_diff:.5f} over {len(r['global_checks'])} checks; "
+                     f"inner.net differs from global in {100 * frac_differs:.0f}% of the steps; "
+                     f"mean |held-out - validation| {100 * gap:.2f} p.p.; "
+                     f"mean over rounds {rounds - 9}-{rounds}: global held-out {100 * test[-10:].mean():.1f}, "
+                     f"inner.net {100 * client[-10:].mean():.1f}, validation {100 * val[-10:].mean():.1f}")
+        lines += [f"  [{'OK' if v else 'FAIL'}] {k}" for k, v in checks.items()]
+    lines.append("VERIFICATION_" + ("PASS" if ok else "FAIL"))
+    text = "\n".join(lines) + "\n"
+    open(os.path.join(OUT, "verification.txt"), "w").write(text)
+    print(text)
+    if not ok:
+        raise SystemExit(1)
+
+
 NOISE_SEEDS = [150, 151, 152, 153, 154]  # unused elsewhere; development only (addendum 1)
 NOISE_RATIO = 1.5
 
@@ -324,7 +399,12 @@ def main():
     vr = sub.add_parser("verificar_ruido")
     vr.add_argument("--rounds", type=int, default=5)
     vr.add_argument("--procs", type=int, default=15)
+    vg = sub.add_parser("verificar_global")
+    vg.add_argument("--rounds", type=int, default=25)
     a = p.parse_args()
+    if a.cmd == "verificar_global":
+        verificar_global(a.rounds)
+        return
     if a.cmd == "verificar":
         verificar(a.rounds)
         return

@@ -60,7 +60,8 @@ In the tables below, `$OF` stands for `external/.venv_adaaggrl/bin/python script
 | B3.0 | [`b30_medmnist_sanity/`](b30_medmnist_sanity/RESULTADO.md) | 130–132 × {BloodMNIST none/LMP/EB, MNIST none}, FedAvg (12) | `G/run_grid_b30.sh` | `$OF/analisar_b30.py` |
 | B3.1 + B3.2 | [`b31_medmnist_oficial/`](b31_medmnist_oficial/RESULTADO.md) | 135–144 × {LMP, EB} × {td3, fixed}, BloodMNIST (40) | `G/run_grid_b31.sh "LMP EB"` | `$OF/analisar_b31.py --margem 3.0 --ataques LMP EB`; post hoc `$OF/b31_pi0_referencia.py` |
 | B3.3 | [`b33_limiar_bloodmnist/`](b33_limiar_bloodmnist/RESULTADO.md) | a₅ ∈ {0.475, 0.75, 0.95} × 145–149, EB, BloodMNIST (15) | `G/run_grid_b33.sh` | `$OF/analisar_b33.py` |
-| W1 (frozen, **not run yet**) | [`w1_protocolo_independente_oficial/`](w1_protocolo_independente_oficial/PLANO.md) | MNIST 160–169, BloodMNIST 170–179 × {LMP, EB} × {td3, fixed} + 6 fedavg/none (86) | `G/run_grid_w1.sh` | `$OF/run_w1.py verificar`; `$OF/analisar_w1.py` |
+| W1 (grid done 2026-11-01; **no valid verdict**: the held-out series measures the last sampled client's update, not the global model; rerun needed) | [`w1_protocolo_independente_oficial/`](w1_protocolo_independente_oficial/RESULTS.md) | MNIST 160–169, BloodMNIST 170–179 × {LMP, EB} × {td3, fixed} + 6 fedavg/none (86) | `G/run_grid_w1.sh` | `$OF/run_w1.py verificar`; `$OF/analisar_w1.py`; post hoc `$OF/diagnose_w1_heldout.py` |
+| W1 rerun (frozen 2026-11-01; **not finished**; held-out series = global model, fresh seeds) | [`w1_rerun_global_eval/`](w1_rerun_global_eval/PLAN.md) | MNIST 220–229, BloodMNIST 230–239 × {LMP, EB} × {td3, fixed} + 6 fedavg/none (86) | `$OF/run_w1_rerun_chain.sh` | `$OF/run_w1.py verificar_global`; `$OF/analisar_w1.py` |
 
 All official runs use q = 0.5 and 500 rounds unless stated. Row order is the order of execution; A0's TD3-regime analysis reads B2.1/B2.3/B2.3b outputs.
 
