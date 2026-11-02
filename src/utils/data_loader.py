@@ -70,7 +70,7 @@ class RecordingFederatedLearner(AttackedFederatedLearner):
         agg_kwargs: Dict = {}
         if self.aggregation == "fltrust":
             srv = self._make_model(participants[0].n_features)
-            srv_delta = srv.fit(root_data["X"], root_data["y"])  # type: ignore[index]
+            srv_delta = self._fit_server(srv, root_data, participants)  # type: ignore[arg-type]
             agg_kwargs["server_update"] = srv_delta
         else:
             agg_kwargs["sample_sizes"] = [p.n_train for p in participants]

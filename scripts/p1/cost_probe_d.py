@@ -6,6 +6,9 @@ measured under the campaign's load (12 processes x 1 thread, CPU).
 
 Costs only: the accuracies are not saved. alpha 0.5, sign_flipping, seed 0
 (outside the confirmatory block), root 100, 2 local epochs, deterministic ops.
+The server's root fit uses step parity with the clients (server_steps =
+"median", results/p1_parity/PLAN.md), the campaign's setting, so the cost of
+g0 at every round is included; FLTrust is timed as its own fixed rule.
 Each process runs the same sequence: pretraining (train_gradf_models, as in
 exp10_selector_comparison), then for each system one warm-up round and
 3 timed rounds.
@@ -54,7 +57,8 @@ def probe(index):
 
     participants, root = load_dataset_participants("cifar10", _split_name(ALPHA), 10,
                                                    root_size=100, root_seed=SEED)
-    model_kwargs = {"local_epochs": 2, "local_lr": 0.01, "model_type": "cnn", "input_shape": SHAPE}
+    model_kwargs = {"local_epochs": 2, "local_lr": 0.01, "model_type": "cnn", "input_shape": SHAPE,
+                    "server_steps": "median"}
     n_params = _CNNModel(int(np.prod(SHAPE)), input_shape=SHAPE, n_classes=10).params.size
     gradf_kwargs = dict(model_kwargs, dp_epsilon=legacy_dp_epsilon_for(n_params))
     labels = ["none", ATTACK]
@@ -71,6 +75,8 @@ def probe(index):
     makers = {
         "fixed": lambda r: AttackedFederatedLearner(n_rounds=r, aggregation="trimmed_mean",
                                                     **common, **model_kwargs),
+        "fltrust": lambda r: AttackedFederatedLearner(n_rounds=r, aggregation="fltrust",
+                                                      **common, **model_kwargs),
         "random": lambda r: GRADFFederatedLearner(
             aggregation="fedavg", classifier=GroundTruthClassifierStub(),
             selector=RandomSelector(RLDefenseSelector().actions, seed=SEED),

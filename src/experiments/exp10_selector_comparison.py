@@ -241,7 +241,7 @@ class FedStrategistGridLearner(AttackedFederatedLearner):
         strategy_name = self.bandit.select_action(tuple(state))
 
         server_root = root_data or self._carve_root(participants[0])
-        server_update = self._make_model(n_feat).fit(server_root["X"], server_root["y"])
+        server_update = self._fit_server(self._make_model(n_feat), server_root, participants)
         sample_sizes = [p.n_train for p in participants]
 
         n_byz = sum(1 for b in _is_byz_list if b)
@@ -516,7 +516,7 @@ class DiscreteWithAdaAggRLDetectorLearner(AttackedFederatedLearner):
         strategy_name = self.bandit.select_action(tuple(mean_state))
 
         server_root = root_data or self._carve_root(participants[0])
-        server_update = self._make_model(n_feat).fit(server_root["X"], server_root["y"])
+        server_update = self._fit_server(self._make_model(n_feat), server_root, participants)
         sample_sizes = [p.n_train for p in participants]
 
         n_byz = sum(1 for b in _is_byz_list if b)
@@ -553,6 +553,7 @@ def run_selector_comparison_grid(
     local_epochs: int = 5,
     local_lr: float = 0.01,
     seed_rng: bool = False,
+    server_steps="native",
 ) -> pd.DataFrame:
     """`root_size=100` by default — validity condition 1 of the plan doc.
 
@@ -575,7 +576,7 @@ def run_selector_comparison_grid(
         variant == "b" and "fedstrategist" in systems
     )
 
-    model_kwargs = {"local_epochs": local_epochs, "local_lr": local_lr}
+    model_kwargs = {"local_epochs": local_epochs, "local_lr": local_lr, "server_steps": server_steps}
     gradf_kwargs = dict(model_kwargs)
     if model_type == "cnn":
         input_shape = DATASET_INPUT_SHAPE[dataset]
@@ -731,6 +732,11 @@ if __name__ == "__main__":
     parser.add_argument("--model", default="logistic", choices=["logistic", "cnn"])
     parser.add_argument("--local_epochs", type=int, default=5)
     parser.add_argument("--local_lr", type=float, default=0.01)
+    parser.add_argument("--server_steps", default="native",
+                        help="FLTrust server-fit steps: native (epochs over the root), "
+                             "median (step parity with the clients) or an int; see "
+                             "FederatedLearner. Non-native runs get '_steps<value>' in "
+                             "the output names and a server_steps column.")
     parser.add_argument("--seed_rng", action="store_true",
                         help="Reproducible runs (see run_selector_comparison_grid).")
     parser.add_argument("--out_dir", default="results/tables")
@@ -745,13 +751,18 @@ if __name__ == "__main__":
         adaaggrl_feature_extractor=args.adaaggrl_feature_extractor,
         model_type=args.model, local_epochs=args.local_epochs, local_lr=args.local_lr,
         seed_rng=args.seed_rng,
+        server_steps=args.server_steps,
     )
+    if args.server_steps != "native":
+        raw["server_steps"] = args.server_steps
 
     suffix = f"_variant{args.variant}" + (f"_{args.tag}" if args.tag else "")
     if args.model == "cnn":
         suffix += f"_{args.dataset}_cnn"
     if args.seed_rng:
         suffix += "_seeded"
+    if args.server_steps != "native":
+        suffix += f"_steps{args.server_steps}"
     out = args.out_dir
     os.makedirs(out, exist_ok=True)
     raw.to_csv(f"{out}/exp10_selector_comparison{suffix}_raw.csv", index=False)

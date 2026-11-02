@@ -1,0 +1,170 @@
+P1 step-parity analysis (results/p1_parity/PLAN.md). MNIST seeds 42-51; CIFAR-10 seeds 0-2.
+
+## Sec. 1 Completeness
+mnist_fixed rows per root: {50: 840, 100: 1470, 3000: 840} (expected 100: 1470, 3000: 840, 50: 840)
+mnist_rq3 rows: {'FedStrategist': 210, 'FedStrategist (GRADF detector)': 210, 'GRADF': 210, 'Oracle (decoupled)': 210, 'Random': 210} (expected 210 each)
+cifar_blockC jobs: 12/12; rounds [180]
+server_steps values: ['median']
+OK
+
+## Sec. 2 Regression and invariant
+Parity vs results/p1_invariance (expected: first row all zero; the others change):
+                            subset  n_pairs  n_nonzero  max_abs
+non-FLTrust rules, other 6 attacks     1620          0   0.0000
+non-FLTrust rules, fltrust_aligned      270        270   0.7013
+              FLTrust, all attacks      630        630   0.3599
+
+Root invariant under parity (median, TM, Krum; root r vs 3000):
+ root          subset  n_pairs  n_nonzero  max_abs
+  100 other 6 attacks      540          0   0.0000
+  100 fltrust_aligned       90         70   0.1247
+   50 other 6 attacks      540          0   0.0000
+   50 fltrust_aligned       90         70   0.1545
+
+## Sec. 3 MNIST E1 (V = FLTrust - TM; D_s over seeds)
+21 cells                       parity  3000 vs 100: mean +10.88 p.p., CI95 (+9.35; +12.42), Wilcoxon p 0.0020, t p 0.0000, d_z 5.08, superiority
+21 cells                       parity   100 vs  50: mean  +1.47 p.p., CI95 (-0.67; +3.62), Wilcoxon p 0.2324, t p 0.1542, d_z 0.49, no evidence
+21 cells                       native  3000 vs 100: mean +13.86 p.p., CI95 (+12.94; +14.77), Wilcoxon p 0.0020, t p 0.0000, d_z 10.81, superiority
+21 cells                       native   100 vs  50: mean  +8.49 p.p., CI95 (+6.29; +10.70), Wilcoxon p 0.0020, t p 0.0000, d_z 2.75, superiority
+18 cells (no fltrust_aligned)  parity  3000 vs 100: mean +11.22 p.p., CI95 (+9.43; +13.02), Wilcoxon p 0.0020, t p 0.0000, d_z 4.47, superiority
+18 cells (no fltrust_aligned)  parity   100 vs  50: mean  +0.87 p.p., CI95 (-1.65; +3.39), Wilcoxon p 0.4922, t p 0.4555, d_z 0.25, no evidence
+18 cells (no fltrust_aligned)  native  3000 vs 100: mean +15.90 p.p., CI95 (+14.93; +16.87), Wilcoxon p 0.0020, t p 0.0000, d_z 11.71, superiority
+18 cells (no fltrust_aligned)  native   100 vs  50: mean  +8.23 p.p., CI95 (+5.98; +10.49), Wilcoxon p 0.0020, t p 0.0000, d_z 2.61, superiority
+
+FLTrust 2x2, 18 cells, seed-level:
+  root effect at parity (3000 - 100)            mean +11.22 p.p., CI95 (+9.43; +13.02), Wilcoxon p 0.0020, t p 0.0000, d_z 4.47, superiority
+  root effect, native (3000 - 100)              mean +15.90 p.p., CI95 (+14.93; +16.87), Wilcoxon p 0.0020, t p 0.0000, d_z 11.71, superiority
+  steps effect at root 100 (parity - native)    mean  +4.69 p.p., CI95 (+2.37; +7.01), Wilcoxon p 0.0020, t p 0.0013, d_z 1.45, superiority
+  steps effect at root 3000 (parity - native)   mean  +0.01 p.p., CI95 (-0.19; +0.21), Wilcoxon p 0.9219, t p 0.8858, d_z 0.05, equivalence
+
+By alpha (p.p.), cells_positive of 18:
+                                   contrast  alpha_0.5  alpha_0.1  alpha_0.05  cells_positive
+         root effect at parity (3000 - 100)       3.15      14.72       15.79              18
+           root effect, native (3000 - 100)       8.99      20.98       17.72              18
+ steps effect at root 100 (parity - native)       6.41       6.61        1.05              15
+steps effect at root 3000 (parity - native)       0.57       0.35       -0.88              11
+
+## Sec. 4 MNIST E2 (root 100; D_R = FLTrust, median, TM, Krum)
+21 cells: d* = fltrust (LOSO agreement 1.00), cell-winner agreement 1.00
+  global means %: {'fltrust': 75.17, 'krum': 45.75, 'median': 65.4, 'trimmed_mean': 70.45}
+  H in-sample 3.09 p.p.; H_LOSO 3.09 p.p., CI95 (2.56; 3.41), positive
+  native, for comparison: d* = fltrust, H in-sample 4.63, H_LOSO 4.63, CI95 (4.17; 4.99)
+18 cells: d* = fltrust (LOSO agreement 1.00), cell-winner agreement 1.00
+  global means %: {'fltrust': 74.92, 'krum': 45.77, 'median': 63.45, 'trimmed_mean': 68.28}
+  H in-sample 2.48 p.p.; H_LOSO 2.48 p.p., CI95 (1.87; 2.83), positive
+  native, for comparison: d* = fltrust, H in-sample 4.91, H_LOSO 4.91, CI95 (4.45; 5.25)
+
+## Sec. 5 MNIST E3 (18 confirmatory cells; accuracy differences as fractions)
+                family             system    mean  ci95_lo  ci95_hi  p_wilcoxon  p_wilcoxon_holm    p_t     d_z  p_tost    category
+vs B_-s (cross-fitted)             Random  0.0441   0.0281   0.0601      0.0039           0.0156 0.0002  1.9702  0.9995 superiority
+             vs Random Oracle (decoupled) -0.0248  -0.0318  -0.0178      0.0020           0.0078 0.0000 -2.5404  0.9995 inferiority
+vs B_-s (cross-fitted) Oracle (decoupled)  0.0193   0.0021   0.0365      0.0488           0.0977 0.0319  0.8022  0.8733 superiority
+             vs Random              GRADF  0.0348   0.0213   0.0484      0.0020           0.0078 0.0003  1.8381  0.9987 superiority
+vs B_-s (cross-fitted)              GRADF  0.0789   0.0586   0.0992      0.0020           0.0098 0.0000  2.7741  1.0000 superiority
+             vs Random      FedStrategist -0.0466  -0.0577  -0.0355      0.0020           0.0078 0.0000 -3.0068  1.0000 inferiority
+vs B_-s (cross-fitted)      FedStrategist -0.0026  -0.0167   0.0116      0.8457           0.8457 0.6927 -0.1291  0.1325 no evidence
+             vs Random           AdaAggRL  0.0041  -0.0171   0.0254      0.8457           0.8457 0.6709  0.1389  0.2734 no evidence
+vs B_-s (cross-fitted)           AdaAggRL  0.0482   0.0174   0.0790      0.0137           0.0410 0.0063  1.1208  0.9898 superiority
+
+Sensitivity:
+                family                         system    mean  ci95_lo  ci95_hi  p_wilcoxon  p_wilcoxon_holm    p_t     d_z  p_tost    category
+             vs Random          AdaAggRL (pretrained) -0.0173  -0.0404   0.0057      0.1309           0.1309 0.1235 -0.5373  0.7549 no evidence
+vs B_-s (cross-fitted)          AdaAggRL (pretrained)  0.0267  -0.0086   0.0621      0.1055           0.2109 0.1209  0.5417  0.8443 no evidence
+             vs Random FedStrategist (GRADF detector) -0.0424  -0.0573  -0.0275      0.0020           0.0039 0.0001 -2.0372  0.9996 inferiority
+vs B_-s (cross-fitted) FedStrategist (GRADF detector)  0.0016  -0.0171   0.0204      0.9219           0.9219 0.8465  0.0630  0.1694 no evidence
+vs B_-s (cross-fitted)                         Random  0.0441   0.0281   0.0601      0.0039           0.0117 0.0002  1.9702  0.9995 superiority
+
+Descriptive: {'cells_with_crossfit_headroom': 10, 'captured': {'Random': 8, 'Oracle (decoupled)': 9, 'GRADF': 10, 'FedStrategist': 3, 'AdaAggRL': 9}}
+
+Earlier figures (native fixed rules, published unseeded systems; not a causal contrast, parity PLAN notes):
+                family             system    mean  ci95_lo  ci95_hi    category
+vs B_-s (cross-fitted)             Random  0.0535   0.0382   0.0688 superiority
+             vs Random Oracle (decoupled)  0.0124   0.0039   0.0208 superiority
+vs B_-s (cross-fitted) Oracle (decoupled)  0.0659   0.0554   0.0764 superiority
+             vs Random              GRADF -0.0464  -0.0732  -0.0196 inferiority
+vs B_-s (cross-fitted)              GRADF  0.0071  -0.0220   0.0362 no evidence
+             vs Random      FedStrategist -0.0519  -0.0648  -0.0391 inferiority
+vs B_-s (cross-fitted)      FedStrategist  0.0015  -0.0140   0.0171 no evidence
+             vs Random           AdaAggRL  0.0416   0.0246   0.0586 superiority
+vs B_-s (cross-fitted)           AdaAggRL  0.0951   0.0758   0.1144 superiority
+
+Tables and figures (results/p1_tables/parity/):
+      fltrust  median  trimmed_mean  krum  non_fltrust_robust  non_fltrust_any
+root                                                                          
+3000       21       0             0     0                   0                0
+100         8       0            11     2                   8               13
+50          8       0            11     2                   7               13
+ alpha  3000  100
+  0.50     7    0
+  0.10     7    4
+  0.05     7    4
+Fig. 2 counts (21 cells): {'oracle': 13, 'deployable': 13, 'discrete': 13, 'continuous': 11, 'dstar': 'fltrust'}
+Cells above the cell-wise best fixed rule (of 21): {'GRADF': 16, 'FedStrat.': 7, 'AdaAggRL': 12}
+18 cells, own d*: d* = fltrust, headroom cells 10, captured {'Random': 8, 'Attack-aware': 9, 'GRADF': 10, 'FedStrat.': 3, 'AdaAggRL': 9, 'AdaAggRL (pretrained)': 9}, H 2.48 p.p.
+
+## Sec. 6 CIFAR-10: block C with parity (R = 110)
+Merged runs: 27/27 (blocks A and B from E0b, block C with parity)
+
+## Sec. 3 GRADF Layer-1 threshold (honest update L2 norms, all rounds)
+A (FedAvg, no attack)  n= 16200  median 0.505  p99 0.808  max 1.629  share > tau 0.0000
+B (FedAvg, attack)     n=  8640  median 0.581  p99 3.192  max 5.242  share > tau 0.0000
+C (FLTrust, attack)    n= 17280  median 0.614  p99 1.044  max 1.657  share > tau 0.0000
+alpha 0.5   max 1.163
+alpha 0.1   max 1.364
+alpha 0.05  max 5.242
+tau_CNN = 1.5 x 5.2416 = 7.8625  (MNIST tau = 5.0)
+tau_CNN frozen in E0b: 7.8625; with parity block C: 7.8625
+
+## Sec. 4 sigma_E0 at round R = 110 (final-round accuracy, unsmoothed, p.p.)
+E1: D_s = mean over 2 cells of FLTrust(2500) - FLTrust(100): -6.94, -5.71, -3.60; sigma_E0^E1 = 1.692; 0.5 sigma = 0.846
+E3 (approximation): D_s = mean over 2 cells of FLTrust(100) - FedAvg: -9.47, -6.99, -12.83; sigma_E0^E3 = 2.931; 0.5 sigma = 1.466
+
+Per cell, 3 seeds, % (descriptive):
+                    server_steps    g0  parity_R  parity_sd  native_R  native_sd  parity_180  native_180
+attack        root                                                                                      
+sign_flipping 100          303.0  1.26     18.77       5.56     35.08       6.67       27.96       37.55
+              2500         303.0  1.16     17.17       1.51     27.34       4.30       23.91       21.29
+trim_attack   100          303.0  1.09     26.76       1.70     16.45      11.08       27.38       20.05
+              2500         303.0  1.22     17.54       3.07     23.81       2.06       19.45       17.93
+
+Per run:
+       attack  root  seed  server_steps  g0_median  acc_R_parity  acc_R_native  acc_180_parity  acc_180_native
+sign_flipping   100     0           303       1.30         19.12         39.14           28.80           33.51
+sign_flipping   100     1           303       1.13         24.15         38.72           27.80           39.83
+sign_flipping   100     2           303       1.26         13.05         27.38           27.27           39.31
+sign_flipping  2500     0           303       1.16         17.56         25.26           15.95           19.57
+sign_flipping  2500     1           303       1.21         18.44         24.48           28.98           18.07
+sign_flipping  2500     2           303       1.13         15.50         32.29           26.81           26.24
+  trim_attack   100     0           303       1.09         26.33         10.87           22.32           15.64
+  trim_attack   100     1           303       1.03         25.32          9.27           30.52            9.84
+  trim_attack   100     2           303       1.10         28.64         29.21           29.29           34.68
+  trim_attack  2500     0           303       1.23         14.01         26.15           19.29           17.18
+  trim_attack  2500     1           303       1.20         19.61         22.28           13.11           16.65
+  trim_attack  2500     2           303       1.22         19.00         23.01           25.95           19.95
+Root contrast at R, parity, sign_flipping (2500 - 100): -1.61 (per seed -1.56, -5.71, +2.45)
+Root contrast at R, parity, trim_attack (2500 - 100): -9.22 (per seed -12.32, -5.71, -9.64)
+FedAvg at R (same seeds), %: {'sign_flipping': np.float64(38.35), 'trim_attack': np.float64(26.71)}
+
+FLTrust stability (seed means; trailing 5-round means; rounds 51-180 for the change):
+                            S110   S150   S180  mean_abs_round_change  s_per_round  gain_S110_S180
+arm    attack        root                                                                         
+native sign_flipping 100   33.90  35.83  36.24                   4.95        17.15            2.33
+                     2500  26.47  23.71  23.15                   4.23        17.74           -3.32
+       trim_attack   100   17.54  19.80  20.86                   1.70        14.82            3.32
+                     2500  25.21  24.54  20.62                   6.12        15.46           -4.59
+parity sign_flipping 100   23.11  27.00  27.40                   8.31        43.64            4.29
+                     2500  18.25  18.94  21.14                   7.50        43.73            2.89
+       trim_attack   100   25.18  30.66  29.74                   7.37        43.62            4.57
+                     2500  18.26  21.99  20.81                   8.19        43.61            2.55
+
+## Sec. 7 Budget (236 h; measured costs, results/p1_cifar10/e0b/costs.json)
+
+## Sec. 5 Compute budget (236 h; costs measured: results/p1_cifar10/e0b/costs.json)
+level 0 (k = 18) C(R = 110, k) =  209.3 h   3 alpha x 6 attacks (all but fltrust_aligned)
+level 1 (k = 12) C(R = 110, k) =  175.0 h   3 alpha x {sign_flipping, label_flipping, trim_attack, krum_collusion}
+level 2 (k =  6) C(R = 110, k) =  140.7 h   alpha in {0.5, 0.05} x {sign_flipping, label_flipping, trim_attack} (floor)
+Grid level 0 (k = 18); R = 110
+E1 factorial: 420 more runs (FLTrust native x 2 roots x 21 cells x 10 seeds): +26.60 h at s_fixed, +24.72 h at s_fltrust
+level 0 (k = 18): without 209.31 h; with factorial 235.91 h (s_fixed), 234.03 h (s_fltrust); margin +0.09 h / +1.97 h
+level 1 (k = 12): without 175.00 h; with factorial 201.60 h (s_fixed), 199.72 h (s_fltrust); margin +34.40 h / +36.28 h
+level 2 (k =  6): without 140.69 h; with factorial 167.29 h (s_fixed), 165.41 h (s_fltrust); margin +68.71 h / +70.59 h

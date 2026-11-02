@@ -101,7 +101,7 @@ class AttackedFederatedLearner(FederatedLearner):
         agg_kwargs: Dict = {}
         if self.aggregation == "fltrust":
             srv = self._server_model(participants[0].n_features)
-            srv_delta = srv.fit(root_data["X"], root_data["y"])  # type: ignore[index]
+            srv_delta = self._fit_server(srv, root_data, participants)  # type: ignore[arg-type]
             agg_kwargs["server_update"] = srv_delta
         else:
             agg_kwargs["sample_sizes"] = [p.n_train for p in participants]
@@ -157,7 +157,7 @@ class InformedAttackedFederatedLearner(AttackedFederatedLearner):
         active = self._is_active(round_num)
 
         root = root_data or self._carve_root(participants[0])
-        server_delta = self._server_model(participants[0].n_features).fit(root["X"], root["y"])
+        server_delta = self._fit_server(self._server_model(participants[0].n_features), root, participants)
 
         honest_updates: List[np.ndarray] = []
         for p in participants:
@@ -230,7 +230,7 @@ def compute_param_updates_auto(
         return learner._compute_param_updates(participants, active)
 
     root = root_data or learner._carve_root(participants[0])
-    server_delta = learner._make_model(participants[0].n_features).fit(root["X"], root["y"])
+    server_delta = learner._fit_server(learner._make_model(participants[0].n_features), root, participants)
 
     honest_updates: List[np.ndarray] = []
     for p in participants:
