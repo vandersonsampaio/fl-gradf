@@ -1,0 +1,71 @@
+JSONs: 24/24
+
+Seed means per cell:
+                   trailing                       final                       swing                  
+factor                    1    1/3    1/5   1/10      1    1/3    1/5   1/10      1   1/3   1/5  1/10
+attack        root                                                                                   
+sign_flipping 100     23.11  35.53  32.87  30.76  18.77  35.46  33.76  30.30  11.19  8.17  5.49  0.96
+              2500    18.25  40.10  36.05  27.51  17.17  40.72  36.49  27.79   4.05  1.89  0.52  0.21
+trim_attack   100     25.18  35.03  32.19  33.07  26.76  34.88  33.45  33.08   6.89  9.88  4.28  0.72
+              2500    18.26  38.58  36.75  27.40  17.54  39.76  37.12  27.81   7.60  2.27  0.69  0.25
+
+Factor 1/3: swing ratio over factor 1 [0.73, 0.466, 1.433, 0.299]; READING: PARTLY (2 of 4 cells at most half)
+Factor 1/5: swing ratio over factor 1 [0.49, 0.129, 0.621, 0.091]; READING: PARTLY (3 of 4 cells at most half)
+Factor 1/10: swing ratio over factor 1 [0.086, 0.053, 0.104, 0.033]; READING: STABILIZES (4 of 4 cells at most half)
+
+Accuracy averaged over the 4 cells:
+factor
+1       21.20
+1/3     37.31
+1/5     34.46
+1/10    29.68
+
+BEST FOR FLTRUST: factor 1/10 (stabilizing: ['1/10'])
+
+Trailing mean per seed:
+factor                       1    1/3    1/5   1/10
+attack        root seed                            
+sign_flipping 100  0     22.93  32.52  34.10  35.38
+                   1     23.26  37.36  33.66  28.52
+                   2     23.14  36.72  30.86  28.36
+              2500 0     18.27  42.56  38.60  26.97
+                   1     18.27  38.68  37.76  30.00
+                   2     18.22  39.07  31.79  25.56
+trim_attack   100  0     24.53  34.68  30.69  28.80
+                   1     24.44  32.22  28.67  33.28
+                   2     26.57  38.20  37.20  37.12
+              2500 0     18.03  38.89  36.82  27.55
+                   1     18.34  37.09  35.09  25.23
+                   2     18.41  39.76  38.35  29.43
+
+Root contrast (2500 - 100), factor 1: per attack {'sign_flipping': -4.86, 'trim_attack': -6.92}; per seed [-4.66, -4.99, -4.92, -6.5, -6.1, -8.15]
+Root contrast (2500 - 100), factor 1/3: per attack {'sign_flipping': 4.57, 'trim_attack': 3.55}; per seed [10.04, 1.32, 2.35, 4.22, 4.87, 1.56]
+Root contrast (2500 - 100), factor 1/5: per attack {'sign_flipping': 3.18, 'trim_attack': 4.57}; per seed [4.5, 4.1, 0.93, 6.13, 6.42, 1.15]
+Root contrast (2500 - 100), factor 1/10: per attack {'sign_flipping': -3.25, 'trim_attack': -5.67}; per seed [-8.42, 1.49, -2.81, -1.25, -8.05, -7.7]
+
+Accuracy by window, seed means (descriptive, not in the reading rule):
+window                     71-90  91-110  change
+factor attack        root                       
+1      sign_flipping 100   20.94   23.86    2.92
+                     2500  17.92   17.82   -0.10
+       trim_attack   100   21.25   23.97    2.72
+                     2500  19.20   19.83    0.63
+1/3    sign_flipping 100   32.72   34.77    2.05
+                     2500  37.61   39.15    1.53
+       trim_attack   100   32.66   34.20    1.55
+                     2500  38.26   39.00    0.74
+1/5    sign_flipping 100   33.49   33.42   -0.06
+                     2500  32.02   34.83    2.81
+       trim_attack   100   32.99   32.82   -0.17
+                     2500  33.00   35.93    2.93
+1/10   sign_flipping 100   28.43   29.88    1.46
+                     2500  24.29   26.54    2.25
+       trim_attack   100   30.56   32.56    2.00
+                     2500  23.82   26.46    2.64
+
+FedAvg at factor 1, same attacks and seeds:
+               trailing  final  swing
+attack                               
+sign_flipping     37.40  38.35   1.29
+trim_attack       26.03  26.71   0.85
+
