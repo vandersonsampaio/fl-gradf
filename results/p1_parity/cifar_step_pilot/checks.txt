@@ -1,0 +1,5 @@
+PASS check1 factor 1 reproduces block C, sign_flipping [0.0996, 0.11699999999999999] vs [0.0996, 0.11699999999999999]
+PASS check2 the first round's step is the factor times factor 1's, sign_flipping ratio 0.333333; 10.2 s per round
+PASS check1 factor 1 reproduces block C, trim_attack [0.0998, 0.15559999999999996] vs [0.0998, 0.15559999999999996]
+PASS check2 the first round's step is the factor times factor 1's, trim_attack ratio 0.333333; 9.9 s per round
+CHECKS_PASS
