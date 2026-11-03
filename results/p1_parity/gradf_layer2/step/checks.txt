@@ -1,0 +1,5 @@
+PASS check1 factor 1 reproduces F000 0.710100 vs 0.710100
+PASS check2 Layer 2 returns the update unclipped and draws nothing 
+PASS check3 the first round's step is the factor times F000's ratio 0.333333; 10.5 s
+PASS check3 every round votes FLTrust and is accepted 
+CHECKS_PASS
