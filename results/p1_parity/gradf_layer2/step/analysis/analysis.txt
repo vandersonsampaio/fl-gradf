@@ -1,0 +1,96 @@
+JSONs: 10/10; S010 accuracy rows 210 (expected 210)
+
+S010 - F000: 18 cells +9.37 (+7.80; +10.94), TOST p 1.0000, category superiority, per seed [11.17, 10.44, 9.71, 12.12, 4.8, 11.48, 9.0, 9.25, 8.7, 7.02]; 21 cells +8.22 (+6.87; +9.57)
+N010 - S010: 18 cells -0.65 (-1.01; -0.28), TOST p 0.0274, category inferiority, per seed [-1.58, -0.9, -0.24, -0.26, -0.54, -0.4, -1.31, -0.25, -0.08, -0.9]; 21 cells -0.56 (-0.87; -0.24)
+
+READING: STEP ALONE GOES FURTHER
+
+Arm means, 18 cells: {'F000': 74.92, 'S010': 84.29, 'N010': 83.65, 'F010': 83.64}
+
+Contrasts by alpha (p.p., 21 cells):
+       S010-F000  N010-S010
+alpha                      
+0.05       11.83      -0.54
+0.10       10.52      -0.96
+0.50        2.31      -0.18
+
+Contrasts by attack_type (p.p., 21 cells):
+                  S010-F000  N010-S010
+attack_type                           
+fltrust_aligned        1.34      -0.04
+gaussian_noise         9.24      -0.40
+krum_collusion         7.88      -1.07
+label_flipping         9.80      -1.03
+low_mag_backdoor      10.14      -0.18
+sign_flipping          9.52      -0.82
+trim_attack            9.64      -0.38
+
+Per cell (p.p.):
+arm                      F000   S010   N010    S-F   N-S
+alpha attack_type                                       
+0.05  fltrust_aligned   75.92  76.70  76.80   0.78  0.10
+      gaussian_noise    65.51  79.34  79.92  13.83  0.58
+      krum_collusion    68.46  79.69  78.76  11.23 -0.93
+      label_flipping    64.53  79.63  78.80  15.10 -0.83
+      low_mag_backdoor  71.29  84.36  83.15  13.07 -1.21
+      sign_flipping     66.47  79.87  78.50  13.40 -1.37
+      trim_attack       64.31  79.70  79.59  15.39 -0.11
+0.10  fltrust_aligned   75.32  76.31  76.58   0.99  0.27
+      gaussian_noise    71.13  82.72  81.10  11.59 -1.62
+      krum_collusion    72.28  82.74  80.67  10.46 -2.07
+      label_flipping    70.85  82.76  80.55  11.91 -2.21
+      low_mag_backdoor  72.34  86.42  87.05  14.08  0.63
+      sign_flipping     69.66  82.72  81.83  13.06 -0.89
+      trim_attack       71.18  82.77  81.96  11.59 -0.81
+0.50  fltrust_aligned   78.77  81.01  80.54   2.24 -0.47
+      gaussian_noise    86.67  88.96  88.79   2.29 -0.17
+      krum_collusion    87.01  88.98  88.78   1.97 -0.20
+      label_flipping    86.60  88.98  88.95   2.38 -0.03
+      low_mag_backdoor  86.43  89.70  89.74   3.27  0.04
+      sign_flipping     86.92  89.01  88.81   2.09 -0.20
+      trim_attack       87.00  88.93  88.71   1.93 -0.22
+
+Logged means, all rounds:
+      g0_norm  client_norm_honest  delta_norm  step_along_g0  trust_honest  trust_byzantine  clipped_fraction
+arm                                                                                                          
+F000   1.5512              1.0547      0.9697         0.3381        0.1560           0.1666            0.0035
+N010   1.7248              1.0922      0.7787         0.1133        0.0650           0.0581            0.0035
+S010   1.9638              1.2234      0.3320         0.1050        0.1955           0.1725            0.0035
+
+Step along g0 by round:
+arm      F000    N010    S010
+round                        
+0      0.5032  0.3723  0.1677
+1      0.3626  0.2371  0.1532
+2      0.2847  0.1722  0.1391
+3      0.2604  0.1362  0.1264
+4      0.2360  0.1128  0.1156
+5      0.2887  0.0972  0.1067
+6      0.3311  0.0854  0.0999
+7      0.3589  0.0768  0.0948
+8      0.3424  0.0693  0.0910
+9      0.3653  0.0641  0.0877
+10     0.3385  0.0597  0.0845
+11     0.3680  0.0565  0.0814
+12     0.3331  0.0548  0.0784
+13     0.3702  0.0531  0.0757
+14     0.3288  0.0517  0.0732
+
+Global accuracy by round (p.p., 21 cells):
+arm     F000   N010   S010
+round                     
+0      57.38  61.74  57.38
+1      79.25  69.37  61.39
+2      78.69  73.05  65.27
+3      82.87  75.49  68.97
+4      77.16  77.37  72.33
+5      76.47  78.69  75.12
+6      73.24  79.71  77.25
+7      77.33  80.60  78.83
+8      74.16  81.11  80.03
+9      78.66  81.66  80.97
+10     74.73  81.98  81.65
+11     79.80  82.26  82.22
+12     74.97  82.39  82.69
+13     80.65  82.60  83.08
+14     75.17  82.84  83.40
