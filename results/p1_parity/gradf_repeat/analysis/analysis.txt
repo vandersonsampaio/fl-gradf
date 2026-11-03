@@ -1,0 +1,110 @@
+## Sec. 1 Completeness and regression
+
+JSONs: 20/20; accuracy rows 840 (expected 840)
+Random exec 1 vs mnist_rq3: 210 pairs, 1 differ, max |d| 1.11e-16
+  differs: (0.5, 'low_mag_backdoor', 48), |d| = 1.11e-16
+Random exec 2 vs mnist_rq3: 210 pairs, 1 differ, max |d| 1.11e-16
+  differs: (0.5, 'low_mag_backdoor', 48), |d| = 1.11e-16
+GRADF exec 1 vs first run (non-deterministic, no expectation): 64 of 210 pairs differ, mean |d| 2.27 p.p.
+GRADF exec 2 vs first run (non-deterministic, no expectation): 51 of 210 pairs differ, mean |d| 1.87 p.p.
+GRADF exec 1 vs exec 2: 55 of 210 pairs differ
+
+## Sec. 2 Repetition: GRADF - Random, 18 confirmatory cells (p.p.)
+
+first run: +3.48 (+2.13; +4.84) category superiority, per seed [5.15, 1.09, 4.9, 4.82, 1.96, 5.52, 2.97, 3.84, 4.53, 0.02]
+exec 1: +3.04 (+2.13; +3.95) category superiority, per seed [2.08, 1.15, 5.26, 3.11, 3.62, 3.7, 2.58, 4.27, 3.24, 1.41]
+exec 2: +3.37 (+1.88; +4.86) category superiority, per seed [0.79, -0.58, 5.04, 5.4, 3.92, 5.33, 2.53, 4.74, 4.5, 2.0]
+
+Aggregate over executions: mean +3.30, SD 0.23, half |mean| 1.65
+Criterion 1 (CI95 above zero in all 3): True
+Criterion 2 (SD < half |mean|): True
+VERDICT: ROBUST to run-to-run variance
+
+## Sec. 3 Against B_-s, same fixed rules, 18 confirmatory cells (p.p.)
+
+first run, GRADF - B_-s: +7.89 (+5.86; +9.92) category superiority
+first run, Random - B_-s: +4.41 (+2.81; +6.01) category superiority
+exec 1, GRADF - B_-s: +7.45 (+6.15; +8.75) category superiority
+exec 1, Random - B_-s: +4.41 (+2.81; +6.01) category superiority
+exec 2, GRADF - B_-s: +7.78 (+6.11; +9.44) category superiority
+exec 2, Random - B_-s: +4.41 (+2.81; +6.01) category superiority
+
+## Sec. 4 Mechanism (descriptive; both new executions, 21 cells)
+
+Vote shares over all rounds:
+system     strategy  rounds  share
+ GRADF   clustering     173  0.027
+ GRADF       fedavg     203  0.032
+ GRADF      fedprox     208  0.033
+ GRADF      fltrust    5475  0.869
+ GRADF         krum      89  0.014
+ GRADF       median     106  0.017
+ GRADF trimmed_mean      46  0.007
+Random   clustering     856  0.136
+Random       fedavg     882  0.140
+Random      fedprox     492  0.078
+Random      fltrust    1086  0.172
+Random         krum     776  0.123
+Random       median    1010  0.160
+Random trimmed_mean    1198  0.190
+
+Overall per system:
+        l4_rejection  l1_byz_per_round  l1_honest_per_round  l3_errors
+system                                                                
+GRADF          0.076             0.334                  0.0          0
+Random         0.215             0.339                  0.0          0
+
+Layer-4 rejection by attack:
+system            GRADF  Random
+attack_type                    
+fltrust_aligned   0.019   0.116
+gaussian_noise    0.103   0.158
+krum_collusion    0.074   0.187
+label_flipping    0.069   0.180
+low_mag_backdoor  0.047   0.184
+sign_flipping     0.068   0.282
+trim_attack       0.153   0.396
+
+GRADF against fixed FLTrust and Random per cell:
+                        gradf_fltrust_share  gradf  fixed_fltrust  random  best_fixed  best_fixed_all7  gradf_minus_fltrust  gradf_minus_random  gradf_minus_best
+alpha attack_type                                                                                                                                                
+0.05  fltrust_aligned                  84.3   76.7           75.9    81.0        78.7             81.8                  0.8                -4.3              -2.0
+      gaussian_noise                   86.3   77.1           67.0    76.6        73.8             73.8                 10.1                 0.5               3.3
+      krum_collusion                   95.0   77.9           67.6    69.4        67.6             70.8                 10.2                 8.5              10.2
+      label_flipping                   91.3   78.0           62.3    72.4        62.3             66.5                 15.7                 5.7              15.7
+      low_mag_backdoor                 88.7   84.4           69.8    84.6        76.5             85.4                 14.6                -0.2               8.0
+      sign_flipping                    85.0   77.5           67.0    64.4        67.0             74.0                 10.5                13.1              10.5
+      trim_attack                      64.3   73.1           66.2    73.3        66.2             78.3                  6.9                -0.2               6.9
+0.10  fltrust_aligned                  95.0   76.7           75.3    82.6        82.2             82.7                  1.4                -5.9              -5.5
+      gaussian_noise                   80.0   80.1           69.9    79.3        80.5             80.5                 10.2                 0.8              -0.4
+      krum_collusion                   80.3   79.9           70.8    70.4        70.8             73.9                  9.1                 9.5               9.1
+      label_flipping                   90.0   81.1           70.0    77.5        70.0             76.0                 11.1                 3.6              11.1
+      low_mag_backdoor                 85.0   86.4           72.7    86.4        83.1             85.5                 13.7                -0.1               3.3
+      sign_flipping                    85.0   78.7           72.6    72.7        72.6             78.3                  6.1                 6.0               6.1
+      trim_attack                      89.0   78.3           70.9    74.3        70.9             83.9                  7.4                 3.9               7.4
+0.50  fltrust_aligned                  75.0   82.2           78.8    88.8        89.3             89.7                  3.5                -6.6              -7.1
+      gaussian_noise                   85.0   88.9           87.0    88.4        89.5             89.5                  1.9                 0.5              -0.6
+      krum_collusion                  100.0   88.9           87.0    88.2        88.0             88.3                  1.9                 0.6               0.9
+      label_flipping                   85.0   88.1           86.6    87.5        88.6             89.4                  1.5                 0.6              -0.5
+      low_mag_backdoor                 90.7   89.8           87.2    89.5        89.9             90.5                  2.6                 0.3              -0.1
+      sign_flipping                    95.0   88.8           87.0    86.9        88.4             89.1                  1.8                 1.9               0.3
+      trim_attack                      95.0   88.6           86.8    86.0        87.4             89.7                  1.8                 2.6               1.2
+
+Cells where GRADF votes FLTrust >= 90%: 8 of 21; mean GRADF - fixed FLTrust +5.81 p.p., above fixed FLTrust in 8
+Above the cell-wise best fixed rule, 4 rules of D_R: GRADF 14 of 21, Random 12 of 21
+Above the cell-wise best fixed rule, all 7 rules: GRADF 9 of 21, Random 4 of 21
+
+Layer-1 rejections per round by attack (Byzantine; honest is zero where absent):
+                 l1_byz        l1_honest       
+system            GRADF Random     GRADF Random
+attack_type                                    
+fltrust_aligned   0.000  0.000       0.0    0.0
+gaussian_noise    2.000  2.000       0.0    0.0
+krum_collusion    0.022  0.022       0.0    0.0
+label_flipping    0.006  0.000       0.0    0.0
+low_mag_backdoor  0.000  0.000       0.0    0.0
+sign_flipping     0.002  0.000       0.0    0.0
+trim_attack       0.310  0.351       0.0    0.0
+
+Random - vote-weighted mean of fixed rules, 21 cells: +11.38 p.p.; 18 cells: +12.00 p.p.
+Check, final accuracy equals last-round global accuracy: max |d| 0.000000
