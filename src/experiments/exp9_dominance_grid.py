@@ -56,6 +56,12 @@ INPUT_SHAPE = {"mnist": (28, 28, 1), "cifar10": (32, 32, 3)}
 BLIND_ATTACKS = ["sign_flipping", "gaussian_noise", "label_flipping"]
 
 
+def round_accuracies(history, window: int = 5) -> tuple:
+    """Final-round accuracy and its trailing mean over the last `window` rounds."""
+    values = [r.global_accuracy for r in history]
+    return values[-1], float(np.mean(values[-window:]))
+
+
 def _split_name(alpha: float) -> str:
     """alpha=0.5 uses the default `non_iid/` split (already existing); any
     other alpha uses `non_iid_a{alpha}/`, produced by
@@ -141,10 +147,10 @@ def run_dominance_grid(
                     attack_type=attack_type, byzantine_ids=byzantine_ids, seed=seed,
                     **model_kwargs, **extra,
                 )
-                acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
+                acc, trailing = round_accuracies(learner.train(participants, root_data=root_data, verbose=False))
                 rows.append({
                     "alpha": alpha, "attack_type": attack_type,
-                    "strategy": strategy, "accuracy": acc,
+                    "strategy": strategy, "accuracy": acc, "accuracy_trailing5": trailing,
                 })
                 logger.info(
                     "seed=%d alpha=%s attack=%s strategy=%s acc=%.4f",

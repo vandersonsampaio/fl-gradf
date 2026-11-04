@@ -113,7 +113,7 @@ from src.experiments.exp1_baseline import (
     _derive_oracle_map,
     train_gradf_models,
 )
-from src.experiments.exp9_dominance_grid import BLIND_ATTACKS, INFORMED_ATTACKS, _split_name
+from src.experiments.exp9_dominance_grid import BLIND_ATTACKS, INFORMED_ATTACKS, _split_name, round_accuracies
 from src.fl.attacked_learner import AttackedFederatedLearner, compute_param_updates_auto
 from src.fl.federated_learner import RoundResult, _CNNModel, _STRATEGIES
 from src.fl.gradf_learner import GRADFFederatedLearner
@@ -615,10 +615,10 @@ def run_selector_comparison_grid(
                     model_kwargs=model_kwargs,
                 )
 
-            def _add(system_label: str, sys_variant: str, acc: float) -> None:
+            def _add(system_label: str, sys_variant: str, acc: tuple) -> None:
                 rows.append({
                     "alpha": alpha, "attack_type": attack_type, "system": system_label,
-                    "variant": sys_variant, "accuracy": acc,
+                    "variant": sys_variant, "accuracy": acc[0], "accuracy_trailing5": acc[1],
                 })
 
             if "random" in systems:
@@ -629,7 +629,7 @@ def run_selector_comparison_grid(
                     attack_type=attack_type, byzantine_ids=byzantine_ids, seed=seed,
                     **gradf_kwargs, **_seeded(alpha, attack_type, "random"),
                 )
-                acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
+                acc = round_accuracies(learner.train(participants, root_data=root_data, verbose=False))
                 _add("Random", "n/a", acc)
 
             if "oracle" in systems:
@@ -640,7 +640,7 @@ def run_selector_comparison_grid(
                     byzantine_ids=byzantine_ids, seed=seed,
                     **gradf_kwargs, **_seeded(alpha, attack_type, "oracle"),
                 )
-                acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
+                acc = round_accuracies(learner.train(participants, root_data=root_data, verbose=False))
                 _add("Oracle (decoupled)", "n/a", acc)
 
             if "gradf" in systems:
@@ -650,7 +650,7 @@ def run_selector_comparison_grid(
                     attack_type=attack_type, byzantine_ids=byzantine_ids, seed=seed,
                     **gradf_kwargs, **_seeded(alpha, attack_type, "gradf"),
                 )
-                acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
+                acc = round_accuracies(learner.train(participants, root_data=root_data, verbose=False))
                 _add("GRADF", "shared (own)", acc)
 
             if "fedstrategist" in systems:
@@ -660,7 +660,7 @@ def run_selector_comparison_grid(
                     shared_classifier=classifier, n_labels=len(attack_labels),
                     **model_kwargs, **_seeded(alpha, attack_type, "fedstrategist"),
                 )
-                acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
+                acc = round_accuracies(learner.train(participants, root_data=root_data, verbose=False))
                 _add("FedStrategist", variant, acc)
 
             if "adaaggrl" in systems:
@@ -673,7 +673,7 @@ def run_selector_comparison_grid(
                 )
                 # RandomCNNFeatureExtractor resets the global seeds; seed the run again.
                 _seeded(alpha, attack_type, "adaaggrl")
-                acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
+                acc = round_accuracies(learner.train(participants, root_data=root_data, verbose=False))
                 _add("AdaAggRL", f"own (gradient-inversion, {adaaggrl_feature_extractor} extractor)", acc)
 
             if "adaaggrl_detector" in systems:
@@ -684,7 +684,7 @@ def run_selector_comparison_grid(
                     feature_extractor=adaaggrl_feature_extractor, dataset=dataset,
                     **model_kwargs, **_seeded(alpha, attack_type, "adaaggrl_detector"),
                 )
-                acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
+                acc = round_accuracies(learner.train(participants, root_data=root_data, verbose=False))
                 _add(
                     "Discrete+AdaAggRL-detector",
                     f"LinUCB/7-rule, AdaAggRL detector ({adaaggrl_feature_extractor} extractor)",
