@@ -34,6 +34,7 @@ Requires the severe non-IID partitions generated beforehand:
 """
 
 import argparse
+from fractions import Fraction
 import os
 import zlib
 from typing import List, Optional
@@ -85,6 +86,7 @@ def run_dominance_grid(
     local_epochs: int = 5,
     local_lr: float = 0.01,
     server_steps="native",
+    global_lr: float = 1.0,
 ) -> pd.DataFrame:
     """`root_size`: if given, subsamples `server_val` (~3000 samples on
     MNIST) down to exactly `root_size` elements before running the grid —
@@ -114,7 +116,8 @@ def run_dominance_grid(
     attack_types = attack_types or (INFORMED_ATTACKS + BLIND_ATTACKS)
     strategies = strategies or FIXED_STRATEGIES
     byzantine_ids = list(range(max(1, int(n_clients * byzantine_fraction))))
-    model_kwargs = {"local_epochs": local_epochs, "local_lr": local_lr, "server_steps": server_steps}
+    model_kwargs = {"local_epochs": local_epochs, "local_lr": local_lr, "server_steps": server_steps,
+                    "global_lr": global_lr}
     if model_type == "cnn":
         model_kwargs.update(model_type="cnn", input_shape=INPUT_SHAPE[dataset])
         if seed_rng:
@@ -218,6 +221,10 @@ if __name__ == "__main__":
                              "median (step parity with the clients) or an int; see "
                              "FederatedLearner. Non-native runs get '_steps<value>' in "
                              "the output names and a server_steps column.")
+    parser.add_argument("--global_lr", type=lambda s: float(Fraction(s)), default=1.0,
+                        help="Global rate, as a number or a fraction such as 1/3. Values "
+                             "other than 1 get '_lr<den>' in the output names and a "
+                             "global_lr column.")
     parser.add_argument("--out_dir", default="results/tables")
     args = parser.parse_args()
 
@@ -228,10 +235,12 @@ if __name__ == "__main__":
         byzantine_fraction=args.byzantine_fraction, n_classes=args.n_classes,
         root_size=args.root_size, strategies=args.strategies, seed_rng=args.seed_rng,
         model_type=args.model, local_epochs=args.local_epochs, local_lr=args.local_lr,
-        server_steps=args.server_steps,
+        server_steps=args.server_steps, global_lr=args.global_lr,
     )
     if args.server_steps != "native":
         raw["server_steps"] = args.server_steps
+    if args.global_lr != 1.0:
+        raw["global_lr"] = args.global_lr
 
     suffix = f"_{args.dataset}_{args.model}" if args.model == "cnn" else ""
     suffix += f"_root{args.root_size}" if args.root_size is not None else ""
@@ -239,6 +248,8 @@ if __name__ == "__main__":
         suffix += "_seeded"
     if args.server_steps != "native":
         suffix += f"_steps{args.server_steps}"
+    if args.global_lr != 1.0:
+        suffix += f"_lr{round(1 / args.global_lr)}"
     out = args.out_dir
     os.makedirs(out, exist_ok=True)
     raw.to_csv(f"{out}/exp9_dominance_grid{suffix}_raw.csv", index=False)

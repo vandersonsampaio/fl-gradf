@@ -1,0 +1,6 @@
+PASS dry e1_main/fltrust_r100: {'global_lr': 0.3333333333333333, 'server_steps': 'median', 'root': 100, 'accuracy': [0.0762, 0.098], 'machine': 'notebook-Dell-G15-5530', 'layers': 0}
+PASS dry e1_sens_steps/fltrust_r2500: {'global_lr': 1.0, 'server_steps': 'native', 'root': 2500, 'accuracy': [0.12069999999999999, 0.0978], 'machine': 'notebook-Dell-G15-5530', 'layers': 0}
+PASS dry e3_hardened/krum_hardened: {'global_lr': 0.3333333333333333, 'server_steps': 'median', 'root': 100, 'accuracy': [0.12810000000000002, 0.12810000000000002], 'machine': 'notebook-Dell-G15-5530', 'layers': 2}
+PASS dry e3_main/random: {'global_lr': 0.3333333333333333, 'server_steps': 'median', 'root': 100, 'accuracy': [0.10430000000000002, 0.10430000000000002], 'machine': 'notebook-Dell-G15-5530', 'layers': 2}
+FAIL dry e3_main/adaaggrl: ["TypeError: src.experiments.exp10_selector_comparison.AdaAggRLGridLearner() got multiple values for keyword argument 'input_shape'"]
+CHECKS_FAIL

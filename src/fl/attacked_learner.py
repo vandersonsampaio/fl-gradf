@@ -107,7 +107,7 @@ class AttackedFederatedLearner(FederatedLearner):
             agg_kwargs["sample_sizes"] = [p.n_train for p in participants]
 
         agg_delta, metadata = self._strategy.aggregate(param_updates, **agg_kwargs)
-        self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+        self._global_params = self._global_step(agg_delta)
 
         per_acc = {
             p.id: self._make_model(p.n_features).accuracy(p.X_test, p.y_test)
@@ -195,7 +195,7 @@ class InformedAttackedFederatedLearner(AttackedFederatedLearner):
             agg_kwargs["sample_sizes"] = [p.n_train for p in participants]
 
         agg_delta, metadata = self._strategy.aggregate(param_updates, **agg_kwargs)
-        self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+        self._global_params = self._global_step(agg_delta)
 
         per_acc = {
             p.id: self._make_model(p.n_features).accuracy(p.X_test, p.y_test)

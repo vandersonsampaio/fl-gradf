@@ -81,6 +81,7 @@ Example:
 """
 
 import argparse
+from fractions import Fraction
 import os
 import zlib
 from typing import Dict, List, Optional, Tuple
@@ -247,7 +248,7 @@ class FedStrategistGridLearner(AttackedFederatedLearner):
         n_byz = sum(1 for b in _is_byz_list if b)
         strategy = _make_arsenal_strategy(strategy_name, n_byz)
         agg_delta, _ = strategy.aggregate(param_updates, sample_sizes=sample_sizes, server_update=server_update)
-        self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+        self._global_params = self._global_step(agg_delta)
 
         new_model = self._make_model(n_feat)
         new_model.set_params(self._global_params)
@@ -379,7 +380,11 @@ class AdaAggRLGridLearner(AttackedFederatedLearner):
         else:
             norm_weights = weights / total_w  # documented renormalization, see adaaggrl_agent.py docstring
 
-        self._global_params = sum(w * theta for w, theta in zip(norm_weights, theta_list))
+        aggregated = sum(w * theta for w, theta in zip(norm_weights, theta_list))
+        if self.global_lr == 1.0:  # no subtract-and-add: keeps earlier runs bit for bit
+            self._global_params = aggregated
+        else:
+            self._global_params = self._global_step(aggregated - self._global_params)
 
         for p in participants:
             self._v_history[p.id] = v_current[p.id]
@@ -522,7 +527,7 @@ class DiscreteWithAdaAggRLDetectorLearner(AttackedFederatedLearner):
         n_byz = sum(1 for b in _is_byz_list if b)
         strategy = _make_arsenal_strategy(strategy_name, n_byz)
         agg_delta, _ = strategy.aggregate(param_updates, sample_sizes=sample_sizes, server_update=server_update)
-        self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+        self._global_params = self._global_step(agg_delta)
 
         new_model = self._make_model(n_feat)
         new_model.set_params(self._global_params)
@@ -554,6 +559,8 @@ def run_selector_comparison_grid(
     local_lr: float = 0.01,
     seed_rng: bool = False,
     server_steps="native",
+    global_lr: float = 1.0,
+    magnitude_threshold: Optional[float] = None,
 ) -> pd.DataFrame:
     """`root_size=100` by default — validity condition 1 of the plan doc.
 
@@ -576,7 +583,8 @@ def run_selector_comparison_grid(
         variant == "b" and "fedstrategist" in systems
     )
 
-    model_kwargs = {"local_epochs": local_epochs, "local_lr": local_lr, "server_steps": server_steps}
+    model_kwargs = {"local_epochs": local_epochs, "local_lr": local_lr, "server_steps": server_steps,
+                    "global_lr": global_lr}
     gradf_kwargs = dict(model_kwargs)
     if model_type == "cnn":
         input_shape = DATASET_INPUT_SHAPE[dataset]
@@ -584,6 +592,8 @@ def run_selector_comparison_grid(
         n_params = _CNNModel(int(np.prod(input_shape)), input_shape=input_shape,
                              n_classes=n_classes).params.size
         gradf_kwargs = dict(model_kwargs, dp_epsilon=legacy_dp_epsilon_for(n_params))
+    if magnitude_threshold is not None:
+        gradf_kwargs["magnitude_threshold"] = magnitude_threshold
         if seed_rng:
             import tensorflow as tf
             tf.config.experimental.enable_op_determinism()
@@ -667,9 +677,9 @@ def run_selector_comparison_grid(
                 learner = AdaAggRLGridLearner(
                     n_rounds=n_rounds, n_classes=n_classes, attack_type=attack_type,
                     byzantine_ids=byzantine_ids, seed=seed,
-                    input_shape=DATASET_INPUT_SHAPE[dataset],
                     feature_extractor=adaaggrl_feature_extractor, dataset=dataset,
-                    **model_kwargs, **_seeded(alpha, attack_type, "adaaggrl"),
+                    **{**model_kwargs, "input_shape": DATASET_INPUT_SHAPE[dataset]},
+                    **_seeded(alpha, attack_type, "adaaggrl"),
                 )
                 # RandomCNNFeatureExtractor resets the global seeds; seed the run again.
                 _seeded(alpha, attack_type, "adaaggrl")
@@ -680,9 +690,9 @@ def run_selector_comparison_grid(
                 learner = DiscreteWithAdaAggRLDetectorLearner(
                     n_rounds=n_rounds, n_classes=n_classes, attack_type=attack_type,
                     byzantine_ids=byzantine_ids, seed=seed,
-                    input_shape=DATASET_INPUT_SHAPE[dataset],
                     feature_extractor=adaaggrl_feature_extractor, dataset=dataset,
-                    **model_kwargs, **_seeded(alpha, attack_type, "adaaggrl_detector"),
+                    **{**model_kwargs, "input_shape": DATASET_INPUT_SHAPE[dataset]},
+                    **_seeded(alpha, attack_type, "adaaggrl_detector"),
                 )
                 acc = round_accuracies(learner.train(participants, root_data=root_data, verbose=False))
                 _add(
@@ -737,6 +747,10 @@ if __name__ == "__main__":
                              "median (step parity with the clients) or an int; see "
                              "FederatedLearner. Non-native runs get '_steps<value>' in "
                              "the output names and a server_steps column.")
+    parser.add_argument("--global_lr", type=lambda s: float(Fraction(s)), default=1.0,
+                        help="Global rate, as a number or a fraction such as 1/3. Values "
+                             "other than 1 get '_lr<den>' in the output names and a "
+                             "global_lr column.")
     parser.add_argument("--seed_rng", action="store_true",
                         help="Reproducible runs (see run_selector_comparison_grid).")
     parser.add_argument("--out_dir", default="results/tables")
@@ -751,10 +765,12 @@ if __name__ == "__main__":
         adaaggrl_feature_extractor=args.adaaggrl_feature_extractor,
         model_type=args.model, local_epochs=args.local_epochs, local_lr=args.local_lr,
         seed_rng=args.seed_rng,
-        server_steps=args.server_steps,
+        server_steps=args.server_steps, global_lr=args.global_lr,
     )
     if args.server_steps != "native":
         raw["server_steps"] = args.server_steps
+    if args.global_lr != 1.0:
+        raw["global_lr"] = args.global_lr
 
     suffix = f"_variant{args.variant}" + (f"_{args.tag}" if args.tag else "")
     if args.model == "cnn":
@@ -763,6 +779,8 @@ if __name__ == "__main__":
         suffix += "_seeded"
     if args.server_steps != "native":
         suffix += f"_steps{args.server_steps}"
+    if args.global_lr != 1.0:
+        suffix += f"_lr{round(1 / args.global_lr)}"
     out = args.out_dir
     os.makedirs(out, exist_ok=True)
     raw.to_csv(f"{out}/exp10_selector_comparison{suffix}_raw.csv", index=False)
