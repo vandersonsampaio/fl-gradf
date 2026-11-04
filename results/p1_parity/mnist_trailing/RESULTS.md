@@ -6,7 +6,7 @@
 
 **Analysis:** `scripts/p1/analyze_mnist_trailing.py`, written after the runs and not frozen, reusing `scripts/p1/inference.py`. Outputs in `analysis/`.
 
-**Gap: AdaAggRL has no trailing mean on MNIST.** It was not part of this rerun (the jobs of `../mnist_rq3` do not include it), and only its final round is recorded. It is left out of every trailing-mean comparison below.
+**AdaAggRL:** not part of this rerun, since the jobs of `../mnist_rq3` do not include it. Its trailing mean comes from the separate runs of `ADDENDUM_2.md` (`mnist_adaaggrl/`: 20/20 jobs, 0 failures, ended 2026-11-04 15:55; code hashes check out). Sec. 4 uses them.
 
 ## 1. Regression of the final-round column
 
@@ -63,18 +63,41 @@ Per-seed differences (p.p., CI95), one execution. Categories as in `scripts/p1/i
 |---|---|---|---|---|
 | GRADF − Random | +3.29 (+2.08; +4.51), sup. | **+3.46 (+2.20; +4.73), sup.** | +4.60 (+2.88; +6.32), sup. | **+4.73 (+2.99; +6.47), sup.** |
 | FedStrategist − Random | −4.24 (−5.73; −2.75), inf. | **−2.27 (−3.02; −1.52), inf.** | −1.99 (−3.99; +0.01), no ev. | **−0.16 (−1.22; +0.90), no evidence** |
+| AdaAggRL − Random | +0.65 (−1.31; +2.62), no ev. | **+0.12 (−1.28; +1.52), no evidence** | +1.62 (−0.82; +4.05), no ev. | **+1.27 (−0.43; +2.98), no evidence** |
 | Attack-aware − Random | −2.48 (−3.18; −1.78), inf. | **−2.30 (−2.97; −1.62), inf.** | −3.81 (−4.91; −2.71), inf. | **−3.57 (−4.56; −2.59), inf.** |
 | GRADF − B₋ₛ | +7.70 (+6.02; +9.38), sup. | **+4.85 (+3.76; +5.95), sup.** | +6.94 (+4.72; +9.15), sup. | **+4.14 (+2.49; +5.80), sup.** |
 | FedStrategist − B₋ₛ | +0.16 (−1.71; +2.04), no ev. | **−0.88 (−1.36; −0.40), inf.** | +0.35 (−1.70; +2.41), no ev. | **−0.74 (−1.35; −0.13), inf.** |
+| AdaAggRL − B₋ₛ | +5.06 (+2.12; +8.00), sup. | **+1.51 (+0.09; +2.93), sup.** | +3.96 (+0.53; +7.38), sup. | **+0.69 (−1.17; +2.55), no evidence** |
 | Attack-aware − B₋ₛ | +1.93 (+0.21; +3.65), sup. | **−0.91 (−1.67; −0.14), inf.** | −1.47 (−3.50; +0.56), no ev. | **−4.16 (−5.10; −3.22), inf.** |
 | Random − B₋ₛ | +4.41 (+2.81; +6.01), sup. | **+1.39 (+0.35; +2.43), sup.** | +2.34 (+0.47; +4.21), sup. | **−0.58 (−1.84; +0.67), no ev.** |
 
-Sensitivity, FedStrategist with GRADF's detector (variant b), trailing: −2.40 (−3.15; −1.65) against Random on 18 cells, inferiority; −0.30 (−1.30; +0.70) on 12 cells, no evidence.
+**Sensitivity arms, on the trailing mean:**
+
+| arm | comparison | 18 cells | 12 cells |
+|---|---|---|---|
+| FedStrategist with GRADF's detector (variant b) | vs Random | −2.40 (−3.15; −1.65), inf. | −0.30 (−1.30; +0.70), no ev. |
+| | vs B₋ₛ | −1.01 (−1.65; −0.37), inf. | −0.88 (−1.67; −0.09), inf. |
+| AdaAggRL, pretrained extractor | vs Random | −1.37 (−2.46; −0.27), inf. | −1.03 (−2.17; +0.11), no ev. |
+| | vs B₋ₛ | +0.03 (−1.18; +1.23), no ev. | −1.62 (−3.02; −0.21), inf. |
+
+**AdaAggRL (`ADDENDUM_2.md`):**
+
+- **It does not differ from Random in any of the four columns,** and it is above B₋ₛ only as Random is: on the 18 cells, and less clearly on the trailing mean. On the 12 cells of level 1, trailing, it has no evidence against either reference.
+- **The trailing mean removes most of its advantage over B₋ₛ:** from +5.06 to +1.51 p.p. on 18 cells, and that +1.51 does not survive Holm (0.098).
+- **The extractor changes the reading.** The pretrained arm is lower than the random one in every column, and on the trailing mean is below Random on 18 cells (Holm 0.014). The pretrained extractor is not the better version here.
+- **The difference from the published runs is reported and not read as an effect of anything,** since those runs are unseeded and use the native g₀ under `fltrust_aligned`. Final round, 210 pairs per extractor:
+
+| extractor | pairs that differ | mean difference, p.p. | mean absolute, p.p. | largest, p.p. |
+|---|---|---|---|---|
+| random | 205 | +0.47 | 1.66 | 26.18 |
+| pretrained | 204 | +0.04 | 2.04 | 22.48 |
+
+**Comparisons among the other systems:**
 
 - **Comparisons with B₋ₛ fall by about 3 p.p., and by about 1 p.p. for FedStrategist.** FLTrust, the reference, gains 1.88 p.p. on average from the trailing mean, so part of the advantage measured at the final round was its final-round dip.
 - **GRADF stays above Random and above B₋ₛ in all four columns.** This is one execution of a non-deterministic system. `../gradf_repeat` and `../gradf_ablation` state what it does and does not show: the gain comes from the layers.
 - **Random against B₋ₛ loses its result on the 12 cells of level 1,** and attack-aware turns negative.
-- On the trailing mean, CI-based inferiority does not survive Holm on the Wilcoxon test for attack-aware − B₋ₛ on 18 cells (0.084) and FedStrategist − B₋ₛ on 12 cells (0.055). FedStrategist − B₋ₛ on 18 cells does (0.029).
+- **Holm on the Wilcoxon test, trailing mean, now with AdaAggRL in the families.** These results hold by CI but do not survive Holm: Random − B₋ₛ (0.059), attack-aware − B₋ₛ (0.098) and AdaAggRL − B₋ₛ (0.098) on 18 cells, and FedStrategist − B₋ₛ on 12 cells (0.082). FedStrategist − B₋ₛ on 18 cells does survive (0.039). The family grew, so these values replace the earlier ones, and Random − B₋ₛ on 18 cells is a new loss.
 
 ## 5. Win counts and the size of the metric change
 
@@ -91,8 +114,8 @@ Trailing minus final, root 100, per run: FLTrust +1.88 on average with a mean ab
 - Not blind (Sec. 7 of the campaign's pre-registration states this).
 - 15 rounds on MNIST: rounds 11–15 still include a rising curve.
 - One partition per α.
-- GRADF and FedStrategist come from one execution each, and both vary between executions.
+- GRADF and FedStrategist come from one execution each, and both vary between executions. AdaAggRL also comes from one execution per extractor. Its determinism on repetition was not checked.
 
 ## Outputs
 
-`analysis/analysis.txt`, `analysis/analysis.json`, `analysis/regression.csv`, `analysis/e3_*.csv`, `analysis/wins.csv`, `analysis/grid_root100_rules.csv`, `analysis/grid_systems.csv`.
+`analysis/analysis.txt`, `analysis/analysis.json`, `analysis/regression.csv`, `analysis/e3_*.csv` (AdaAggRL's pretrained arm in `*_sensitivity_adaaggrl.csv`), `analysis/wins.csv`, `analysis/grid_root100_rules.csv`, `analysis/grid_systems.csv`.

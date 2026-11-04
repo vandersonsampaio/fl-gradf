@@ -221,7 +221,8 @@
    "Random": 9,
    "Oracle (decoupled)": 8,
    "GRADF": 8,
-   "FedStrategist": 6
+   "FedStrategist": 6,
+   "AdaAggRL": 7
   }
  },
  "E3 trailing 12 cells, level 1": {
@@ -230,7 +231,8 @@
    "Random": 4,
    "Oracle (decoupled)": 3,
    "GRADF": 3,
-   "FedStrategist": 4
+   "FedStrategist": 4,
+   "AdaAggRL": 3
   }
  },
  "E3 final 18 cells": {
@@ -239,7 +241,8 @@
    "Random": 8,
    "Oracle (decoupled)": 9,
    "GRADF": 9,
-   "FedStrategist": 3
+   "FedStrategist": 3,
+   "AdaAggRL": 9
   }
  },
  "E3 final 12 cells, level 1": {
@@ -248,7 +251,8 @@
    "Random": 2,
    "Oracle (decoupled)": 3,
    "GRADF": 3,
-   "FedStrategist": 1
+   "FedStrategist": 1,
+   "AdaAggRL": 3
   }
  }
 }

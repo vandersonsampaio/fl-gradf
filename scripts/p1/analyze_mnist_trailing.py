@@ -8,7 +8,8 @@ Analysis of the MNIST rerun that records the trailing mean (results/p1_parity/mn
   Sec. 5  E3 on the 18 cells and on the 12 cells of level 1
   Sec. 6  win counts and how far the two metrics disagree
 
-AdaAggRL was not rerun and has no trailing mean on MNIST, so it is left out of the E3 families here.
+AdaAggRL's runs come from results/p1_parity/mnist_trailing/mnist_adaaggrl (ADDENDUM_2.md): the random extractor enters
+the E3 families and the pretrained extractor is a sensitivity arm.
 
 Usage: venv/bin/python scripts/p1/analyze_mnist_trailing.py
 """
@@ -29,8 +30,9 @@ RAW = f"{BASE}/mnist_trailing"
 OUT = f"{RAW}/analysis"
 FA = "fltrust_aligned"
 LEVEL1 = ("sign_flipping", "label_flipping", "trim_attack", "krum_collusion")
-SYSTEMS = ["Random", "Oracle (decoupled)", "GRADF", "FedStrategist"]
+SYSTEMS = ["Random", "Oracle (decoupled)", "GRADF", "FedStrategist", "AdaAggRL"]
 SENSITIVITY = ["FedStrategist (GRADF detector)", "Random"]
+PRETRAINED = "AdaAggRL (pretrained extractor)"
 ROOTS = (100, 3000, 50)
 METRICS = {"trailing": "accuracy_trailing5", "final": "accuracy"}
 E3_COLS = ["family", "system", "mean", "ci95_lo", "ci95_hi", "p_wilcoxon", "p_wilcoxon_holm", "p_t", "d_z", "category"]
@@ -58,6 +60,17 @@ def load_systems(base):
     return pd.concat(frames, ignore_index=True)
 
 
+def load_adaaggrl(base):
+    frames = []
+    for e in ("random", "pretrained"):
+        for d in sorted(glob.glob(f"{base}/mnist_adaaggrl/raw/{e}_seed*")):
+            if not os.path.exists(f"{d}/done"):
+                raise SystemExit(f"incomplete job: {d}")
+            df = pd.read_csv(glob.glob(f"{d}/*_stepsmedian_raw.csv")[0])
+            frames.append(df.replace({"system": {"AdaAggRL": PRETRAINED}}) if e == "pretrained" else df)
+    return pd.concat(frames, ignore_index=True)
+
+
 def fmt(r):
     return (f"mean {100 * r['mean']:+6.2f} p.p., CI95 ({100 * r['ci95_lo']:+.2f}; {100 * r['ci95_hi']:+.2f}), "
             f"Wilcoxon p {r['p_wilcoxon']:.4f}, t p {r['p_t']:.4f}, d_z {r['d_z']:.2f}, {r['category']}")
@@ -73,7 +86,7 @@ def regression(fx, sy, out):
                      "n_nonzero": int((g.accuracy_new != g.accuracy_old).sum()),
                      "max_abs": float((g.accuracy_new - g.accuracy_old).abs().max())})
     key = ["alpha", "attack_type", "system", "seed"]
-    m = sy.merge(load_systems(BASE), on=key, suffixes=("_new", "_old"), validate="one_to_one")
+    m = sy[~sy.system.str.startswith("AdaAggRL")].merge(load_systems(BASE), on=key, suffixes=("_new", "_old"), validate="one_to_one")
     for name, g in m.groupby("system"):
         rows.append({"source": "mnist_rq3", "arm": name, "n_pairs": len(g),
                      "n_nonzero": int((g.accuracy_new != g.accuracy_old).sum()),
@@ -112,7 +125,7 @@ def e2(fx, res, out):
 
 
 def e3(fx, sy, res, out):
-    out += ["", "## Sec. 5 E3 (accuracy differences as fractions; AdaAggRL has no trailing mean on MNIST)"]
+    out += ["", "## Sec. 5 E3 (accuracy differences as fractions)"]
     r100 = fx[fx.root == 100].drop(columns="root")
     grids = {"18 cells": lambda d: d[d.attack_type != FA], "12 cells, level 1": lambda d: d[d.attack_type.isin(LEVEL1)]}
     for metric, col in METRICS.items():
@@ -120,12 +133,15 @@ def e3(fx, sy, res, out):
             f, s = pick(r100).assign(accuracy=lambda d: d[col]), pick(sy).assign(accuracy=lambda d: d[col])
             t, desc = inf.e3_capture(f, s, SYSTEMS)
             ts, _ = inf.e3_capture(f, s, SENSITIVITY)
+            ta, _ = inf.e3_capture(f, s, [PRETRAINED, "Random"])
             stem = f"e3_{metric}_{name.split()[0]}cells"
             t.to_csv(f"{OUT}/{stem}.csv", index=False)
             ts.to_csv(f"{OUT}/{stem}_sensitivity.csv", index=False)
+            ta.to_csv(f"{OUT}/{stem}_sensitivity_adaaggrl.csv", index=False)
             res[f"E3 {metric} {name}"] = desc
             out += ["", f"{metric}, {name}:", t[E3_COLS].round(4).to_string(index=False), "Sensitivity:",
-                    ts[E3_COLS].round(4).to_string(index=False), f"Descriptive: {desc}"]
+                    ts[E3_COLS].round(4).to_string(index=False), "Sensitivity, AdaAggRL:",
+                    ta[E3_COLS].round(4).to_string(index=False), f"Descriptive: {desc}"]
 
 
 def wins(fx, sy, out):
@@ -159,7 +175,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     out = ["MNIST trailing-mean analysis (mnist_trailing/ADDENDUM.md). Seeds 42-51. Not blind: see the addendum.", ""]
     res = {}
-    fx, sy = load_fixed(RAW), load_systems(RAW)
+    fx, sy = load_fixed(RAW), pd.concat([load_systems(RAW), load_adaaggrl(RAW)], ignore_index=True)
     n, m = fx.groupby("root").size().to_dict(), sy.groupby("system").size().to_dict()
     ok = n == {100: 1470, 3000: 840, 50: 840} and all(v == 210 for v in m.values())
     out += ["## Sec. 1 Completeness", f"rows per root: {n}; rows per system: {m}; "
