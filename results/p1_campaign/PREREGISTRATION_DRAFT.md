@@ -1,6 +1,6 @@
 # Pre-registration — P1 confirmatory campaign on CIFAR-10 (DRAFT)
 
-**Status: DRAFT, not frozen, under review by the author.** Items marked **[OPEN]** need the author's decision. Items marked **[PENDING]** are filled from runs in progress before freezing. No run on seeds 42–51 of CIFAR-10 has been made. On freezing, this file is renamed `PREREGISTRATION.md` and hashed, and changes then go through dated addenda.
+**Status: DRAFT, content approved by the author on 2026-11-03, not frozen yet.** It is frozen once the checks of Sec. 8 pass and the rule for several machines is filled in. **[PENDING]** marks what is still to be filled. No run on seeds 42–51 of CIFAR-10 has been made. On freezing, this file is renamed `PREREGISTRATION.md` and hashed, and changes then go through dated addenda.
 
 **Base plan:** `docs/plano_p1_completo.md`, which applies except where this document differs. Sec. 9 lists every difference.
 
@@ -49,7 +49,7 @@ The default `global_lr = 1` must reproduce earlier results exactly (Sec. 8).
 | **E1 main** | 7 fixed rules at root 100, FLTrust at root 2,500 | 1/3 | 21 | 1,680 | 106.4 |
 | E1 invariant | trimmed mean at root 2,500: `fltrust_aligned` (30 runs), one seed on the other 18 cells | 1/3 | 21 | 48 | 3.0 |
 | **E1 sensitivity, factor** | FLTrust at both roots, trimmed mean at root 100, trimmed mean at root 2,500 under `fltrust_aligned` | 1 | 21 | 660 | 41.8 |
-| **E1 sensitivity, server steps** | FLTrust with `server_steps = native` at both roots | **[OPEN 1]** | 21 | 420 | 26.6 |
+| **E1 sensitivity, server steps** | FLTrust with `server_steps = native` at both roots | 1 | 21 | 420 | 26.6 |
 | **E3 main** | Random, attack-aware, GRADF, FedStrategist, AdaAggRL | 1/3 | 12 | 600 | ~50, with pretraining |
 | **E3 hardened** | FLTrust, median, trimmed mean and Krum through Layers 1, 2 and 4 | 1/3 | 12 | 480 | ~30 |
 | E3 sensitivity | AdaAggRL with pretrained extractor, FedStrategist with GRADF's detector | 1/3 | 12 | 240 | ~19 |
@@ -60,6 +60,8 @@ The costs come from one cell of part D at 12 processes, and there is no margin.
 **Budget.** The plan's limit was 236 h, and its frozen rule picks the lowest level that fits it. **The author accepted the overrun on 2026-11-03,** so level 1 is a declared departure from that rule, not its output. Under 236 h only level 2 would fit.
 
 **Order:** the invariant check first; E1 main; then the sensitivity blocks; E3 last, since its analysis needs the fixed rules. Expected end: about 20 to 21 November, starting on 4 November.
+
+**Machines. [PENDING]** The campaign runs on this PC and on cloud VMs. The rule (free assignment if runs match bit for bit, otherwise whole seeds per machine) is filled in from the check on each VM, and every job records its machine.
 
 ## 4. Statistical protocol
 
@@ -80,7 +82,7 @@ As in the plan, Sec. 4.3, implemented once in `scripts/p1/inference.py`:
 - **Different categories:** the root effect is reported as **dependent on the global rate**, and no general claim about the root is made. Pilot data point this way on 2 cells (`cifar_factor_sweep/RESULTS.md`), so this outcome is plausible and informative.
 - The same is reported for the level of V, that is, whether FLTrust leads the trimmed mean, since that sign changed between factors in the tuning.
 
-**The server-steps sensitivity** is reported as a factorial of steps × root, with no separate confirmatory claim.
+**The server-steps sensitivity** runs at factor 1, the author's decision: factor 1/3 was tuned under step parity, and the native g₀ has a much smaller norm (about 0.05 against about 1), so a third of that step would be a different experiment. It is reported as a factorial of steps × root against FLTrust under parity at factor 1, with no separate confirmatory claim.
 
 **E2.** Ĥ_LOSO on the 21 cells, at root 100, factor 1/3. **H2: the CI95 of Ĥ_LOSO lies above 0,** from a seed-level bootstrap that repeats selection and evaluation in each resample. In-sample headroom is reported as an optimistic upper bound. No p-value from the bootstrap.
 
@@ -88,7 +90,7 @@ As in the plan, Sec. 4.3, implemented once in `scripts/p1/inference.py`:
 - A_sys − A_Random, for GRADF, attack-aware, FedStrategist, AdaAggRL;
 - A_sys − B₋ₛ, for the same systems and Random.
 
-**Like-for-like comparison.** GRADF and Random pass through Layers 1, 2 and 4, and the plain fixed rules do not. So for GRADF and Random the comparison with B₋ₛ is made **both** with the plain fixed rules and with the hardened ones. The confirmatory one for these two is **against the hardened rules,** and the other is descriptive. FedStrategist and AdaAggRL do not pass through the layers and are compared with the plain rules.
+**Like-for-like comparison.** GRADF and Random pass through Layers 1, 2 and 4, and the plain fixed rules do not. So for GRADF and Random the comparison with B₋ₛ is made **both** with the plain fixed rules and with the hardened ones. The confirmatory one for these two is **against the hardened rules,** the author's decision, because `gradf_ablation` showed that their gain over the plain rules comes from the layers. The other is descriptive. FedStrategist and AdaAggRL do not pass through the layers and are compared with the plain rules.
 
 **Exploratory:** per α and per attack, win counts, capture counts, Layer-4 rejection rate, honest rejection rate at Layer 1, GRADF's votes, FLTrust's swing.
 
@@ -152,11 +154,3 @@ As in the plan, Sec. 4.3, implemented once in `scripts/p1/inference.py`:
 ## 11. After the campaign
 
 E4a (MNIST), the P-2 gate and E4b are outside this document and this budget.
-
----
-
-## Open items for the author
-
-1. **Factor of the server-steps sensitivity.** Recommended: **factor 1,** since 1/3 was tuned under step parity and the native g₀ has a much smaller norm (about 0.05 against about 1), so a third of that step would be a different experiment. The alternative is 1/3, which would keep everything else equal to the main arm.
-2. **Confirmatory comparison for GRADF and Random in E3.** Recommended: against the hardened rules (Sec. 5), because `gradf_ablation` showed their gain over the plain rules comes from the layers.
-3. **Order of work with W1.** E1 main first at 6 processes, as authorized.
