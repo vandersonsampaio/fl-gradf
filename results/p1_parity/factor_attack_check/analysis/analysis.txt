@@ -1,0 +1,45 @@
+Seed means (factor 3 means 1/3):
+                            accuracy        stability      
+factor                             1      3         1     3
+attack        rule                                         
+sign_flipping fedavg           37.40  29.85      1.29  0.35
+              fltrust_r100     23.11  35.53     11.19  8.17
+              fltrust_r2500    18.25  40.10      4.05  1.89
+              trimmed_mean     24.64  17.98      0.63  0.15
+trim_attack   fedavg           26.03  20.07      0.85  0.23
+              fltrust_r100     25.18  35.03      6.89  9.88
+              fltrust_r2500    18.26  38.58      7.60  2.27
+              trimmed_mean     17.83  14.95      0.37  0.16
+
+Accuracy over the 2 attacks, and whether a rule pays at factor 1/3 (more than 5.0 p.p. below factor 1):
+factor             1      3  change   pays
+rule                                      
+fedavg         31.72  24.96   -6.76   True
+fltrust_r100   24.14  35.28   11.14  False
+fltrust_r2500  18.26  39.34   21.09  False
+trimmed_mean   21.23  16.46   -4.77  False
+
+FLTrust minus trimmed mean per root, and D = V(2500) - V(100), seed means:
+rule                  V_r100  V_r2500     D
+attack        factor                       
+sign_flipping 1        -1.53    -6.39 -4.86
+              3        17.56    22.13  4.57
+trim_attack   1         7.35     0.43 -6.92
+              3        20.09    23.64  3.55
+
+D per seed:
+factor                 1      3
+attack        seed             
+sign_flipping 0    -4.66  10.04
+              1    -4.99   1.32
+              2    -4.92   2.35
+trim_attack   0    -6.50   4.22
+              1    -6.10   4.87
+              2    -8.15   1.56
+
+Best rule per attack:
+ factor        attack          rule  accuracy
+      1 sign_flipping        fedavg     37.40
+      1   trim_attack        fedavg     26.03
+      3 sign_flipping fltrust_r2500     40.10
+      3   trim_attack fltrust_r2500     38.58
