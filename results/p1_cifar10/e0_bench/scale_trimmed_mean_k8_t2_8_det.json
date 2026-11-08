@@ -1,0 +1,24 @@
+{
+ "tag": "scale_trimmed_mean_k8_t2_8",
+ "gpus": [],
+ "deterministic": true,
+ "rounds_timed": 3,
+ "local_epochs": 2,
+ "n_train_total": 47500,
+ "systems": {
+  "trimmed_mean": {
+   "s_per_round": 21.70793292799499,
+   "final_accuracy": 0.2602,
+   "honest_update_l2": {
+    "per_round_median": [
+     0.7694214162770814,
+     0.8131702685383911,
+     0.7290000658225164
+    ],
+    "min": 0.4894770833589669,
+    "max": 1.0821351852027608
+   }
+  }
+ },
+ "peak_rss_gb": 2.0494537353515625
+}

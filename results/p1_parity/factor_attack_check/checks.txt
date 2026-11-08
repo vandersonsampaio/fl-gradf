@@ -1,0 +1,6 @@
+PASS check1 FedAvg at factor 1 reproduces E0b, sign_flipping [0.10810000000000002, 0.10510000000000001] vs [0.10810000000000002, 0.10510000000000001]
+PASS check2 the trimmed mean's first aggregate at factor 1/3 has 1/3 of the norm, sign_flipping ratio 0.333333
+PASS check1 FedAvg at factor 1 reproduces E0b, trim_attack [0.14440000000000003, 0.1417] vs [0.14440000000000003, 0.1417]
+PASS check2 the trimmed mean's first aggregate at factor 1/3 has 1/3 of the norm, trim_attack ratio 0.333333
+PASS check3 confirmatory seeds are refused 
+CHECKS_PASS

@@ -1,0 +1,17 @@
+{
+ "index": 11,
+ "alpha": 0.5,
+ "attack": "sign_flipping",
+ "seed": 0,
+ "timed_rounds": 3,
+ "s_round": {
+  "fixed": 26.355268911322735,
+  "fltrust": 23.279681607013725,
+  "random": 24.44107603134277,
+  "attack_aware": 24.708660277343977,
+  "gradf": 25.147271771663025,
+  "fedstrategist": 24.422272582674243,
+  "adaaggrl": 37.974568608003516
+ },
+ "pretraining_s": 3082.420443326002
+}

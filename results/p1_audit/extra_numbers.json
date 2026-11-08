@@ -1,0 +1,252 @@
+{
+ "dstar": "trimmed_mean",
+ "H_global_insample": 0.062320476190476176,
+ "discrete_subset_of_adaaggrl": true,
+ "captured_by_system_21": {
+  "Random": 8,
+  "Attack-aware": 10,
+  "GRADF": 7,
+  "FedStrat.": 7,
+  "AdaAggRL": 10,
+  "AdaAggRL (pretrained)": 8
+ },
+ "captured_by_system_alt_dstar": {
+  "Random": 13,
+  "Attack-aware": 13,
+  "GRADF": 10,
+  "FedStrat.": 11,
+  "AdaAggRL": 11,
+  "AdaAggRL (pretrained)": 10
+ },
+ "no_fltrust_aligned_dstar_recomputed": {
+  "dstar": "fltrust",
+  "headroom": 10,
+  "captured": {
+   "Random": 10,
+   "Attack-aware": 10,
+   "GRADF": 8,
+   "FedStrat.": 8,
+   "AdaAggRL": 9,
+   "AdaAggRL (pretrained)": 8
+  },
+  "discrete_any": 9
+ },
+ "legacy_criterion_counts": {
+  "AdaAggRL": 9,
+  "AdaAggRL (pretrained)": 7,
+  "FedStrategist": 2,
+  "FedStrategist (GRADF detector)": 2,
+  "GRADF": 0,
+  "Oracle (decoupled)": 10,
+  "Random": 3
+ },
+ "extractor_random_minus_pretrained": {
+  "delta": 0.018617619047619056,
+  "p": 0.006767153550582462,
+  "d": 1.105496794725472,
+  "n": 10
+ },
+ "random_minus_floor_is_table4_adaaggrl": {
+  "delta": 0.03017095238095238,
+  "p": 0.006465113868867398,
+  "d": 1.114683284304532,
+  "n": 10
+ },
+ "vs_global_best_fixed_B": {
+  "AdaAggRL": {
+   "delta": 0.08251857142857144,
+   "p": 7.5837264107494605e-06,
+   "d": 2.88753216585239,
+   "n": 10
+  },
+  "AdaAggRL (pretrained)": {
+   "delta": 0.06390095238095239,
+   "p": 7.073311852925243e-05,
+   "d": 2.1817168836376704,
+   "n": 10
+  },
+  "FedStrategist": {
+   "delta": 0.00859476190476191,
+   "p": 0.052110924206242394,
+   "d": 0.7073530629368089,
+   "n": 10
+  },
+  "FedStrategist (GRADF detector)": {
+   "delta": 0.011651904761904757,
+   "p": 0.0006464251718399157,
+   "d": 1.612300256277513,
+   "n": 10
+  },
+  "GRADF": {
+   "delta": 0.009881904761904765,
+   "p": 0.3585243229174962,
+   "d": 0.3059824914343184,
+   "n": 10
+  },
+  "Oracle (decoupled)": {
+   "delta": 0.06439047619047619,
+   "p": 2.2165659955351724e-13,
+   "d": 20.772975868398646,
+   "n": 10
+  },
+  "Random": {
+   "delta": 0.052347619047619066,
+   "p": 5.541248441092124e-07,
+   "d": 3.9438514609777733,
+   "n": 10
+  }
+ },
+ "vs_per_seed_cell_max": {
+  "AdaAggRL": {
+   "delta": 0.019297142857142853,
+   "p": 0.06080384481409474,
+   "d": 0.6774213819724965,
+   "n": 10
+  },
+  "AdaAggRL (pretrained)": {
+   "delta": 0.0006795238095238049,
+   "p": 0.9437068476194218,
+   "d": 0.02296035075166257,
+   "n": 10
+  },
+  "FedStrategist": {
+   "delta": -0.05462666666666667,
+   "p": 1.964150440784247e-06,
+   "d": -3.3973143036759543,
+   "n": 10
+  },
+  "FedStrategist (GRADF detector)": {
+   "delta": -0.05156952380952382,
+   "p": 9.708793283710365e-08,
+   "d": -4.826051236930846,
+   "n": 10
+  },
+  "GRADF": {
+   "delta": -0.053339523809523816,
+   "p": 0.0007739063515919908,
+   "d": -1.5704546932802408,
+   "n": 10
+  },
+  "Oracle (decoupled)": {
+   "delta": 0.0011690476190476136,
+   "p": 0.6819902201986096,
+   "d": 0.13386910321022902,
+   "n": 10
+  },
+  "Random": {
+   "delta": -0.010873809523809527,
+   "p": 0.08992173315818305,
+   "d": -0.6007587446535234,
+   "n": 10
+  }
+ },
+ "fedstrategist_gradf_detector_vs_random": {
+  "delta": -0.04069571428571429,
+  "p": 2.7011910287674425e-06,
+  "d": -3.270654378666879,
+  "n": 10
+ },
+ "fltrust_mean_sd": {
+  "3000": 0.004730345940715731,
+  "100": 0.024493387180941042
+ },
+ "discrete_capture_R_and_OminusB": {
+  "GRADF": [
+   {
+    "alpha": 0.05,
+    "attack_type": "krum_collusion",
+    "R": 0.644,
+    "O_minus_B": 0.168
+   },
+   {
+    "alpha": 0.05,
+    "attack_type": "sign_flipping",
+    "R": 0.617,
+    "O_minus_B": 0.141
+   },
+   {
+    "alpha": 0.05,
+    "attack_type": "trim_attack",
+    "R": 0.738,
+    "O_minus_B": 0.229
+   },
+   {
+    "alpha": 0.1,
+    "attack_type": "krum_collusion",
+    "R": 1.102,
+    "O_minus_B": 0.197
+   },
+   {
+    "alpha": 0.1,
+    "attack_type": "label_flipping",
+    "R": 0.656,
+    "O_minus_B": 0.031
+   },
+   {
+    "alpha": 0.1,
+    "attack_type": "sign_flipping",
+    "R": 1.259,
+    "O_minus_B": 0.184
+   },
+   {
+    "alpha": 0.1,
+    "attack_type": "trim_attack",
+    "R": 0.658,
+    "O_minus_B": 0.229
+   }
+  ],
+  "FedStrat.": [
+   {
+    "alpha": 0.05,
+    "attack_type": "krum_collusion",
+    "R": 0.936,
+    "O_minus_B": 0.168
+   },
+   {
+    "alpha": 0.05,
+    "attack_type": "sign_flipping",
+    "R": 0.29,
+    "O_minus_B": 0.141
+   },
+   {
+    "alpha": 0.05,
+    "attack_type": "trim_attack",
+    "R": 0.764,
+    "O_minus_B": 0.229
+   },
+   {
+    "alpha": 0.1,
+    "attack_type": "krum_collusion",
+    "R": 1.081,
+    "O_minus_B": 0.197
+   },
+   {
+    "alpha": 0.1,
+    "attack_type": "label_flipping",
+    "R": 4.625,
+    "O_minus_B": 0.031
+   },
+   {
+    "alpha": 0.1,
+    "attack_type": "sign_flipping",
+    "R": 0.994,
+    "O_minus_B": 0.184
+   },
+   {
+    "alpha": 0.1,
+    "attack_type": "trim_attack",
+    "R": 0.363,
+    "O_minus_B": 0.229
+   }
+  ]
+ },
+ "mean_per_cell_sd": {
+  "AdaAggRL": 0.044000292290192665,
+  "AdaAggRL (pretrained)": 0.047696943195749825,
+  "FedStrategist": 0.029804692595109067,
+  "FedStrategist (GRADF detector)": 0.028858408424318135,
+  "GRADF": 0.11169592871588861,
+  "Oracle (decoupled)": 0.007858590495746408,
+  "Random": 0.0297423506260271
+ }
+}

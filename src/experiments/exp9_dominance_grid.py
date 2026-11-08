@@ -35,8 +35,10 @@ Requires the severe non-IID partitions generated beforehand:
 
 import argparse
 import os
+import zlib
 from typing import List, Optional
 
+import numpy as np
 import pandas as pd
 
 import src.defense.aggregation_methods  # noqa: F401  registers median/trimmed_mean/krum/etc.
@@ -50,7 +52,14 @@ logger = get_logger(__name__)
 
 FIXED_STRATEGIES = ["fltrust", "median", "trimmed_mean", "krum"]
 INFORMED_ATTACKS = AttackSimulator.INFORMED_ATTACK_TYPES
+INPUT_SHAPE = {"mnist": (28, 28, 1), "cifar10": (32, 32, 3)}
 BLIND_ATTACKS = ["sign_flipping", "gaussian_noise", "label_flipping"]
+
+
+def round_accuracies(history, window: int = 5) -> tuple:
+    """Final-round accuracy and its trailing mean over the last `window` rounds."""
+    values = [r.global_accuracy for r in history]
+    return values[-1], float(np.mean(values[-window:]))
 
 
 def _split_name(alpha: float) -> str:
@@ -71,6 +80,11 @@ def run_dominance_grid(
     seed: int = 42,
     root_size: Optional[int] = None,
     strategies: Optional[List[str]] = None,
+    seed_rng: bool = False,
+    model_type: str = "logistic",
+    local_epochs: int = 5,
+    local_lr: float = 0.01,
+    server_steps="native",
 ) -> pd.DataFrame:
     """`root_size`: if given, subsamples `server_val` (~3000 samples on
     MNIST) down to exactly `root_size` elements before running the grid —
@@ -80,11 +94,32 @@ def run_dominance_grid(
     Trimmed-Mean/Krum are, by construction, invariant to this parameter — so
     `strategies` lets the grid be restricted to just `["fltrust"]` for a
     sensitivity re-run, reusing (via `strategies=None`, all 4) the values
-    already measured for the others instead of recomputing them."""
+    already measured for the others instead of recomputing them.
+
+    `seed_rng`: makes each run reproducible. NumPy's global RNG (used for
+    mini-batch shuffling) is seeded from (seed, alpha, attack, strategy) —
+    never from the root size, so runs are paired across roots — and the
+    server's root-data fit gets its own RNG stream, so the root size does not
+    shift the clients' draws. With it, the invariance of Median/Trimmed-Mean/
+    Krum to `root_size` becomes testable exactly (except under
+    `fltrust_aligned`, whose attacker copies the server's root update).
+    Off by default: the historical, unseeded behavior is unchanged.
+
+    `model_type='cnn'` uses the small CNN (`_CNNModel`) with the dataset's
+    image shape (P1 CIFAR-10 campaign). With `seed_rng`, TensorFlow is seeded
+    from the same run seed (initial global weights) and runs with
+    deterministic ops, and the mini-batch order comes from NumPy, as for the
+    logistic model. `local_epochs`/`local_lr` keep the historical defaults."""
     alphas = alphas or [0.5, 0.1, 0.05]
     attack_types = attack_types or (INFORMED_ATTACKS + BLIND_ATTACKS)
     strategies = strategies or FIXED_STRATEGIES
     byzantine_ids = list(range(max(1, int(n_clients * byzantine_fraction))))
+    model_kwargs = {"local_epochs": local_epochs, "local_lr": local_lr, "server_steps": server_steps}
+    if model_type == "cnn":
+        model_kwargs.update(model_type="cnn", input_shape=INPUT_SHAPE[dataset])
+        if seed_rng:
+            import tensorflow as tf
+            tf.config.experimental.enable_op_determinism()
 
     rows = []
     for alpha in alphas:
@@ -99,14 +134,23 @@ def run_dominance_grid(
                 else AttackedFederatedLearner
             )
             for strategy in strategies:
+                extra = {}
+                if seed_rng:
+                    run_seed = zlib.crc32(f"{seed}|{alpha}|{attack_type}|{strategy}".encode())
+                    np.random.seed(run_seed)
+                    extra["server_rng_seed"] = run_seed + 1
+                    if model_type == "cnn":
+                        import tensorflow as tf
+                        tf.keras.utils.set_random_seed(run_seed)  # Keras 3 has its own seed state
                 learner = learner_cls(
                     n_rounds=n_rounds, aggregation=strategy, n_classes=n_classes,
                     attack_type=attack_type, byzantine_ids=byzantine_ids, seed=seed,
+                    **model_kwargs, **extra,
                 )
-                acc = learner.train(participants, root_data=root_data, verbose=False)[-1].global_accuracy
+                acc, trailing = round_accuracies(learner.train(participants, root_data=root_data, verbose=False))
                 rows.append({
                     "alpha": alpha, "attack_type": attack_type,
-                    "strategy": strategy, "accuracy": acc,
+                    "strategy": strategy, "accuracy": acc, "accuracy_trailing5": trailing,
                 })
                 logger.info(
                     "seed=%d alpha=%s attack=%s strategy=%s acc=%.4f",
@@ -161,6 +205,20 @@ if __name__ == "__main__":
              "consumes root_data; avoids recomputing Median/Trimmed-Mean/"
              "Krum, which don't change with root_size.",
     )
+    parser.add_argument(
+        "--seed_rng", action="store_true",
+        help="Reproducible runs (see run_dominance_grid). Adds '_seeded' to "
+             "the output names.",
+    )
+    parser.add_argument("--model", default="logistic", choices=["logistic", "cnn"])
+    parser.add_argument("--local_epochs", type=int, default=5)
+    parser.add_argument("--local_lr", type=float, default=0.01)
+    parser.add_argument("--server_steps", default="native",
+                        help="FLTrust server-fit steps: native (epochs over the root), "
+                             "median (step parity with the clients) or an int; see "
+                             "FederatedLearner. Non-native runs get '_steps<value>' in "
+                             "the output names and a server_steps column.")
+    parser.add_argument("--out_dir", default="results/tables")
     args = parser.parse_args()
 
     raw = run_over_seeds(
@@ -168,23 +226,33 @@ if __name__ == "__main__":
         dataset=args.dataset, alphas=args.alphas, attack_types=args.attack_types,
         n_clients=args.n_clients, n_rounds=args.n_rounds,
         byzantine_fraction=args.byzantine_fraction, n_classes=args.n_classes,
-        root_size=args.root_size, strategies=args.strategies,
+        root_size=args.root_size, strategies=args.strategies, seed_rng=args.seed_rng,
+        model_type=args.model, local_epochs=args.local_epochs, local_lr=args.local_lr,
+        server_steps=args.server_steps,
     )
+    if args.server_steps != "native":
+        raw["server_steps"] = args.server_steps
 
-    suffix = f"_root{args.root_size}" if args.root_size is not None else ""
-    os.makedirs("results/tables", exist_ok=True)
-    raw.to_csv(f"results/tables/exp9_dominance_grid{suffix}_raw.csv", index=False)
+    suffix = f"_{args.dataset}_{args.model}" if args.model == "cnn" else ""
+    suffix += f"_root{args.root_size}" if args.root_size is not None else ""
+    if args.seed_rng:
+        suffix += "_seeded"
+    if args.server_steps != "native":
+        suffix += f"_steps{args.server_steps}"
+    out = args.out_dir
+    os.makedirs(out, exist_ok=True)
+    raw.to_csv(f"{out}/exp9_dominance_grid{suffix}_raw.csv", index=False)
     print("=== raw (per seed) ===")
     print(raw.to_string(index=False))
 
     summary = summarize(raw, ["alpha", "attack_type", "strategy"], "accuracy")
     summary = summary.rename(columns={"mean": "accuracy_mean", "std": "accuracy_std"})
-    summary.to_csv(f"results/tables/exp9_dominance_grid{suffix}_summary.csv", index=False)
+    summary.to_csv(f"{out}/exp9_dominance_grid{suffix}_summary.csv", index=False)
     print("\n=== summary (mean/std over seeds) ===")
     print(summary.to_string(index=False))
 
     dom = dominance_table(summary)
-    dom.to_csv(f"results/tables/exp9_dominance_grid{suffix}_verdict.csv", index=False)
+    dom.to_csv(f"{out}/exp9_dominance_grid{suffix}_verdict.csv", index=False)
     print("\n=== dominance grid: winner per (alpha, attack_type) ===")
     print(dom.to_string(index=False))
 

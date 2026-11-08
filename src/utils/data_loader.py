@@ -70,7 +70,7 @@ class RecordingFederatedLearner(AttackedFederatedLearner):
         agg_kwargs: Dict = {}
         if self.aggregation == "fltrust":
             srv = self._make_model(participants[0].n_features)
-            srv_delta = srv.fit(root_data["X"], root_data["y"])  # type: ignore[index]
+            srv_delta = self._fit_server(srv, root_data, participants)  # type: ignore[arg-type]
             agg_kwargs["server_update"] = srv_delta
         else:
             agg_kwargs["sample_sizes"] = [p.n_train for p in participants]
@@ -103,6 +103,7 @@ def generate_detection_dataset(
     aggregation: str = "fedavg",
     n_classes: Optional[int] = None,
     seed: int = 0,
+    model_kwargs: Optional[Dict] = None,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Runs FL rounds with and without each attack type and collects, per
     client/round, the 4 detection scores and the corresponding label.
@@ -130,6 +131,7 @@ def generate_detection_dataset(
             attack_type=attack_type,
             byzantine_ids=byzantine_ids,
             seed=seed,
+            **(model_kwargs or {}),
         )
         learner.train(participants, root_data=root_data, verbose=False)
         records.extend(learner.records)
@@ -163,6 +165,7 @@ def generate_selector_experiences(
     byzantine_fraction: float = 0.3,
     n_classes: Optional[int] = None,
     seed: int = 0,
+    model_kwargs: Optional[Dict] = None,
 ) -> List[Tuple[np.ndarray, int, float, np.ndarray]]:
     """Runs real FL episodes (attack type x aggregation strategy) and returns
     experiences (state, action_idx, reward, next_state) to train
@@ -178,6 +181,7 @@ def generate_selector_experiences(
     baseline_learner = AttackedFederatedLearner(
         n_rounds=n_rounds, aggregation="fedavg", n_classes=n_classes,
         attack_type="none", byzantine_ids=byzantine_ids, seed=seed,
+        **(model_kwargs or {}),
     )
     baseline_start = time.perf_counter()
     baseline_history = baseline_learner.train(participants, verbose=False)
@@ -193,6 +197,7 @@ def generate_selector_experiences(
             learner = AttackedFederatedLearner(
                 n_rounds=n_rounds, aggregation=action, n_classes=n_classes,
                 attack_type=attack_type, byzantine_ids=byzantine_ids, seed=seed,
+                **(model_kwargs or {}),
             )
             ep_start = time.perf_counter()
             history = learner.train(participants, verbose=False)

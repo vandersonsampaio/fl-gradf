@@ -1,0 +1,87 @@
+FLTrust server-step diagnostic (results/p1_cifar10/e0b/ADDENDUM3.md); 508 jobs
+
+## CIFAR-10 (alpha 0.05, seed 0, native, 4 jobs)
+sign_flipping  root   100 steps    8  ||g0|| median 0.085 (r1 0.074)  ||agg|| median 0.069  client median 0.654  regression vs E0b r1-20: equal
+sign_flipping  root  2500 steps  158  ||g0|| median 0.471 (r1 0.209)  ||agg|| median 0.212  client median 0.561  regression vs E0b r1-20: equal
+trim_attack    root   100 steps    8  ||g0|| median 0.058 (r1 0.048)  ||agg|| median 0.036  client median 0.724  regression vs E0b r1-20: equal
+trim_attack    root  2500 steps  158  ||g0|| median 0.472 (r1 0.214)  ||agg|| median 0.222  client median 0.667  regression vs E0b r1-20: equal
+
+## MNIST (504 jobs; final accuracy at round 15, %)
+Server steps and norms (median over cells, seeds and rounds):
+  root   100 steps     20 (n =   20)  ||g0||   0.197  ||agg||   0.113  client 1.833  acc mean 70.25
+  root   100 steps    470 (n =  470)  ||g0||   1.073  ||agg||   0.649  client 1.009  acc mean 81.16
+  root   100 steps median (n =  820)  ||g0||   1.532  ||agg||   0.992  client 1.041  acc mean 75.96
+  root   100 steps native (n =   20)  ||g0||   0.199  ||agg||   0.117  client 1.835  acc mean 70.41
+  root  3000 steps     20 (n =   20)  ||g0||   0.179  ||agg||   0.103  client 1.875  acc mean 70.70
+  root  3000 steps    470 (n =  470)  ||g0||   0.661  ||agg||   0.248  client 1.021  acc mean 86.63
+  root  3000 steps median (n =  820)  ||g0||   0.846  ||agg||   0.366  client 0.971  acc mean 86.83
+  root  3000 steps native (n =  470)  ||g0||   0.661  ||agg||   0.240  client 1.020  acc mean 86.64
+
+Contrasts (p.p.; D_root@N = FLTrust(3000, N) - FLTrust(100, N); seed mean):
+                        D_native  D_root@20  D_root@470  D_root@median  step470-20@root100  step470-20@root3000  median-native@root100  median-native@root3000  main_step  main_root  interaction
+alpha attack                                                                                                                                                                                     
+0.05  fltrust_aligned      19.74       9.78       14.25          14.86                5.26                 9.73                   5.19                    0.31       7.50      12.02         4.47
+      gaussian_noise       18.12       1.50        5.06          13.77               14.03                17.60                   5.10                    0.75      15.82       3.28         3.56
+      krum_collusion       19.21       1.05        7.50          15.55               11.33                17.78                   4.91                    1.25      14.55       4.27         6.45
+      label_flipping       18.32       1.24        6.71          14.13               12.78                18.25                   2.57                   -1.61      15.52       3.97         5.47
+      low_mag_backdoor     14.07       4.62        3.37          16.70               12.74                11.50                  -2.67                   -0.04      12.12       4.00        -1.24
+      sign_flipping        21.01       0.96       12.80          13.75                6.54                18.37                   6.42                   -0.84      12.45       6.88        11.83
+      trim_attack          19.39       0.91        9.50          12.02                9.82                18.41                   6.82                   -0.56      14.11       5.20         8.59
+0.10  fltrust_aligned      16.63      11.42       14.51          15.09                2.20                 5.29                   1.91                    0.37       3.75      12.96         3.09
+      gaussian_noise       23.43      -3.89        1.90          12.62               22.46                28.25                  10.60                   -0.21      25.35      -1.00         5.79
+      krum_collusion       23.72      -3.62        1.01          11.94               21.67                26.30                  11.88                    0.10      23.98      -1.31         4.63
+      label_flipping       23.20      -3.73        5.97          12.35               18.28                27.97                  10.52                   -0.33      23.12       1.12         9.70
+      low_mag_backdoor     13.45       1.34        8.00          21.31                5.34                12.00                  -7.82                    0.04       8.67       4.67         6.66
+      sign_flipping        23.68      -3.81        5.73          14.23               17.86                27.40                   9.36                   -0.09      22.63       0.96         9.54
+      trim_attack          24.09      -4.43        1.73          15.10               21.92                28.08                  10.19                    1.20      25.00      -1.35         6.16
+0.50  fltrust_aligned       7.03       0.57        8.46           9.21               -1.50                 6.40                  -1.88                    0.30       2.45       4.51         7.89
+      gaussian_noise        9.74      -0.77        1.53           2.45                8.18                10.48                   7.89                    0.60       9.33       0.38         2.30
+      krum_collusion        9.63      -0.49        1.48           2.41                8.42                10.39                   7.79                    0.57       9.41       0.50         1.97
+      label_flipping        9.48      -0.57        1.53           2.87                8.32                10.42                   7.22                    0.61       9.37       0.48         2.10
+      low_mag_backdoor      7.57      -1.23        0.35           3.10                7.28                 8.86                   4.93                    0.46       8.07      -0.44         1.58
+      sign_flipping         9.77      -0.71        1.87           2.45                7.94                10.52                   7.90                    0.58       9.23       0.58         2.58
+      trim_attack           9.54      -0.59        1.64           2.49                8.28                10.52                   7.65                    0.60       9.40       0.53         2.24
+
+Mean over all 21 cells:
+D_native                  16.23
+D_root@20                  0.45
+D_root@470                 5.47
+D_root@median             10.88
+step470-20@root100        10.91
+step470-20@root3000       15.93
+median-native@root100      5.55
+median-native@root3000     0.19
+main_step                 13.42
+main_root                  2.96
+interaction                5.02
+by alpha:
+       D_native  D_root@20  D_root@470  D_root@median  step470-20@root100  step470-20@root3000  median-native@root100  median-native@root3000  main_step  main_root  interaction
+alpha                                                                                                                                                                           
+0.05      18.55       2.86        8.46          14.40               10.36                15.95                   4.05                   -0.11      13.15       5.66         5.59
+0.10      21.17      -0.96        5.55          14.66               15.68                22.19                   6.66                    0.15      18.93       2.29         6.51
+0.50       8.97      -0.54        2.41           3.57                6.70                 9.66                   5.93                    0.53       8.18       0.93         2.95
+
+Mean over 18 cells without fltrust_aligned:
+D_native                  16.52
+D_root@20                 -0.68
+D_root@470                 4.32
+D_root@median             10.51
+step470-20@root100        12.40
+step470-20@root3000       17.39
+median-native@root100      6.18
+median-native@root3000     0.17
+main_step                 14.90
+main_root                  1.82
+interaction                5.00
+by alpha:
+       D_native  D_root@20  D_root@470  D_root@median  step470-20@root100  step470-20@root3000  median-native@root100  median-native@root3000  main_step  main_root  interaction
+alpha                                                                                                                                                                           
+0.05      18.35       1.71        7.49          14.32               11.21                16.98                   3.86                   -0.18      14.10       4.60         5.78
+0.10      21.93      -3.02        4.06          14.59               17.92                25.00                   7.45                    0.12      21.46       0.52         7.08
+0.50       9.29      -0.73        1.40           2.63                8.07                10.20                   7.23                    0.57       9.13       0.34         2.13
+
+Cells with a positive root contrast (of 21):
+D_native         21
+D_root@20        10
+D_root@470       21
+D_root@median    21
