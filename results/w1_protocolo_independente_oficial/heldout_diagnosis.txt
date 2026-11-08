@@ -1,0 +1,36 @@
+86 runs; clients per round: [10]
+
+MNIST, attacked runs, rounds >= 100, validation acc > 90% at i and i+1:
+  n   rounds  P(held-out<50% | n at i+1)  P(held-out<50% | n at i)
+  0     1444                       0.000                     0.188
+  1     4136                       0.100                     0.202
+  2     4810                       0.202                     0.217
+  3     3153                       0.303                     0.188
+  4     1251                       0.413                     0.201
+  5      352                       0.514                     0.196
+  6       42                       0.667                     0.122
+  7        5                       0.800                     0.000
+MNIST, fedavg/none, rounds >= 100: held-out<50% in 1/1200 rounds
+
+MNIST EB fixed seed 160, rounds 471-500:
+  held-out   0.09 0.96 0.94 0.96 0.95 0.95 0.95 0.10 0.09 0.95 0.10 0.96 0.96 0.95 0.95 0.96 0.96 0.96 0.96 0.96 0.94 0.95 0.96 0.09 0.10 0.09 0.96 0.09 0.96 0.96
+  validation 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.97 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.96 0.97 0.96 0.96
+
+Means per dataset x attack x condition (validation = global model; held-out = last client's model):
+  dataset     attack cond    val_median_401_500  val_mean_1_500  held_out_median_401_500
+  BloodMNIST  EB     fixed               0.3102          0.2920                   0.2078
+  BloodMNIST  EB     td3                 0.3120          0.2933                   0.2152
+  BloodMNIST  LMP    fixed               0.2900          0.2719                   0.1991
+  BloodMNIST  LMP    td3                 0.2951          0.2746                   0.2071
+  BloodMNIST  none   fedavg              0.7471          0.6057                   0.6601
+  MNIST       EB     fixed               0.9600          0.9080                   0.9509
+  MNIST       EB     td3                 0.9589          0.8590                   0.9487
+  MNIST       LMP    fixed               0.9588          0.9077                   0.9499
+  MNIST       LMP    td3                 0.9609          0.8980                   0.9514
+  MNIST       none   fedavg              0.9637          0.9268                   0.9539
+
+fixed - td3 on validation, global model, n = 20 per dataset (p.p.; descriptive, post hoc):
+  MNIST median 401-500: D=-0.05 CI90=(-0.16; +0.06) CI95=(-0.18; +0.08) t p=0.4391
+  MNIST mean 1-500: D=+2.93 CI90=(+1.48; +4.38) CI95=(+1.18; +4.69) t p=0.0024
+  BloodMNIST median 401-500: D=-0.34 CI90=(-1.38; +0.69) CI95=(-1.59; +0.91) t p=0.5716
+  BloodMNIST mean 1-500: D=-0.20 CI90=(-0.52; +0.12) CI95=(-0.59; +0.19) t p=0.2922

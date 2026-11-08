@@ -1,0 +1,5 @@
+W2 gate, rung 1 {'trigger_size': 4, 'poison_fraction': 0.5}: 30/30 runs
+  alpha 0.05: ASR fedavg − clean = +98.00 p.p. (≥ 50.0); clean acc drop = +0.11 p.p. (≤ 5.0) -> PASS
+  alpha 0.1: ASR fedavg − clean = +98.94 p.p. (≥ 50.0); clean acc drop = +0.17 p.p. (≤ 5.0) -> PASS
+  alpha 0.5: ASR fedavg − clean = +99.44 p.p. (≥ 50.0); clean acc drop = -0.10 p.p. (≤ 5.0) -> PASS
+VERDICT rung 1: VALID (use this rung)

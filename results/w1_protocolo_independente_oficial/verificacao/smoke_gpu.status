@@ -1,0 +1,4 @@
+MNIST td3 rc=0
+MNIST fixed rc=0
+BloodMNIST td3 rc=0
+BloodMNIST fixed rc=0
