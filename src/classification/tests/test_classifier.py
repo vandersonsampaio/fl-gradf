@@ -46,20 +46,19 @@ class TestRealDetectionSignalClassification:
     # other in this small synthetic configuration.
     ATTACK_TYPES = ["sign_flipping", "label_flipping"]
 
-    @classmethod
     @pytest.fixture(scope="class")
-    def dataset(cls):
+    def dataset(self):
         participants = _make_synthetic_participants()
         X, y_binary, y_attack_type = generate_detection_dataset(
             participants,
             n_rounds=10,
-            attack_types=cls.ATTACK_TYPES,
+            attack_types=self.ATTACK_TYPES,
             byzantine_fraction=0.5,
             aggregation="fedavg",
             n_classes=2,
             seed=42,
         )
-        labels = ["none"] + cls.ATTACK_TYPES
+        labels = ["none"] + self.ATTACK_TYPES
         label_to_idx = {label: i for i, label in enumerate(labels)}
         y_idx = np.array([label_to_idx[t] for t in y_attack_type])
         return X, y_binary, y_idx, labels
