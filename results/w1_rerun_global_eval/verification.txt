@@ -1,0 +1,18 @@
+MNIST EB fixed seed 150, 25 rounds on cuda:0: max |eval path - logged validation| 0.00000 over 3 checks; inner.net differs from global in 100% of the steps; mean |held-out - validation| 0.50 p.p.; mean over rounds 16-25: global held-out 69.5, inner.net 48.7, validation 69.2
+  [OK] 1 validation reproduced
+  [OK] 2 inner.net differs from global >= 90%
+  [OK] 4 rng_intact
+  [OK] 5 fields
+  [OK] 3 mean |held-out - validation| <= 3 p.p.
+MNIST EB td3 seed 150, 25 rounds on cuda:0: max |eval path - logged validation| 0.00000 over 3 checks; inner.net differs from global in 100% of the steps; mean |held-out - validation| 0.80 p.p.; mean over rounds 16-25: global held-out 71.8, inner.net 46.5, validation 71.1
+  [OK] 1 validation reproduced
+  [OK] 2 inner.net differs from global >= 90%
+  [OK] 4 rng_intact
+  [OK] 5 fields
+  [OK] 3 mean |held-out - validation| <= 3 p.p.
+BloodMNIST EB fixed seed 150, 25 rounds on cuda:0: max |eval path - logged validation| 0.00000 over 3 checks; inner.net differs from global in 100% of the steps; mean |held-out - validation| 0.56 p.p.; mean over rounds 16-25: global held-out 30.2, inner.net 22.9, validation 30.1
+  [OK] 1 validation reproduced
+  [OK] 2 inner.net differs from global >= 90%
+  [OK] 4 rng_intact
+  [OK] 5 fields
+VERIFICATION_PASS
