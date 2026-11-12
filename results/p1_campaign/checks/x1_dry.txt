@@ -1,0 +1,10 @@
+X1 dry run, seed 0, R = 2, 2026-11-11, this PC: one job per arm kind.
+x1_fixed median_r100 rc=0
+x1_fixed krum_r100 rc=0
+x1_systems fedstrategist rc=0
+x1_hardened krum_hardened rc=0
+x1_systems random rc=0
+x1_systems adaaggrl rc=0
+x1_systems gradf rc=0
+x1_systems attack_aware rc=0
+Every training run, pretraining included, recorded global_lr = 1.0 and server_steps = median; code_sha256 19d05b19..., campaign_code_sha256 d5ed26d6...
