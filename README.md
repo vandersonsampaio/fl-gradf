@@ -97,3 +97,20 @@ Follow-up work toward a second paper: **does AdaAggRL's RL component (TD3) contr
 | D2 | P1's conclusion is robust to run-to-run variance; GRADF's DQN is strongly non-deterministic per cell |
 | B3.0, B3.1, B3.2 | On BloodMNIST (health data), TD3 ≈ fixed again (±3 p.p.) and the policy stays static, but both run in a degraded, periodic-reset regime |
 | B3.3 | On BloodMNIST under EB, no higher threshold (a₅ = 0.75 or 0.95) beats the center: resets become rarer, but accuracy stays at ~31% |
+
+---
+
+## After p1.0.0: P1 second submission
+
+Work toward the resubmission of the p1.0.0 paper. It lives on two branches: `p1/segunda-submissao` (MNIST, step parity, E4a) and `p1/global-lr` (the CIFAR-10 confirmatory campaign and its exploratory follow-ups). The server's root update is fitted with the clients' median step count (`server_steps="median"`, commit `c8cc2e8`; P1 branches only). Every run is pre-registered (plan or addendum plus hashes frozen first), and the inference code is `scripts/p1/inference.py`.
+
+| Document | Status | Result in one line |
+|---|---|---|
+| [`results/p1_parity/RESULTS.md`](results/p1_parity/RESULTS.md) | re-analysis | Step-parity reruns: GRADF changes sign on MNIST; FLTrust swings about 8 p.p. between rounds on CIFAR-10, which motivated the trailing mean |
+| [`results/p1_parity/mnist_trailing/RESULTS.md`](results/p1_parity/mnist_trailing/RESULTS.md) | re-analysis | MNIST rerun with parity, recording the trailing mean (rounds 11–15) |
+| [`results/p1_campaign/RESULTS.md`](results/p1_campaign/RESULTS.md) | **confirmatory** | CIFAR-10, factor 1/3: the root effect depends on the global rate; cross-fitted headroom is positive (3.9 p.p.); no system beats the best fixed rule (FLTrust) |
+| [`results/p1_campaign/X1_RESULTS.md`](results/p1_campaign/X1_RESULTS.md) | exploratory | At factor 1, d\* becomes the trimmed mean, so RQ3 depends on the factor; FedStrategist beats it by +6.4 p.p. |
+| [`results/p1_campaign/X5_RESULTS.md`](results/p1_campaign/X5_RESULTS.md) | descriptive | FedStrategist's factor-1 gain comes from its 7-rule action set (equivalent to the best of the 7 fixed rules, clustering); the headroom over the 7-rule set is larger than over D_R |
+| [`results/p1_campaign/GATE_P2.md`](results/p1_campaign/GATE_P2.md) | decision | E4b is not run (future work); the gate's four questions are answered by the campaign, X1, X5 and E4a |
+
+MNIST addendum 3 (hardened and 7-rule references) and E4a are on branch `p1/segunda-submissao`.
