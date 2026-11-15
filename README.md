@@ -97,3 +97,4 @@ Follow-up work toward a second paper: **does AdaAggRL's RL component (TD3) contr
 | D2 | P1's conclusion is robust to run-to-run variance; GRADF's DQN is strongly non-deterministic per cell |
 | B3.0, B3.1, B3.2 | On BloodMNIST (health data), TD3 ≈ fixed again (±3 p.p.) and the policy stays static, but both run in a degraded, periodic-reset regime |
 | B3.3 | On BloodMNIST under EB, no higher threshold (a₅ = 0.75 or 0.95) beats the center: resets become rarer, but accuracy stays at ~31% |
+| Front 1 step parity | With the server's root update fitted at the clients' step count (P1's fix), `cos_server` becomes the best per-client detector and beats S_R; `fltrust_aligned` was a small-norm clone in every audit run |
