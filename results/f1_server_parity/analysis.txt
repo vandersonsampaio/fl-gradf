@@ -1,0 +1,112 @@
+CHECK detector variant reproduces Front 1's stored step-1 CSVs: max |diff| = 0
+
+detector fltrust_aligned a0.05: median norm byz/honest = 0.200, parity steps 752
+
+detector fltrust_aligned a0.1: median norm byz/honest = 0.201, parity steps 917
+
+detector fltrust_aligned a0.5: median norm byz/honest = 0.127, parity steps 820
+
+attack fltrust_aligned a0.05: median norm byz/honest = 1.719, parity steps 752
+
+attack fltrust_aligned a0.1: median norm byz/honest = 1.386, parity steps 917
+
+attack fltrust_aligned a0.5: median norm byz/honest = 2.065, parity steps 820
+
+=== detector variant: AUC per cell (rounds >= 2, seed 42) ===
+detector                 S_R  S_cg  S_cl  S_lg  cos_median  cos_server  cos_server_parity  l2_median  norm
+attack_type      alpha                                                                                    
+fltrust_aligned  0.05   0.72  0.47  0.81  0.65        0.13        0.00               0.00       0.00  0.00
+                 0.10   0.53  0.72  0.79  0.76        0.02        0.00               0.00       0.01  0.02
+                 0.50   0.50  0.51  0.83  0.60        0.64        0.00               0.00       0.08  0.00
+gaussian_noise   0.05   1.00  0.99  0.74  0.99        0.24        0.69               0.92       1.00  1.00
+                 0.10   1.00  1.00  0.73  1.00        0.33        0.62               0.84       1.00  1.00
+                 0.50   1.00  0.98  0.72  0.98        0.83        0.64               0.91       1.00  1.00
+krum_collusion   0.05   0.98  0.98  0.81  0.96        0.10        0.88               1.00       0.20  0.21
+                 0.10   0.93  0.96  0.73  0.96        0.26        0.88               1.00       0.36  0.39
+                 0.50   0.89  0.97  0.77  0.95        0.99        0.91               1.00       0.55  0.45
+label_flipping   0.05   0.65  0.42  0.42  0.39        0.62        0.78               1.00       0.75  0.72
+                 0.10   0.52  0.43  0.46  0.40        0.84        0.93               1.00       0.83  0.78
+                 0.50   0.48  0.65  0.52  0.42        1.00        1.00               1.00       1.00  0.98
+low_mag_backdoor 0.05   0.58  0.40  0.45  0.45        0.38        0.40               0.42       0.42  0.42
+                 0.10   0.49  0.41  0.47  0.42        0.45        0.73               0.65       0.46  0.51
+                 0.50   0.34  0.59  0.43  0.53        0.74        0.68               0.60       0.56  0.47
+sign_flipping    0.05   0.81  0.80  0.82  0.79        0.35        0.81               0.94       0.48  0.48
+                 0.10   0.76  0.87  0.71  0.85        0.27        0.99               1.00       0.83  0.85
+                 0.50   0.64  0.84  0.82  0.82        0.94        0.98               1.00       0.75  0.59
+trim_attack      0.05   0.97  0.69  0.46  0.65        0.05        0.95               1.00       1.00  1.00
+                 0.10   0.91  0.62  0.58  0.70        0.04        0.96               1.00       1.00  1.00
+                 0.50   0.95  0.74  0.79  0.72        0.57        0.95               1.00       1.00  1.00
+
+=== mean over 21 cells ===
+detector
+cos_server_parity    0.776
+S_R                  0.745
+S_cg                 0.716
+S_lg                 0.713
+cos_server           0.704
+S_cl                 0.661
+l2_median            0.633
+norm                 0.613
+cos_median           0.465
+
+=== mean over 18 cells (no fltrust_aligned) ===
+detector
+cos_server_parity    0.905
+cos_server           0.821
+S_R                  0.772
+S_cg                 0.741
+l2_median            0.733
+S_lg                 0.720
+norm                 0.714
+S_cl                 0.636
+cos_median           0.499
+
+=== cells with AUC >= 0.70 ===
+detector
+S_R                  12
+S_cg                 11
+S_cl                 13
+S_lg                 11
+cos_median            6
+cos_server           13
+cos_server_parity    15
+l2_median            11
+norm                 10
+
+=== attack variant (fltrust_aligned cloning the parity server update) ===
+detector                S_R  S_cg  S_cl  S_lg  cos_median  cos_server  cos_server_parity  l2_median  norm
+attack_type     alpha                                                                                    
+fltrust_aligned 0.05   0.78  0.75  0.31  0.74        0.06        0.01                0.0       0.87  0.90
+                0.10   0.69  0.66  0.37  0.66        0.04        0.04                0.0       0.76  0.83
+                0.50   0.60  0.46  0.66  0.58        0.27        0.02                0.0       1.00  0.97
+
+=== 21-cell mean with fltrust_aligned under the parity attack ===
+detector
+cos_server_parity    0.776
+S_R                  0.760
+l2_median            0.754
+norm                 0.740
+S_cg                 0.724
+S_lg                 0.711
+cos_server           0.708
+S_cl                 0.609
+cos_median           0.445
+
+grid cells matched: 210
+
+cosserver_parity - cosserver_only: mean +0.0221, 90% bootstrap CI (+0.0138; +0.0303), n_seeds 10
+
+cosserver_parity - sr_only: mean +0.0234, 90% bootstrap CI (+0.0196; +0.0273), n_seeds 10
+
+cosserver_only - sr_only: mean +0.0014, 90% bootstrap CI (-0.0079; +0.0100), n_seeds 10
+
+=== per attack, minus sr_only: native | parity ===
+                  native  parity
+attack_type                     
+fltrust_aligned  -0.0365 -0.0367
+gaussian_noise   -0.0437 -0.0311
+krum_collusion   -0.0147  0.0019
+label_flipping    0.0918  0.1349
+low_mag_backdoor  0.0171  0.0318
+sign_flipping     0.0143  0.0525
+trim_attack      -0.0188  0.0108
