@@ -240,9 +240,59 @@ Frequencies per cell: `analysis_x5/full.json` (FedStrategist) and `analysis_x5/e
   - Substituting the reproductions is a decision taken during the run. ADDENDUM_3 Sec. 3 had planned to exclude non-identical replays.
 - **The cell means at factor 1 come from different blocks:** FLTrust and the trimmed mean from `e1_sens_factor`, the median and Krum from `x1_fixed`, the other three from `x5_fixed`. All share the configuration, the seeds and the campaign's frozen code.
 
-## 7. Files
+## 7. Post-hoc descriptive calculations (requested after the analysis)
 
-- **Analysis:** `scripts/p1/analyze_x5.py`.
+Two calculations on existing runs were requested after the X5 analysis. They are **not specified in ADDENDUM_3**, so they are post hoc and descriptive. They needed no new jobs. They ran once (`scripts/p1/analyze_x5_extra.py`) with the same functions as the X5 analysis, and they have no Holm correction.
+
+**Consistency check:** the D_R rows reproduce the confirmatory E2 headroom (3.86 and 1.36) and the X1 deltas against the plain d\* (Random +1.78, attack-aware +1.77, GRADF +1.38, FedStrategist +6.38, AdaAggRL −9.17).
+
+### 7.1 E2 headroom over D_7 at factor 1/3 (21 cells, root 100, `e1_main`)
+
+| cells | set | Ĥ_LOSO | CI95 | d\* (LOSO choices) | cell winners | cells whose best rule is outside D_R |
+|---|---|---|---|---|---|---|
+| 21 | D_R (confirmatory) | 3.86 | (3.49; 4.17) | FLTrust (10/10) | FLTrust 12, trimmed mean 7, median 2 | — |
+| 21 | **D_7** | **6.53** | (5.89; 6.97) | FLTrust (10/10) | FedAvg 7, FLTrust 6, clustering 6, trimmed mean 1, median 1 | **14/21** |
+| 18, no FA | D_R (confirmatory) | 1.36 | (1.03; 1.66) | FLTrust (10/10) | FLTrust 12, trimmed mean 4, median 2 | — |
+| 18, no FA | **D_7** | **3.55** | (2.85; 4.03) | FLTrust (10/10) | FLTrust 6, clustering 6, FedAvg 4, trimmed mean 1, median 1 | **10/18** |
+
+- FA = `fltrust_aligned`.
+- **Mean over the 21 cells:** FLTrust 38.26, FedAvg 36.13, clustering 35.74, FedProx 35.69, trimmed mean 35.62, median 33.13, Krum 22.55.
+- **d\* is FLTrust under both sets** at factor 1/3. The headroom over D_7 is 1.7 times the D_R headroom on 21 cells and 2.6 times on 18, and the CIs do not overlap.
+- Per-cell means: `analysis_x5/extra_e2_factor_1_3_cell_means.csv`.
+
+### 7.2 Every system against B7_−s (plain), 12 E3 cells
+
+For each system, the table gives Δ with its CI95 and category against B7_−s, then against B_R,−s.
+
+| factor | system | mean | vs B7_−s: Δ | CI95 | bootstrap CI95 | category | vs B_R,−s: Δ | category |
+|---|---|---|---|---|---|---|---|---|
+| 1/3 | Random | 35.56 | −4.94 | (−6.32; −3.57) | (−6.06; −3.80) | inferiority | −4.94 | inferiority |
+| 1/3 | Attack-aware | 37.61 | −2.89 | (−4.90; −0.89) | (−4.67; −1.39) | inferiority | −2.89 | inferiority |
+| 1/3 | GRADF | 37.68 | −2.82 | (−5.70; +0.05) | (−5.31; −0.61) | no evidence; CIs disagree on 0 → **inconclusive** | −2.82 | same |
+| 1/3 | FedStrategist | 39.68 | −0.83 | (−2.04; +0.39) | (−1.92; +0.08) | no evidence | −0.83 | no evidence |
+| 1/3 | AdaAggRL | 25.21 | −15.30 | (−16.91; −13.68) | (−16.63; −13.98) | inferiority | −15.30 | inferiority |
+| 1 | Random | 39.70 | **−4.83** | (−6.27; −3.39) | (−6.05; −3.67) | **inferiority** | +1.78 | superiority |
+| 1 | Attack-aware | 39.69 | **−4.84** | (−6.28; −3.40) | (−6.05; −3.69) | **inferiority** | +1.77 | superiority |
+| 1 | GRADF | 39.31 | **−5.22** | (−7.19; −3.26) | (−7.03; −3.84) | **inferiority** | +1.38 | no evidence |
+| 1 | FedStrategist | 44.31 | −0.22 | (−0.90; +0.45) | (−0.75; +0.35) | **equivalence** | +6.38 | superiority |
+| 1 | AdaAggRL | 28.75 | −15.78 | (−17.41; −14.15) | (−17.15; −14.49) | inferiority | −9.17 | inferiority |
+
+- d\*₇ is FLTrust at factor 1/3 and clustering at factor 1. At factor 1/3, d\*₇ = d\*_R, so the two columns coincide.
+- Wilcoxon p ≤ 0.006 for every inferiority and superiority above, except Random (0.027) and attack-aware (0.037) against B_R,−s at factor 1.
+- All rows are against the **plain** rules. In the campaign, GRADF and Random are compared with the hardened d\*, which does not exist over D_7 (Sec. 6).
+
+**Descriptive reading:**
+- **At factor 1, the plain 7-rule reference reverses every superiority found against the plain d\*_R.** Random, attack-aware and GRADF go from +1.4 to +1.8 to −4.8 to −5.2. FedStrategist goes from +6.38 to equivalence.
+- **No system is above the best of the 7 rules at either factor.** FedStrategist is the closest: equivalent at factor 1, and no evidence at factor 1/3.
+- At factor 1/3 the comparisons equal the plain-reference ones, since d\* does not change.
+
+Table: `analysis_x5/extra_systems_vs_dstar.csv`.
+
+**Not done:** E2 over D_7 at factor 1 would need the 270 optional jobs. They were not run, since the argument already holds on the 12 E3 cells.
+
+## 8. Files
+
+- **Analysis:** `scripts/p1/analyze_x5.py`. Post-hoc calculations (Sec. 7): `scripts/p1/analyze_x5_extra.py`, which writes `analysis_x5/extra.json`, `extra.txt`, `extra_systems_vs_dstar.csv` and `extra_e2_factor_1_3_cell_means.csv`.
 - **Outputs:** `results/p1_campaign/analysis_x5/`:
   - `existing.json`, `existing.txt`;
   - `full.json`, `full.txt`;
