@@ -1,0 +1,48 @@
+checks: {'fixed_root100_rows': 1470, 'fixed_rules': ['clustering', 'fedavg', 'fedprox', 'fltrust', 'krum', 'median', 'trimmed_mean'], 'hardened_rows': 840, 'hardened_rules': ['fltrust', 'krum', 'median', 'trimmed_mean'], 'system_rows': {'AdaAggRL': 210, 'AdaAggRL (pretrained extractor)': 210, 'FedStrategist': 210, 'FedStrategist (GRADF detector)': 210, 'GRADF': 210, 'Oracle (decoupled)': 210, 'Random': 210}}
+
+A 21 cells D_R: H_LOSO 2.27 (1.97; 2.58) d* fltrust {'fltrust': 10} winners {'trimmed_mean': 11, 'fltrust': 9, 'krum': 1}
+A 21 cells D_7: H_LOSO 4.06 (3.64; 4.55) d* fltrust {'fltrust': 10} winners {'fedavg': 7, 'trimmed_mean': 3, 'fltrust': 4, 'clustering': 7}
+A 18 cells D_R: H_LOSO 1.63 (1.31; 1.95) d* fltrust {'fltrust': 10} winners {'trimmed_mean': 8, 'fltrust': 9, 'krum': 1}
+A 18 cells D_7: H_LOSO 3.50 (3.09; 4.01) d* fltrust {'fltrust': 10} winners {'trimmed_mean': 3, 'fltrust': 4, 'fedavg': 5, 'clustering': 6}
+A 12 cells D_R: H_LOSO 0.95 (0.66; 1.27) d* fltrust {'fltrust': 10} winners {'fltrust': 8, 'trimmed_mean': 3, 'krum': 1}
+A 12 cells D_7: H_LOSO 2.64 (2.26; 3.20) d* fltrust {'fltrust': 10} winners {'fltrust': 4, 'clustering': 6, 'fedavg': 2}
+A rule means (21 cells, %): {'clustering': 75.26, 'fedavg': 72.33, 'fedprox': 71.98, 'fltrust': 77.04, 'krum': 45.4, 'median': 64.11, 'trimmed_mean': 69.52}
+B hardened rule means (21 cells, %): {'fltrust': 82.45, 'krum': 46.17, 'median': 73.12, 'trimmed_mean': 74.06}
+
+A systems:
+cells             system   reference   dstar  system_mean    mean  ci95_lo  ci95_hi                                       boot_ci95  p_wilcoxon  p_tost    category  agree_on_0
+   18             Random B7_-s plain fltrust       0.7848  0.0139   0.0035   0.0243    [0.005168886111111114, 0.022153236111111103]      0.0195  0.7916 superiority        True
+   18 Oracle (decoupled) B7_-s plain fltrust       0.7618 -0.0091  -0.0167  -0.0014 [-0.015238688888888916, -0.0027960638888889213]      0.0840  0.3923 inferiority        True
+   18              GRADF B7_-s plain fltrust       0.8194  0.0485   0.0376   0.0595      [0.03861477777777776, 0.05679117777777777]      0.0020  1.0000 superiority        True
+   18      FedStrategist B7_-s plain fltrust       0.7621 -0.0088  -0.0136  -0.0040   [-0.012503444444444437, -0.00465529166666667]      0.0098  0.2936 inferiority        True
+   18           AdaAggRL B7_-s plain fltrust       0.7860  0.0151   0.0009   0.0293     [0.0029548944444444483, 0.0264091722222222]      0.0488  0.7799 superiority        True
+   18             Random BR_-s plain fltrust       0.7848  0.0139   0.0035   0.0243    [0.005168886111111114, 0.022153236111111103]      0.0195  0.7916 superiority        True
+   18 Oracle (decoupled) BR_-s plain fltrust       0.7618 -0.0091  -0.0167  -0.0014 [-0.015238688888888916, -0.0027960638888889213]      0.0840  0.3923 inferiority        True
+   18              GRADF BR_-s plain fltrust       0.8194  0.0485   0.0376   0.0595      [0.03861477777777776, 0.05679117777777777]      0.0020  1.0000 superiority        True
+   18      FedStrategist BR_-s plain fltrust       0.7621 -0.0088  -0.0136  -0.0040   [-0.012503444444444437, -0.00465529166666667]      0.0098  0.2936 inferiority        True
+   18           AdaAggRL BR_-s plain fltrust       0.7860  0.0151   0.0009   0.0293     [0.0029548944444444483, 0.0264091722222222]      0.0488  0.7799 superiority        True
+   12             Random B7_-s plain fltrust       0.7600 -0.0058  -0.0184   0.0067   [-0.016362533333333335, 0.003915745833333308]      0.4316  0.2360 no evidence        True
+   12 Oracle (decoupled) B7_-s plain fltrust       0.7242 -0.0416  -0.0510  -0.0322  [-0.049216516666666654, -0.033886816666666666]      0.0020  1.0000 inferiority        True
+   12              GRADF B7_-s plain fltrust       0.8073  0.0414   0.0249   0.0580      [0.02630173333333332, 0.05358034999999999]      0.0039  0.9990 superiority        True
+   12      FedStrategist B7_-s plain fltrust       0.7584 -0.0074  -0.0135  -0.0013 [-0.012175024999999997, -0.0021754958333333476]      0.0273  0.1808 inferiority        True
+   12           AdaAggRL B7_-s plain fltrust       0.7727  0.0069  -0.0117   0.0255     [-0.00894939999999999, 0.02170317916666668]      0.3750  0.3578 no evidence        True
+   12             Random BR_-s plain fltrust       0.7600 -0.0058  -0.0184   0.0067   [-0.016362533333333335, 0.003915745833333308]      0.4316  0.2360 no evidence        True
+   12 Oracle (decoupled) BR_-s plain fltrust       0.7242 -0.0416  -0.0510  -0.0322  [-0.049216516666666654, -0.033886816666666666]      0.0020  1.0000 inferiority        True
+   12              GRADF BR_-s plain fltrust       0.8073  0.0414   0.0249   0.0580      [0.02630173333333332, 0.05358034999999999]      0.0039  0.9990 superiority        True
+   12      FedStrategist BR_-s plain fltrust       0.7584 -0.0074  -0.0135  -0.0013 [-0.012175024999999997, -0.0021754958333333476]      0.0273  0.1808 inferiority        True
+   12           AdaAggRL BR_-s plain fltrust       0.7727  0.0069  -0.0117   0.0255     [-0.00894939999999999, 0.02170317916666668]      0.3750  0.3578 no evidence        True
+
+B hardened reference:
+cells             system      reference   dstar  system_mean    mean  ci95_lo  ci95_hi                                      boot_ci95  p_wilcoxon  p_tost    category agree_on_0
+   18             Random BH_-s hardened fltrust       0.7848 -0.0469  -0.0550  -0.0388   [-0.05345370555555555, -0.04019386111111113]       0.002  1.0000 inferiority       True
+   18 Oracle (decoupled) BH_-s hardened fltrust       0.7618 -0.0699  -0.0740  -0.0658   [-0.07307236944444447, -0.06636610555555555]       0.002  1.0000 inferiority       True
+   18              GRADF BH_-s hardened fltrust       0.8194 -0.0123  -0.0218  -0.0028 [-0.02122917500000001, -0.0064998833333333355]       0.002  0.7000 inferiority       True
+   18      FedStrategist BH_-s hardened fltrust       0.7621 -0.0696  -0.0719  -0.0674     [-0.0715544277777778, -0.0678507611111111]       0.002  1.0000 inferiority       True
+   18           AdaAggRL BH_-s hardened fltrust       0.7860 -0.0458  -0.0581  -0.0334                     [-0.0562959, -0.036004725]       0.002  0.9999 inferiority       True
+   18      hardened B_-s    BR_-s plain     NaN          NaN  0.0608   0.0549   0.0668                                            NaN       0.002  1.0000 superiority        NaN
+   12             Random BH_-s hardened fltrust       0.7600 -0.0645  -0.0760  -0.0529   [-0.07348984999999998, -0.05469125000000001]       0.002  1.0000 inferiority       True
+   12 Oracle (decoupled) BH_-s hardened fltrust       0.7242 -0.1002  -0.1057  -0.0947   [-0.10461517083333334, -0.09552130833333332]       0.002  1.0000 inferiority       True
+   12              GRADF BH_-s hardened fltrust       0.8073 -0.0172  -0.0314  -0.0029 [-0.030605383333333323, -0.008187070833333351]       0.002  0.8573 inferiority       True
+   12      FedStrategist BH_-s hardened fltrust       0.7584 -0.0660  -0.0698  -0.0623   [-0.06930723333333334, -0.06322899166666666]       0.002  1.0000 inferiority       True
+   12           AdaAggRL BH_-s hardened fltrust       0.7727 -0.0517  -0.0670  -0.0365  [-0.06473969583333332, -0.039741195833333326]       0.002  0.9999 inferiority       True
+   12      hardened B_-s    BR_-s plain     NaN          NaN  0.0586   0.0510   0.0663                                            NaN       0.002  1.0000 superiority        NaN
