@@ -1,0 +1,3 @@
+PASS first round's step is 1/5 of factor 1's: ratio 0.200000
+PASS first round's step is 1/10 of factor 1's: ratio 0.100000
+CHECKS_PASS

@@ -1,0 +1,5 @@
+PASS exp9, seed 42, root 100, alpha 0.05, 2 attacks, FLTrust and trimmed mean: final accuracy equals the earlier run bit for bit, 4 rows
+PASS exp9, seed 42, root 100, alpha 0.05, 2 attacks, FLTrust and trimmed mean: trailing mean is recorded
+PASS exp10, seed 42, alpha 0.05, trim_attack, Random: final accuracy equals the earlier run bit for bit, 1 rows
+PASS exp10, seed 42, alpha 0.05, trim_attack, Random: trailing mean is recorded
+CHECKS_PASS

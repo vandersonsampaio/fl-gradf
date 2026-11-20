@@ -1,0 +1,8 @@
+PASS check1 all layers on reproduce Random, sign_flipping 0.581600 vs 0.581600; 13.2 s
+PASS check1 all layers on reproduce Random, gaussian_noise 0.758400 vs 0.758400; 13.1 s
+PASS check2 layer 1 on rejects, off rejects none 
+PASS check2 layer 4 on rejects, off rejects none 
+PASS check2 layer 2 off returns the update and draws nothing 
+PASS check3 fixed selector votes FLTrust in every round 
+PASS check determinism, F111 twice 0.797000 0.797000
+CHECKS_PASS

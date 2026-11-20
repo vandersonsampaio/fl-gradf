@@ -133,7 +133,7 @@ class TARSLearner(AttackedFederatedLearner):
         strategy_name = self.tars_selector.select_action(state, round_num)
 
         server_root = root_data or self._carve_root(participants[0])
-        server_update = self._make_model(participants[0].n_features).fit(server_root["X"], server_root["y"])
+        server_update = self._fit_server(self._make_model(participants[0].n_features), server_root, participants)
         sample_sizes = [p.n_train for p in participants]
 
         strategy = _STRATEGIES[strategy_name]()

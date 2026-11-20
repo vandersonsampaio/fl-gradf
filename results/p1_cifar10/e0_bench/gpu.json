@@ -1,0 +1,42 @@
+{
+ "tag": "gpu",
+ "gpus": [
+  "/physical_device:GPU:0"
+ ],
+ "deterministic": false,
+ "rounds_timed": 3,
+ "local_epochs": 2,
+ "n_train_total": 47500,
+ "systems": {
+  "trimmed_mean": {
+   "s_per_round": 30.23988312333434,
+   "final_accuracy": 0.26349999999999996,
+   "honest_update_l2": {
+    "per_round_median": [
+     0.7700612721140676,
+     0.8139121925287198,
+     0.730825946223435
+    ],
+    "min": 0.48444612850696545,
+    "max": 1.0819641177429369
+   }
+  },
+  "fltrust": {
+   "s_per_round": 31.088723406001616,
+   "final_accuracy": 0.1022,
+   "honest_update_l2": {
+    "per_round_median": [
+     0.7468042985917077,
+     0.7341444869900724,
+     0.7315852009136031
+    ],
+    "min": 0.6410501685652147,
+    "max": 1.0944097601363605
+   }
+  },
+  "adaaggrl": {
+   "s_per_round": 37.03464083233848,
+   "final_accuracy": 0.23310000000000003
+  }
+ }
+}

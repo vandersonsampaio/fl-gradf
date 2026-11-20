@@ -1,0 +1,113 @@
+=== mnist (R = 15)
+Training error, trailing 5 rounds, seed means:
+rule  fedavg  trimmed_mean  fltrust
+den                                
+1      15.91         25.29    23.80
+3      24.89         41.77    16.26
+5      29.88         49.44    19.56
+10     35.03         55.86    28.56
+
+Largest gap to each rule's own best, per factor:
+den
+1      7.54
+3     16.47
+5     24.15
+10    30.56
+
+CHOSEN: factor 1/1 (NO FACTOR MET THE MARGIN; smallest largest gap)
+
+Test accuracy, trailing 5 rounds (descriptive):
+rule  fedavg  trimmed_mean  fltrust
+den                                
+1      84.62         74.85    75.77
+3      75.36         57.21    84.09
+5      70.29         49.66    80.47
+10     65.12         43.36    70.57
+
+First round within the margin of the final error (descriptive):
+rule  fedavg  trimmed_mean  fltrust
+den                                
+1      11.00         12.33     2.00
+3      12.00         13.00    11.00
+5      12.00         12.33    12.00
+10     11.67         12.00    12.67
+
+Swing of the training error, second half (descriptive):
+rule  fedavg  trimmed_mean  fltrust
+den                                
+1       0.62          1.22     9.39
+3       0.96          1.48     0.61
+5       0.78          1.00     1.16
+10      0.54          0.65     1.38
+
+Training error per seed:
+den                   1      3      5      10
+rule         seed                            
+fedavg       0     15.50  24.01  28.97  34.20
+             1     16.02  24.70  29.75  34.90
+             2     16.23  25.95  30.93  36.00
+fltrust      0     20.56  14.12  16.66  25.85
+             1     29.82  17.89  21.19  30.14
+             2     21.02  16.77  20.84  29.69
+trimmed_mean 0     24.76  41.76  49.94  56.08
+             1     25.31  42.31  49.57  55.86
+             2     25.82  41.23  48.82  55.64
+
+Seconds per round: 0.9
+
+=== cifar10 (R = 110)
+Training error, trailing 5 rounds, seed means:
+rule  fedavg  trimmed_mean  fltrust
+den                                
+1      50.85         69.83    72.36
+3      59.79         75.71    64.97
+5      64.69         78.66    66.33
+10     74.14         82.03    62.54
+
+Largest gap to each rule's own best, per factor:
+den
+1      9.82
+3      8.94
+5     13.84
+10    23.29
+
+CHOSEN: factor 1/3 (NO FACTOR MET THE MARGIN; smallest largest gap)
+
+Test accuracy, trailing 5 rounds (descriptive):
+rule  fedavg  trimmed_mean  fltrust
+den                                
+1      47.52         29.57    26.59
+3      40.66         23.80    33.84
+5      35.61         20.99    33.23
+10     26.00         17.83    36.52
+
+First round within the margin of the final error (descriptive):
+rule  fedavg  trimmed_mean  fltrust
+den                                
+1      82.67         85.33    37.33
+3      97.33         86.67    21.67
+5     100.67         92.67    33.33
+10     98.67         90.33    82.33
+
+Swing of the training error, second half (descriptive):
+rule  fedavg  trimmed_mean  fltrust
+den                                
+1       0.88          0.66    13.00
+3       0.31          0.23    11.82
+5       0.25          0.15     4.51
+10      0.14          0.09     0.51
+
+Training error per seed:
+den                   1      3      5      10
+rule         seed                            
+fedavg       0     51.25  59.94  64.52  72.36
+             1     52.62  60.12  65.91  76.00
+             2     48.68  59.30  63.65  74.06
+fltrust      0     74.88  66.53  72.95  67.35
+             1     70.14  66.96  66.45  61.26
+             2     72.06  61.43  59.60  59.00
+trimmed_mean 0     70.76  76.39  78.68  81.50
+             1     69.58  76.43  80.02  82.86
+             2     69.15  74.30  77.29  81.74
+
+Seconds per round: 28.7

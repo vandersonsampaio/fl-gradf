@@ -1,0 +1,67 @@
+E0 analysis (CIFAR-10, small CNN, CPU, seeds 0-2). Descriptive; not confirmatory.
+
+## E0.1 FedAvg without attack (accuracy, %; mean ± SD over seeds)
+
+Smoothed accuracy = mean of the last 5 rounds up to round r. Stable round = first r after which the smoothed seed-mean stays within 1.0 p.p. of its value at round 50.
+
+alpha  ep  r20           r30           r40           r50           gain30-50  stable  s/round
+0.5    1    40.4± 0.5     45.1± 0.1     47.5± 1.2     50.8± 0.6     +5.63      45     10.4
+0.5    2    47.7± 0.7     51.7± 1.1     54.8± 1.6     57.0± 1.5     +5.28      46     18.8
+0.1    1    30.1± 2.5     36.1± 1.4     38.8± 0.4     41.9± 0.8     +5.79      48     10.3
+0.1    2    39.0± 0.5     43.1± 1.2     46.1± 0.8     48.1± 0.8     +5.01      46     19.0
+0.05   1    28.7± 0.9     32.7± 1.5     36.9± 0.5     39.1± 0.5     +6.43      45     10.5
+0.05   2    31.4± 2.0     37.3± 1.6     40.3± 0.7     42.2± 1.1     +4.83      45     15.0
+
+## E0.2 Separation at alpha = 0.05, round 30 (accuracy %, smoothed over 5 rounds; 3 seeds)
+
+sign_flipping: pooled across-seed SD = 1.54 p.p.; range of rule means = 17.70 p.p.
+  fedprox        27.70 ±  2.25
+  fedavg         26.77 ±  0.83
+  clustering     22.80 ±  2.40
+  trimmed_mean   16.84 ±  0.38
+  fltrust        15.56 ±  2.20
+  median         14.99 ±  0.25
+  krum           10.00 ±  0.00
+  pairs separated (paired 95% CI excludes 0, t with 2 df): 16/21; best vs second (fedprox − fedavg): +0.94 p.p., per seed +2.38, +1.18, -0.75
+  rules more than 5 p.p. above chance (10%): 5/7
+
+trim_attack: pooled across-seed SD = 3.46 p.p.; range of rule means = 15.23 p.p.
+  clustering     26.84 ±  1.02
+  fedavg         21.01 ±  5.06
+  fedprox        18.20 ±  3.13
+  krum           16.25 ±  5.45
+  trimmed_mean   15.47 ±  1.19
+  median         13.68 ±  1.40
+  fltrust        11.62 ±  3.77
+  pairs separated (paired 95% CI excludes 0, t with 2 df): 4/21; best vs second (clustering − fedavg): +5.83 p.p., per seed +9.50, +1.50, +6.51
+  rules more than 5 p.p. above chance (10%): 5/7
+
+## E0.2 Separation at alpha = 0.05, round 50 (accuracy %, smoothed over 5 rounds; 3 seeds)
+
+sign_flipping: pooled across-seed SD = 1.81 p.p.; range of rule means = 21.88 p.p.
+  fedavg         31.90 ±  0.21
+  fedprox        30.62 ±  2.17
+  clustering     28.61 ±  2.76
+  fltrust        22.34 ±  2.83
+  trimmed_mean   18.72 ±  1.49
+  median         16.68 ±  0.57
+  krum           10.02 ±  0.04
+  pairs separated (paired 95% CI excludes 0, t with 2 df): 14/21; best vs second (fedavg − fedprox): +1.29 p.p., per seed -0.42, +0.86, +3.43
+  rules more than 5 p.p. above chance (10%): 6/7
+
+trim_attack: pooled across-seed SD = 4.65 p.p.; range of rule means = 18.13 p.p.
+  clustering     32.31 ±  0.82
+  fedavg         25.81 ±  1.55
+  fedprox        22.07 ±  2.67
+  krum           17.70 ±  6.67
+  trimmed_mean   15.84 ±  2.03
+  median         15.08 ±  0.39
+  fltrust        14.18 ±  9.60
+  pairs separated (paired 95% CI excludes 0, t with 2 df): 8/21; best vs second (clustering − fedavg): +6.50 p.p., per seed +7.73, +5.96, +5.80
+  rules more than 5 p.p. above chance (10%): 6/7
+
+## σ_E0 (across-seed SD, p.p.; root mean square over cells)
+
+round 30: separation cells (n = 14) 2.68; FedAvg no-attack cells, 2 local epochs (n = 3) 1.32
+round 50: separation cells (n = 14) 3.53; FedAvg no-attack cells, 2 local epochs (n = 3) 1.19
+

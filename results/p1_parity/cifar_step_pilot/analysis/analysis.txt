@@ -1,0 +1,88 @@
+JSONs: 12/12
+
+Seed means per cell:
+                   trailing               final               swing           
+arm                factor_1 factor_1/3 factor_1 factor_1/3 factor_1 factor_1/3
+attack        root                                                            
+sign_flipping 100     23.11      35.53    18.77      35.46    11.19       8.17
+              2500    18.25      40.10    17.17      40.72     4.05       1.89
+trim_attack   100     25.18      35.03    26.76      34.88     6.89       9.88
+              2500    18.26      38.58    17.54      39.76     7.60       2.27
+
+Swing ratio, factor 1/3 over factor 1:
+attack         root
+sign_flipping  100     0.730
+               2500    0.466
+trim_attack    100     1.433
+               2500    0.299
+
+READING: PARTLY (2 of 4 cells at most half)
+
+Trailing mean, factor 1/3 minus factor 1, per seed:
+arm                      factor_1  factor_1/3   diff
+attack        root seed                             
+sign_flipping 100  0        22.93       32.52   9.59
+                   1        23.26       37.36  14.10
+                   2        23.14       36.72  13.58
+              2500 0        18.27       42.56  24.29
+                   1        18.27       38.68  20.41
+                   2        18.22       39.07  20.85
+trim_attack   100  0        24.53       34.68  10.15
+                   1        24.44       32.22   7.79
+                   2        26.57       38.20  11.63
+              2500 0        18.03       38.89  20.86
+                   1        18.34       37.09  18.76
+                   2        18.41       39.76  21.34
+
+Mean of the differences, 12 runs: +16.11 p.p.
+Root contrast (2500 - 100), factor_1: per attack {'sign_flipping': -4.86, 'trim_attack': -6.92}; per seed [-4.66, -4.99, -4.92, -6.5, -6.1, -8.15]
+Root contrast (2500 - 100), factor_1/3: per attack {'sign_flipping': 4.57, 'trim_attack': 3.55}; per seed [10.04, 1.32, 2.35, 4.22, 4.87, 1.56]
+
+FedAvg, same attacks and seeds:
+               trailing  final  swing
+attack                               
+sign_flipping     37.40  38.35   1.29
+trim_attack       26.03  26.71   0.85
+
+Seed-mean curves:
+       attack  root  round  factor_1  factor_1/3
+sign_flipping   100     10      20.4        16.2
+sign_flipping   100     30      13.3        26.5
+sign_flipping   100     50      25.4        26.7
+sign_flipping   100     70      22.2        27.8
+sign_flipping   100     90      18.5        30.4
+sign_flipping   100    100      20.8        33.6
+sign_flipping   100    110      18.8        35.5
+sign_flipping  2500     10      19.2        13.4
+sign_flipping  2500     30      23.2        26.2
+sign_flipping  2500     50      18.3        31.6
+sign_flipping  2500     70      18.5        37.1
+sign_flipping  2500     90      17.3        41.2
+sign_flipping  2500    100      17.9        39.0
+sign_flipping  2500    110      17.2        40.7
+  trim_attack   100     10      14.5        21.0
+  trim_attack   100     30      19.5        30.8
+  trim_attack   100     50      18.8        29.7
+  trim_attack   100     70      19.5        30.0
+  trim_attack   100     90      22.4        32.9
+  trim_attack   100    100      25.2        31.7
+  trim_attack   100    110      26.8        34.9
+  trim_attack  2500     10      22.2        14.7
+  trim_attack  2500     30      19.5        25.0
+  trim_attack  2500     50      18.4        32.6
+  trim_attack  2500     70      16.4        37.8
+  trim_attack  2500     90      15.5        38.3
+  trim_attack  2500    100      19.1        38.8
+  trim_attack  2500    110      17.5        39.8
+
+Logged norms, factor 1/3:
+             g0_norm  delta_norm  step_along_g0
+root period                                    
+100  1-10     1.5543      0.2603         0.0632
+     11-50    1.6242      0.2195         0.0221
+     51-110   1.2477      0.2302         0.0157
+2500 1-10     0.7355      0.1356         0.1081
+     11-50    0.7797      0.1067         0.0635
+     51-110   0.8328      0.1083         0.0216
+
+Seconds per round: 15.0

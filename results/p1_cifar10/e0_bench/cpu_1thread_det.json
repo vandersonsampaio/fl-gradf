@@ -1,0 +1,40 @@
+{
+ "tag": "cpu_1thread",
+ "gpus": [],
+ "deterministic": true,
+ "rounds_timed": 3,
+ "local_epochs": 2,
+ "n_train_total": 47500,
+ "systems": {
+  "trimmed_mean": {
+   "s_per_round": 10.950378707998121,
+   "final_accuracy": 0.2564,
+   "honest_update_l2": {
+    "per_round_median": [
+     0.769218459049335,
+     0.8126489961647867,
+     0.727778179627921
+    ],
+    "min": 0.48641530234172387,
+    "max": 1.0821132492202736
+   }
+  },
+  "fltrust": {
+   "s_per_round": 10.884045714337844,
+   "final_accuracy": 0.1018,
+   "honest_update_l2": {
+    "per_round_median": [
+     0.7490000272192034,
+     0.7327779731815961,
+     0.7317798979252599
+    ],
+    "min": 0.6407188170834958,
+    "max": 1.0958522364613
+   }
+  },
+  "adaaggrl": {
+   "s_per_round": 17.99977256101556,
+   "final_accuracy": 0.23809999999999998
+  }
+ }
+}

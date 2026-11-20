@@ -1,0 +1,5 @@
+root,subset,n_pairs,n_nonzero,max_abs,mean_diff
+100,other 6 attacks,540,0,0.0,0.0
+100,fltrust_aligned,90,90,0.2653000000000001,-0.12199666666666668
+50,other 6 attacks,540,0,0.0,0.0
+50,fltrust_aligned,90,90,0.5018000000000001,-0.17241333333333336

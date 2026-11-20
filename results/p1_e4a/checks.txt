@@ -1,0 +1,13 @@
+Check 1, regression:
+  sign_flipping fltrust: 0.687 0.72962 against 0.687 0.72962: True
+  sign_flipping trimmed_mean: 0.4387 0.4274 against 0.4387 0.4274: True
+  trim_attack fltrust: 0.6890000000000001 0.72682 against 0.6890000000000001 0.72682: True
+  trim_attack trimmed_mean: 0.3941 0.39254 against 0.3941 0.39254: True
+Check 2, switch:
+  equal in the first phase: True; different in the second: True
+Check 3, repetition:
+Check 4, schedule:
+regression: PASS
+switch: PASS
+repetition: PASS
+schedule: PASS

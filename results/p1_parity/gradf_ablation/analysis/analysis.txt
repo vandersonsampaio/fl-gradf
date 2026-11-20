@@ -1,0 +1,169 @@
+## Sec. 1 Completeness and learner check
+
+JSONs: 10/10; accuracy rows 2520 (expected 2520); round rows 37800 (expected 37800); hours per job [2.33, 1.7, 1.49, 1.71, 1.69, 1.48, 1.78, 1.62, 1.46, 1.36]
+Final accuracy equals last-round global accuracy: max |d| 0.000000
+Voted rules per fixed arm: {'F000': ['fltrust'], 'F001': ['fltrust'], 'F010': ['fltrust'], 'F011': ['fltrust'], 'F100': ['fltrust'], 'F101': ['fltrust'], 'F110': ['fltrust'], 'F111': ['fltrust'], 'K111': ['krum'], 'M111': ['median'], 'T111': ['trimmed_mean']}
+Layer-3 errors: 0
+
+F000 - fixed FLTrust, 210 pairs: 204 differ, mean +0.01 p.p., max |d| 21.54
+  per seed (21 cells): +0.01 (-0.48; +0.49), category equivalence
+  over the 210 pairs, as if independent: +0.01 (-0.47; +0.49)
+Learner check (CI95 inside +-1.0 p.p.): PASS
+Largest |F000 - fixed FLTrust| per cell (p.p.):
+alpha  attack_type     
+0.10   sign_flipping      -2.98
+0.05   label_flipping      2.18
+       trim_attack        -1.90
+0.10   krum_collusion      1.51
+0.05   gaussian_noise     -1.48
+       low_mag_backdoor    1.46
+
+## Sec. 2 Q1: GRADF - F111 (p.p.)
+
+first run: 18 cells -0.72 (-1.30; -0.15) TOST p 0.151, category inferiority; 21 cells -0.43 (-0.93; +0.07)
+exec 1: 18 cells -1.16 (-1.88; -0.44) TOST p 0.688, category inferiority; 21 cells -0.86 (-1.51; -0.21)
+exec 2: 18 cells -0.84 (-2.12; +0.45) TOST p 0.390, category no evidence; 21 cells -0.68 (-1.80; +0.45)
+
+Q1 READING: INCONCLUSIVE (categories differ or no evidence)
+
+## Sec. 3 Q2: against the hardened best fixed rule B_-s^H (p.p.)
+
+Hardened fixed rules, mean over 18 cells: {'fltrust': 83.53, 'krum': 46.59, 'median': 72.02, 'trimmed_mean': 73.23}
+first run, GRADF - B_-s^H: 18 cells -0.72 (-1.30; -0.15), category inferiority; 21 cells -0.43 (-0.93; +0.07)
+first run, Random - B_-s^H: 18 cells -4.20 (-5.15; -3.26), category inferiority; 21 cells -2.72 (-3.58; -1.86)
+  first run: cell-wise capture {'cells_with_crossfit_headroom': 5, 'captured': {'GRADF': 2, 'Random': 1}}
+exec 1, GRADF - B_-s^H: 18 cells -1.16 (-1.88; -0.44), category inferiority; 21 cells -0.86 (-1.51; -0.21)
+exec 1, Random - B_-s^H: 18 cells -4.20 (-5.15; -3.26), category inferiority; 21 cells -2.72 (-3.58; -1.86)
+  exec 1: cell-wise capture {'cells_with_crossfit_headroom': 5, 'captured': {'GRADF': 1, 'Random': 1}}
+exec 2, GRADF - B_-s^H: 18 cells -0.84 (-2.12; +0.45), category no evidence; 21 cells -0.68 (-1.80; +0.45)
+exec 2, Random - B_-s^H: 18 cells -4.20 (-5.15; -3.26), category inferiority; 21 cells -2.72 (-3.58; -1.86)
+  exec 2: cell-wise capture {'cells_with_crossfit_headroom': 5, 'captured': {'GRADF': 2, 'Random': 1}}
+
+Q2 READING (GRADF): INCONCLUSIVE (categories differ or no evidence)
+
+## Sec. 4 Q3: Layers 1, 2 and 4 on fixed FLTrust (2^3, p.p.)
+
+L1: -0.02 (-0.10; +0.06), Holm p_t 0.5960, Holm Wilcoxon 0.4766
+L2: +5.18 (+4.40; +5.97), Holm p_t 0.0000, Holm Wilcoxon 0.0059
+L4: +3.47 (+2.65; +4.28), Holm p_t 0.0000, Holm Wilcoxon 0.0059
+
+Arm means, 18 cells:
+arm
+F000    74.92
+F001    81.85
+F010    83.64
+F011    83.56
+F100    74.87
+F101    81.93
+F110    83.57
+F111    83.53
+
+Two-way means L1 x L2:
+L2      0      1
+L1              
+0   78.39  83.60
+1   78.40  83.55
+
+Two-way means L1 x L4:
+L4      0      1
+L1              
+0   79.28  82.70
+1   79.22  82.73
+
+Two-way means L2 x L4:
+L4      0      1
+L2              
+0   74.90  81.89
+1   83.61  83.54
+
+Main effects by attack_type (21 cells; fltrust_aligned outside the 18):
+                    L1    L2    L4
+fltrust_aligned   0.00  1.30  0.00
+gaussian_noise   -0.15  5.15  3.29
+krum_collusion    0.01  4.09  2.87
+label_flipping    0.03  5.05  3.60
+low_mag_backdoor  0.00  6.15  4.29
+sign_flipping     0.00  5.39  3.29
+trim_attack      -0.01  5.28  3.45
+
+Main effects by alpha (21 cells; fltrust_aligned outside the 18):
+        L1    L2    L4
+0.05 -0.16  6.23  5.03
+0.10  0.07  5.43  3.95
+0.50  0.04  2.23 -0.07
+
+## Sec. 5 Q4 and Q5, 18 cells (p.p.)
+
+Random - R000: +3.81 (+1.01; +6.62), category superiority
+Random - B_-s^H: -4.20 (-5.15; -3.26), category inferiority
+R000 - B_-s: +0.60 (-2.88; +4.07), category no evidence
+B_-s^H - B_-s: +8.61 (+6.88; +10.34), category superiority
+FedStrategist - R000: -0.85 (-4.02; +2.32), category no evidence
+AdaAggRL - R000 (published, unseeded runs): +4.23 (+0.18; +8.27), category superiority
+
+## Sec. 6 Mechanism (descriptive, 21 cells)
+
+Per arm:
+      l4_rejection  l1_byz  l1_honest
+arm                                  
+F000         0.000   0.000        0.0
+F001         0.591   0.000        0.0
+F010         0.000   0.000        0.0
+F011         0.066   0.000        0.0
+F100         0.000   0.349        0.0
+F101         0.588   0.337        0.0
+F110         0.000   0.322        0.0
+F111         0.073   0.322        0.0
+K111         0.270   0.489        0.0
+M111         0.033   0.388        0.0
+R000         0.000   0.000        0.0
+T111         0.049   0.368        0.0
+
+Layer-4 rejection by attack:
+arm               F000   F001  F010   F011  F100   F101  F110   F111   K111   M111  R000   T111
+attack_type                                                                                    
+fltrust_aligned    0.0  0.000   0.0  0.000   0.0  0.000   0.0  0.000  0.218  0.002   0.0  0.000
+gaussian_noise     0.0  0.696   0.0  0.069   0.0  0.676   0.0  0.109  0.224  0.009   0.0  0.007
+krum_collusion     0.0  0.691   0.0  0.076   0.0  0.691   0.0  0.076  0.247  0.011   0.0  0.009
+label_flipping     0.0  0.687   0.0  0.093   0.0  0.684   0.0  0.093  0.369  0.022   0.0  0.002
+low_mag_backdoor   0.0  0.618   0.0  0.084   0.0  0.618   0.0  0.084  0.320  0.002   0.0  0.002
+sign_flipping      0.0  0.720   0.0  0.067   0.0  0.720   0.0  0.067  0.229  0.000   0.0  0.000
+trim_attack        0.0  0.727   0.0  0.073   0.0  0.727   0.0  0.082  0.284  0.182   0.0  0.324
+
+Layer-1 Byzantine rejections per round by attack:
+arm               F000  F001  F010  F011   F100   F101   F110   F111   K111   M111  R000   T111
+attack_type                                                                                    
+fltrust_aligned    0.0   0.0   0.0   0.0  0.000  0.000  0.000  0.000  0.000  0.000   0.0  0.000
+gaussian_noise     0.0   0.0   0.0   0.0  2.000  2.000  2.000  2.000  2.000  2.000   0.0  2.000
+krum_collusion     0.0   0.0   0.0   0.0  0.022  0.022  0.022  0.022  0.022  0.022   0.0  0.022
+label_flipping     0.0   0.0   0.0   0.0  0.222  0.142  0.000  0.000  0.069  0.000   0.0  0.000
+low_mag_backdoor   0.0   0.0   0.0   0.0  0.000  0.000  0.000  0.000  0.000  0.000   0.0  0.000
+sign_flipping      0.0   0.0   0.0   0.0  0.000  0.000  0.000  0.000  0.000  0.000   0.0  0.000
+trim_attack        0.0   0.0   0.0   0.0  0.196  0.196  0.233  0.233  1.333  0.693   0.0  0.556
+
+Per cell (p.p.; share in %):
+                        gradf_fltrust_share  gradf_3exec  F111  F000  random  R000  gradf_minus_f111
+alpha attack_type                                                                                   
+0.05  fltrust_aligned                  84.3         77.1  76.8  75.9    81.0  81.2               0.3
+      gaussian_noise                   86.3         77.4  76.9  65.5    76.6  60.7               0.5
+      krum_collusion                   95.0         78.1  79.2  68.5    69.4  67.6              -1.1
+      label_flipping                   91.3         78.4  78.4  64.5    72.4  69.6              -0.1
+      low_mag_backdoor                 88.7         84.5  84.6  71.3    84.6  82.6              -0.0
+      sign_flipping                    85.0         77.3  78.9  66.5    64.4  64.0              -1.7
+      trim_attack                      64.3         74.1  79.6  64.3    73.3  59.4              -5.5
+0.10  fltrust_aligned                  95.0         77.1  76.6  75.3    82.6  83.0               0.5
+      gaussian_noise                   80.0         80.4  81.5  71.1    79.3  71.7              -1.1
+      krum_collusion                   80.3         79.5  80.6  72.3    70.4  72.6              -1.1
+      label_flipping                   90.0         81.2  80.5  70.9    77.5  79.5               0.6
+      low_mag_backdoor                 85.0         86.5  87.1  72.3    86.4  85.4              -0.6
+      sign_flipping                    85.0         78.5  81.3  69.7    72.7  67.3              -2.9
+      trim_attack                      89.0         78.7  80.9  71.2    74.3  62.6              -2.1
+0.50  fltrust_aligned                  75.0         82.2  80.5  78.8    88.8  87.7               1.7
+      gaussian_noise                   85.0         88.8  89.0  86.7    88.4  77.9              -0.2
+      krum_collusion                  100.0         88.8  88.8  87.0    88.2  87.8              -0.1
+      label_flipping                   85.0         88.4  88.9  86.6    87.5  87.7              -0.6
+      low_mag_backdoor                 90.7         89.8  89.7  86.4    89.5  89.2               0.1
+      sign_flipping                    95.0         88.5  88.8  86.9    86.9  87.0              -0.3
+      trim_attack                      95.0         88.5  88.7  87.0    86.0  86.5              -0.2
+
+Cells with >= 90% FLTrust votes: 8; GRADF - F111 -0.06, F111 - F000 +5.54, GRADF - F000 +5.48, GRADF above F111 in 3

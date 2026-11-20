@@ -1,0 +1,7 @@
+metric,root,fltrust,median,trimmed_mean,krum
+trailing,100,9,0,11,1
+trailing,3000,21,0,0,0
+trailing,50,8,0,12,1
+final,100,8,0,11,2
+final,3000,21,0,0,0
+final,50,8,0,11,2

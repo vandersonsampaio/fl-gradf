@@ -1,0 +1,15 @@
+{
+ "s_round": {
+  "fixed": 24.868528017971485,
+  "fltrust": 23.11647733208277,
+  "random": 24.618768386974505,
+  "attack_aware": 24.6917924950863,
+  "gradf": 25.135929987081905,
+  "fedstrategist": 24.450071883308635,
+  "adaaggrl": 36.491090534198314
+ },
+ "pretraining_s_per_run": 3106.684766515153,
+ "n_processes": 12,
+ "source": "scripts/p1/cost_probe_d.py",
+ "pretraining_h_full_grid": 12.944519860479803
+}

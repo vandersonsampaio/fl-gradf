@@ -1,0 +1,85 @@
+alpha,attack_type,system,variant,accuracy,accuracy_trailing5,seed,server_steps
+0.5,fltrust_aligned,Random,n/a,0.8876,0.88354,47,median
+0.5,fltrust_aligned,Oracle (decoupled),n/a,0.8968,0.89226,47,median
+0.5,fltrust_aligned,GRADF,shared (own),0.8174000000000001,0.8197000000000001,47,median
+0.5,fltrust_aligned,FedStrategist,b,0.8819000000000001,0.88346,47,median
+0.5,trim_attack,Random,n/a,0.8441000000000001,0.83844,47,median
+0.5,trim_attack,Oracle (decoupled),n/a,0.8424999999999999,0.8388599999999998,47,median
+0.5,trim_attack,GRADF,shared (own),0.8894,0.8865000000000001,47,median
+0.5,trim_attack,FedStrategist,b,0.8204999999999998,0.84824,47,median
+0.5,krum_collusion,Random,n/a,0.8867,0.8797600000000001,47,median
+0.5,krum_collusion,Oracle (decoupled),n/a,0.8913,0.87978,47,median
+0.5,krum_collusion,GRADF,shared (own),0.8902999999999999,0.88784,47,median
+0.5,krum_collusion,FedStrategist,b,0.829,0.8742599999999999,47,median
+0.5,low_mag_backdoor,Random,n/a,0.9006000000000001,0.89918,47,median
+0.5,low_mag_backdoor,Oracle (decoupled),n/a,0.9042000000000001,0.9013199999999999,47,median
+0.5,low_mag_backdoor,GRADF,shared (own),0.8968000000000002,0.8951399999999999,47,median
+0.5,low_mag_backdoor,FedStrategist,b,0.852,0.8838000000000001,47,median
+0.5,sign_flipping,Random,n/a,0.8492999999999998,0.8557799999999999,47,median
+0.5,sign_flipping,Oracle (decoupled),n/a,0.8888000000000001,0.88756,47,median
+0.5,sign_flipping,GRADF,shared (own),0.8901,0.88742,47,median
+0.5,sign_flipping,FedStrategist,b,0.8261,0.8607799999999999,47,median
+0.5,gaussian_noise,Random,n/a,0.8925000000000001,0.89232,47,median
+0.5,gaussian_noise,Oracle (decoupled),n/a,0.8948,0.89326,47,median
+0.5,gaussian_noise,GRADF,shared (own),0.8915999999999998,0.8884799999999998,47,median
+0.5,gaussian_noise,FedStrategist,b,0.8199,0.7988999999999999,47,median
+0.5,label_flipping,Random,n/a,0.8640000000000001,0.86362,47,median
+0.5,label_flipping,Oracle (decoupled),n/a,0.8940999999999999,0.8924999999999998,47,median
+0.5,label_flipping,GRADF,shared (own),0.8897000000000002,0.8876400000000002,47,median
+0.5,label_flipping,FedStrategist,b,0.8842000000000001,0.8877,47,median
+0.1,fltrust_aligned,Random,n/a,0.8475999999999999,0.8228399999999999,47,median
+0.1,fltrust_aligned,Oracle (decoupled),n/a,0.8116,0.8075800000000001,47,median
+0.1,fltrust_aligned,GRADF,shared (own),0.7759,0.77574,47,median
+0.1,fltrust_aligned,FedStrategist,b,0.8209,0.83346,47,median
+0.1,trim_attack,Random,n/a,0.7461,0.71386,47,median
+0.1,trim_attack,Oracle (decoupled),n/a,0.5204,0.5204,47,median
+0.1,trim_attack,GRADF,shared (own),0.8221999999999999,0.82164,47,median
+0.1,trim_attack,FedStrategist,b,0.7958000000000001,0.63726,47,median
+0.1,krum_collusion,Random,n/a,0.7313000000000001,0.72238,47,median
+0.1,krum_collusion,Oracle (decoupled),n/a,0.7263999999999999,0.71636,47,median
+0.1,krum_collusion,GRADF,shared (own),0.8182,0.81586,47,median
+0.1,krum_collusion,FedStrategist,b,0.7617,0.72292,47,median
+0.1,low_mag_backdoor,Random,n/a,0.8481,0.8481,47,median
+0.1,low_mag_backdoor,Oracle (decoupled),n/a,0.8569000000000001,0.84894,47,median
+0.1,low_mag_backdoor,GRADF,shared (own),0.8511999999999998,0.8598999999999999,47,median
+0.1,low_mag_backdoor,FedStrategist,b,0.8724999999999999,0.8436599999999999,47,median
+0.1,sign_flipping,Random,n/a,0.6635,0.66142,47,median
+0.1,sign_flipping,Oracle (decoupled),n/a,0.7121000000000001,0.69058,47,median
+0.1,sign_flipping,GRADF,shared (own),0.7041999999999999,0.68032,47,median
+0.1,sign_flipping,FedStrategist,b,0.6605000000000001,0.67196,47,median
+0.1,gaussian_noise,Random,n/a,0.7998000000000001,0.78718,47,median
+0.1,gaussian_noise,Oracle (decoupled),n/a,0.7871,0.7796200000000001,47,median
+0.1,gaussian_noise,GRADF,shared (own),0.8042,0.8042,47,median
+0.1,gaussian_noise,FedStrategist,b,0.6803999999999999,0.72676,47,median
+0.1,label_flipping,Random,n/a,0.7434000000000001,0.7215199999999999,47,median
+0.1,label_flipping,Oracle (decoupled),n/a,0.7561000000000001,0.7489399999999999,47,median
+0.1,label_flipping,GRADF,shared (own),0.7568,0.7544600000000001,47,median
+0.1,label_flipping,FedStrategist,b,0.7794000000000001,0.8154,47,median
+0.05,fltrust_aligned,Random,n/a,0.8218,0.81774,47,median
+0.05,fltrust_aligned,Oracle (decoupled),n/a,0.8178000000000001,0.81114,47,median
+0.05,fltrust_aligned,GRADF,shared (own),0.7824,0.78152,47,median
+0.05,fltrust_aligned,FedStrategist,b,0.8134,0.8134,47,median
+0.05,trim_attack,Random,n/a,0.7592,0.7592,47,median
+0.05,trim_attack,Oracle (decoupled),n/a,0.44959999999999994,0.44959999999999994,47,median
+0.05,trim_attack,GRADF,shared (own),0.8066000000000001,0.7905599999999999,47,median
+0.05,trim_attack,FedStrategist,b,0.6707000000000001,0.69992,47,median
+0.05,krum_collusion,Random,n/a,0.7121999999999999,0.71792,47,median
+0.05,krum_collusion,Oracle (decoupled),n/a,0.7035,0.68312,47,median
+0.05,krum_collusion,GRADF,shared (own),0.8109999999999999,0.79042,47,median
+0.05,krum_collusion,FedStrategist,b,0.7234,0.72434,47,median
+0.05,low_mag_backdoor,Random,n/a,0.8461000000000001,0.83994,47,median
+0.05,low_mag_backdoor,Oracle (decoupled),n/a,0.8544,0.8439,47,median
+0.05,low_mag_backdoor,GRADF,shared (own),0.8565999999999999,0.8410599999999999,47,median
+0.05,low_mag_backdoor,FedStrategist,b,0.7638,0.83544,47,median
+0.05,sign_flipping,Random,n/a,0.5773,0.60022,47,median
+0.05,sign_flipping,Oracle (decoupled),n/a,0.6279999999999999,0.6232599999999999,47,median
+0.05,sign_flipping,GRADF,shared (own),0.0996,0.09842,47,median
+0.05,sign_flipping,FedStrategist,b,0.5909,0.63316,47,median
+0.05,gaussian_noise,Random,n/a,0.7761,0.7697400000000001,47,median
+0.05,gaussian_noise,Oracle (decoupled),n/a,0.7712,0.7562399999999999,47,median
+0.05,gaussian_noise,GRADF,shared (own),0.7676000000000001,0.7512799999999998,47,median
+0.05,gaussian_noise,FedStrategist,b,0.5241,0.5690200000000001,47,median
+0.05,label_flipping,Random,n/a,0.7104,0.69612,47,median
+0.05,label_flipping,Oracle (decoupled),n/a,0.6617000000000001,0.6594200000000001,47,median
+0.05,label_flipping,GRADF,shared (own),0.794,0.78596,47,median
+0.05,label_flipping,FedStrategist,b,0.48579999999999995,0.6775,47,median

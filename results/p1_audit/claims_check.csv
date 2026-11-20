@@ -1,0 +1,58 @@
+id,tex_line,claim,manuscript,recomputed,match
+T1_3000_fltrust,292,Tab.1 root 3000 FLTrust wins,18.0,18.0,True
+T1_3000_median,292,Tab.1 root 3000 median wins,1.0,1.0,True
+T1_3000_tm,292,Tab.1 root 3000 trimmed-mean wins,1.0,1.0,True
+T1_3000_krum,292,Tab.1 root 3000 Krum wins,1.0,1.0,True
+T1_3000_robust,292,Tab.1 root 3000 non-FLTrust (robust),2.0,2.0,True
+T1_100_fltrust,293,Tab.1 root 100 FLTrust wins,8.0,8.0,True
+T1_100_median,293,Tab.1 root 100 median wins,1.0,1.0,True
+T1_100_tm,293,Tab.1 root 100 trimmed-mean wins,8.0,8.0,True
+T1_100_krum,293,Tab.1 root 100 Krum wins,4.0,4.0,True
+T1_100_robust,293,Tab.1 root 100 non-FLTrust (robust),9.0,9.0,True
+T1_50_fltrust,294,Tab.1 root 50 FLTrust wins,6.0,6.0,True
+T1_50_median,294,Tab.1 root 50 median wins,1.0,1.0,True
+T1_50_tm,294,Tab.1 root 50 trimmed-mean wins,10.0,10.0,True
+T1_50_krum,294,Tab.1 root 50 Krum wins,4.0,4.0,True
+T1_50_robust,294,Tab.1 root 50 non-FLTrust (robust),11.0,11.0,True
+T2_0.5_3000,316,Tab.2 FLTrust wins a=0.5 root 3000,5.0,5.0,True
+T2_0.5_100,316,Tab.2 FLTrust wins a=0.5 root 100,0.0,0.0,True
+T2_0.1_3000,317,Tab.2 FLTrust wins a=0.1 root 3000,7.0,7.0,True
+T2_0.1_100,317,Tab.2 FLTrust wins a=0.1 root 100,4.0,4.0,True
+T2_0.05_3000,318,Tab.2 FLTrust wins a=0.05 root 3000,6.0,6.0,True
+T2_0.05_100,318,Tab.2 FLTrust wins a=0.05 root 100,4.0,4.0,True
+fltrust_sd_ratio,323,FLTrust mean SD grows ~fivefold (3000 -> 100),5.0,5.177927256887904,True
+dstar_tm_mean,329,global mean trimmed mean,0.7099,0.709882380952381,True
+dstar_fltrust_mean,329,global mean FLTrust,0.7095,0.7094738095238095,True
+alt_dstar_headroom,329,d*=FLTrust: headroom cells,13.0,13.0,True
+alt_dstar_captured,329,d*=FLTrust: captured (deployable),13.0,13.0,True
+alt_dstar_discrete,329,d*=FLTrust: discrete selection,12.0,12.0,True
+alt_dstar_continuous,329,d*=FLTrust: continuous weighting,11.0,11.0,True
+headroom_21,331,headroom cells of 21,13.0,13.0,True
+headroom_18,331,headroom cells of 18 (no FLTrust aligned),10.0,10.0,True
+captured_21,369,deployable captures of 21,10.0,10.0,True
+adaaggrl_21,369,AdaAggRL captures of 21,10.0,10.0,True
+gradf_21,369,GRADF captures of 21 ('7 cells each'),7.0,7.0,True
+fedstrat_21,369,FedStrategist captures of 21 ('7 cells each'),7.0,7.0,True
+adaaggrl_18,369,AdaAggRL captures of 18,10.0,10.0,True
+discrete_18,369,discrete captures of 18,7.0,7.0,True
+T4_ada_delta,394,Tab.4 AdaAggRL delta,0.03,0.03017095238095238,True
+T4_ada_p,394,Tab.4 AdaAggRL p,0.0065,0.006465113868867398,True
+T4_ada_d,394,Tab.4 AdaAggRL d,1.11,1.114683284304532,True
+T4_aw_delta,395,Tab.4 attack-aware delta,0.012,0.012042857142857138,True
+T4_aw_p,395,Tab.4 attack-aware p,0.0212,0.021216358291040134,True
+T4_aw_d,395,Tab.4 attack-aware d,0.88,0.8807875658150571,True
+T4_gradf_delta,396,Tab.4 GRADF delta,-0.042,-0.04246571428571429,True
+T4_gradf_p,396,Tab.4 GRADF p,0.0031,0.003054817488572969,True
+T4_gradf_d,396,Tab.4 GRADF d,-1.27,-1.2686945761587805,True
+T4_fs_delta,397,Tab.4 FedStrat. delta,-0.044,-0.043752857142857135,True
+T4_fs_p,397,Tab.4 FedStrat. p,3.7e-05,3.69504003926981e-05,True
+T4_fs_d,397,Tab.4 FedStrat. d,-2.37,-2.371520686022562,True
+extractor_delta,236,random - pretrained extractor delta,0.019,0.018617619047619056,True
+extractor_p,236,random vs pretrained extractor p,0.007,0.006767153550582462,True
+extractor_d,236,random vs pretrained extractor d,1.11,1.105496794725472,True
+pretrained_vs_random_delta,437,pretrained AdaAggRL - Random delta,0.012,0.011553333333333329,True
+pretrained_vs_random_p,437,pretrained AdaAggRL vs Random p,0.24,0.23869557519529683,True
+legacy_floor,437,"'from nine' (AdaAggRL, random extractor)",9.0,9.0,True
+legacy_pretrained,437,"'to seven' (AdaAggRL, pretrained)",7.0,7.0,True
+legacy_gradf,437,'none' (GRADF),0.0,0.0,True
+legacy_fedstrat,437,'two' (FedStrategist),2.0,2.0,True

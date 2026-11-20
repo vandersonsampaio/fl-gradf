@@ -1,0 +1,55 @@
+E0b analysis (results/p1_cifar10/e0b/PLAN.md), seeds 0-2, 180 rounds, 2 local epochs.
+
+Runs found: 27/27; missing 0; wrong length/epochs 0
+
+## Sec. 1 Regression check against E0 (first 50 rounds, exact)
+Compared 21/21 jobs; mismatches 0
+
+## Sec. 2 Rule for R (FedAvg, no attack; seed mean, 5-round trailing mean)
+r     α=0.5: S(r)  g20   g10-30  α=0.1: S(r)  g20   g10-30  α=0.05: S(r)  g20   g10-30
+20    47.74 +7.06 +5.28   39.01 +7.04 +5.01   31.38 +8.97 +4.83
+30    51.68 +5.28 +3.46   43.13 +5.01 +3.01   37.35 +4.83 +3.91
+40    54.80 +3.46 +2.08   46.05 +3.01 +1.98   40.34 +3.91 +2.89
+50    56.97 +2.08 +1.58   48.14 +1.98 +2.09   42.18 +2.89 +1.77
+60    58.25 +1.58 +1.59   49.07 +2.09 +1.54   44.26 +1.77 +1.63
+70    59.04 +1.59 +1.07   50.13 +1.54 +0.17   45.07 +1.63 +1.00
+80    59.83 +1.07 +0.57   51.16 +0.17 +0.03   46.02 +1.00 +0.82
+90    60.64 +0.57 +0.89   51.66 +0.03 +0.64   46.70 +0.82 +1.02
+100   60.90 +0.89 +0.41   51.33 +0.64 +0.28   47.02 +1.02 +0.99
+110   61.20 +0.41 -0.72   51.69 +0.28 -0.32   47.52 +0.99 +0.66   <- rule met
+120   61.79 -0.72 +0.07   51.98 -0.32 +0.00   48.04 +0.66 +0.10
+130   61.62 +0.07 +0.73   51.97 +0.00 +0.01   48.51 +0.10 -0.12
+140   61.07 +0.73 +0.03   51.65 +0.01 -0.28   48.70 -0.12 -0.23
+150   61.68 +0.03 -0.45   51.97 -0.28 -0.35   48.62 -0.23 -0.21
+R = 110
+
+## Sec. 3 GRADF Layer-1 threshold (honest update L2 norms, all rounds)
+A (FedAvg, no attack)  n= 16200  median 0.505  p99 0.808  max 1.629  share > tau 0.0000
+B (FedAvg, attack)     n=  8640  median 0.581  p99 3.192  max 5.242  share > tau 0.0000
+C (FLTrust, attack)    n= 17280  median 0.518  p99 1.606  max 2.488  share > tau 0.0000
+alpha 0.5   max 1.163
+alpha 0.1   max 1.364
+alpha 0.05  max 5.242
+tau_CNN = 1.5 x 5.2416 = 7.8625  (MNIST tau = 5.0)
+
+## Sec. 5 Compute budget (236 h; costs PROVISIONAL (part D not run yet))
+level 0 (k = 18) C(R = 110, k) =  194.6 h   3 alpha x 6 attacks (all but fltrust_aligned)
+level 1 (k = 12) C(R = 110, k) =  159.7 h   3 alpha x {sign_flipping, label_flipping, trim_attack, krum_collusion}
+level 2 (k =  6) C(R = 110, k) =  124.8 h   alpha in {0.5, 0.05} x {sign_flipping, label_flipping, trim_attack} (floor)
+Grid level 0 (k = 18); R = 110  [provisional: re-run after part D]
+
+## Sec. 4 sigma_E0 at round R = 110 (final-round accuracy, unsmoothed, p.p.)
+E1: D_s = mean over 2 cells of FLTrust(2500) - FLTrust(100): +0.70, -0.61, -0.65; sigma_E0^E1 = 0.768; 0.5 sigma = 0.384
+E3 (approximation): D_s = mean over 2 cells of FLTrust(100) - FedAvg: -7.19, -7.73, -5.38; sigma_E0^E3 = 1.230; 0.5 sigma = 0.615
+
+## Sec. 6 Descriptive
+FedAvg no-attack accuracy (%, seed mean, 5-round trailing mean):
+  alpha 0.5: r50 57.0  r100 60.9  r150 61.7  r180 61.4
+  alpha 0.1: r50 48.1  r100 51.3  r150 52.0  r180 51.3
+  alpha 0.05: r50 42.2  r100 47.0  r150 48.6  r180 48.4
+Ranking stability after R (limited: FedAvg - FLTrust(100) at alpha 0.05, seed mean, p.p.):
+  sign_flipping: at R +3.27 (per seed -0.01, -1.53, +11.35); at 180 -0.15 (per seed +3.41, -2.52, -1.34)
+  trim_attack: at R +10.26 (per seed +14.38, +16.99, -0.59); at 180 +7.34 (per seed +15.23, +15.78, -8.98)
+FLTrust root contrast per cell at R (2500 - 100, seed mean, p.p.; feeds sigma_E0^E1 only):
+  sign_flipping: -7.74 (per seed -13.88, -14.24, +4.91)
+  trim_attack: +7.36 (per seed +15.28, +13.01, -6.20)

@@ -275,6 +275,62 @@ def reconstruct_client_distribution(
     return X_dummy.numpy(), cos_sim_val
 
 
+def reconstruct_client_distribution_cnn(
+    keras_model,
+    update: np.ndarray,
+    local_lr: float,
+    input_shape: Tuple[int, int, int],
+    n_classes: int,
+    num_images: int = 16,
+    max_iters: int = 30,
+    lr: float = 0.05,
+    tv_weight: float = 1e-4,
+    seed: int = 0,
+) -> Tuple[np.ndarray, float]:
+    """CNN counterpart of `reconstruct_client_distribution` (P1 CIFAR-10
+    campaign). `keras_model` must already hold the client's parameters
+    theta_k (e.g. `_CNNModel._model` after `set_params(theta_k)`); its
+    trainable variables, flattened in order, follow the same layout as
+    `_CNNModel.params`, so the dummy gradient is compared with
+    `update / local_lr` coordinate by coordinate, as in the linear case.
+
+    Differences from the linear version, both recorded as reproduction
+    deviations: the dummy images start from seeded uniform noise in [0, 1)
+    instead of zeros (with ReLU layers an all-zero input gives degenerate
+    gradients), and the total-variation prior is taken over the two image
+    axes. Returns (D_rec (num_images, prod(input_shape)), S_R)."""
+    import tensorflow as tf
+
+    rng = np.random.RandomState(seed)
+    target = tf.constant((update.astype(np.float64) / local_lr).astype(np.float32))
+    y_onehot = tf.one_hot(rng.randint(0, n_classes, size=num_images), n_classes)
+    X_dummy = tf.Variable(
+        rng.uniform(0.0, 1.0, size=(num_images,) + tuple(input_shape)).astype(np.float32)
+    )
+    weights = keras_model.trainable_variables
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+
+    cos_sim_val = 0.0
+    for _ in range(max_iters):
+        with tf.GradientTape() as outer_tape:
+            with tf.GradientTape() as inner_tape:
+                probs = keras_model(X_dummy, training=False)
+                ce = tf.reduce_mean(tf.keras.losses.categorical_crossentropy(y_onehot, probs))
+            grads_w = inner_tape.gradient(ce, weights)
+            dummy_grad = tf.concat([tf.reshape(g, [-1]) for g in grads_w], axis=0)
+            num = tf.reduce_sum(dummy_grad * target)
+            denom = tf.norm(dummy_grad) * tf.norm(target) + 1e-8
+            cos_sim = num / denom
+            tv = (tf.reduce_mean(tf.square(X_dummy[:, 1:, :, :] - X_dummy[:, :-1, :, :]))
+                  + tf.reduce_mean(tf.square(X_dummy[:, :, 1:, :] - X_dummy[:, :, :-1, :])))
+            loss = (1.0 - cos_sim) + tv_weight * tv
+        grads = outer_tape.gradient(loss, [X_dummy])
+        optimizer.apply_gradients(zip(grads, [X_dummy]))
+        cos_sim_val = float(cos_sim.numpy())
+
+    return X_dummy.numpy().reshape(num_images, -1), cos_sim_val
+
+
 # ---------------------------------------------------------------------------
 # TD3 policy over the [0,1]^5 action space (paper's "Actions Learning")
 # ---------------------------------------------------------------------------

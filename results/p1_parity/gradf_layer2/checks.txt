@@ -1,0 +1,17 @@
+PASS check1 F000 reproduces the ablation, sign_flipping 0.710100 vs 0.710100; 10.4 s
+INFO F000 sign_flipping: accuracy 0.7101, g0 1.527, client 0.968, delta 0.981, step along g0 0.185, clipped 0.00e+00
+INFO C010 sign_flipping: accuracy 0.7101, g0 1.527, client 0.968, delta 0.981, step along g0 0.185, clipped 0.00e+00
+INFO N010 sign_flipping: accuracy 0.7882, g0 1.652, client 0.986, delta 0.733, step along g0 0.036, clipped 0.00e+00
+PASS check1 F010 reproduces the ablation, sign_flipping 0.788200 vs 0.788200; 10.3 s
+INFO F010 sign_flipping: accuracy 0.7882, g0 1.652, client 0.986, delta 0.733, step along g0 0.036, clipped 0.00e+00
+PASS check3 fields are written, sign_flipping 
+PASS check1 F000 reproduces the ablation, gaussian_noise 0.616600 vs 0.616600; 10.3 s
+INFO F000 gaussian_noise: accuracy 0.6166, g0 1.505, client 0.951, delta 1.075, step along g0 0.164, clipped 2.49e-02
+INFO C010 gaussian_noise: accuracy 0.6188, g0 1.506, client 0.951, delta 1.069, step along g0 0.163, clipped 2.49e-02
+INFO N010 gaussian_noise: accuracy 0.7968, g0 1.636, client 0.994, delta 0.714, step along g0 0.034, clipped 2.49e-02
+PASS check1 F010 reproduces the ablation, gaussian_noise 0.797300 vs 0.797300; 10.3 s
+INFO F010 gaussian_noise: accuracy 0.7973, g0 1.637, client 0.995, delta 0.716, step along g0 0.034, clipped 2.49e-02
+PASS check3 fields are written, gaussian_noise 
+PASS check2 clipping alone clips and draws nothing 
+PASS check2 noise alone adds the same draw and does not clip 
+CHECKS_PASS

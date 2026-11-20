@@ -1,0 +1,15 @@
+{
+ "tag": "scale_adaaggrl_k4_t4_1",
+ "gpus": [],
+ "deterministic": true,
+ "rounds_timed": 3,
+ "local_epochs": 2,
+ "n_train_total": 47500,
+ "systems": {
+  "adaaggrl": {
+   "s_per_round": 26.33085335600966,
+   "final_accuracy": 0.2584
+  }
+ },
+ "peak_rss_gb": 2.022796630859375
+}

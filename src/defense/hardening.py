@@ -53,6 +53,24 @@ import numpy as np
 from scipy import stats
 
 
+# Model size at which the legacy defaults were calibrated: MNIST logistic
+# regression, 784 x 10 weights + 10 biases.
+LEGACY_DP_REFERENCE_PARAMS = 7850
+LEGACY_DP_REFERENCE_EPSILON = 50.0
+
+
+def legacy_dp_epsilon_for(n_params: int, ref_epsilon: float = LEGACY_DP_REFERENCE_EPSILON,
+                          ref_params: int = LEGACY_DP_REFERENCE_PARAMS) -> float:
+    """`dp_epsilon` for the legacy Layer 2 on a model with `n_params`
+    parameters, keeping the total noise L2 norm of the MNIST calibration.
+
+    Per-coordinate Laplace(1/epsilon) noise has L2 norm about
+    sqrt(2 * n_params) / epsilon, so the norm stays constant when epsilon
+    grows with sqrt(n_params / ref_params). Used for the CNN in the P1
+    CIFAR-10 campaign (34,522 parameters -> epsilon ~ 104.9)."""
+    return float(ref_epsilon * np.sqrt(n_params / ref_params))
+
+
 class HardeningPipeline:
     def __init__(
         self,

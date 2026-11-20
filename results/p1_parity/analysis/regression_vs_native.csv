@@ -1,0 +1,4 @@
+subset,n_pairs,n_nonzero,max_abs
+"non-FLTrust rules, other 6 attacks",1620,0,0.0
+"non-FLTrust rules, fltrust_aligned",270,270,0.7013
+"FLTrust, all attacks",630,630,0.35989999999999994

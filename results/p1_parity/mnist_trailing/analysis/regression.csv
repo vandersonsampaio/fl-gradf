@@ -1,0 +1,13 @@
+source,arm,n_pairs,n_nonzero,max_abs
+mnist_fixed,clustering,210,0,0.0
+mnist_fixed,fedavg,210,0,0.0
+mnist_fixed,fedprox,210,0,0.0
+mnist_fixed,fltrust,630,0,0.0
+mnist_fixed,krum,630,0,0.0
+mnist_fixed,median,630,0,0.0
+mnist_fixed,trimmed_mean,630,0,0.0
+mnist_rq3,FedStrategist,210,0,0.0
+mnist_rq3,FedStrategist (GRADF detector),210,46,0.17339999999999994
+mnist_rq3,GRADF,210,60,0.6961999999999999
+mnist_rq3,Oracle (decoupled),210,0,0.0
+mnist_rq3,Random,210,0,0.0

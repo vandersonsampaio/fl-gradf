@@ -1,0 +1,13 @@
+PASS check1 CIFAR-10 FedAvg, no attack, factor 1, reproduces E0b with the training log on [0.11440000000000002, 0.15489999999999998] vs [0.11440000000000002, 0.15489999999999998]
+PASS check2 the training log leaves the run unchanged, mnist [0.5184000000000001, 0.8231999999999999, 0.8308] vs [0.5184000000000001, 0.8231999999999999, 0.8308]
+PASS check3 the logged value is the global model's training accuracy, mnist 0.8388 vs 0.8388; 0.7 s per round
+PASS check4 the first aggregate at factor 1/5 has 1/5 of the norm, mnist fltrust ratio 0.200000
+PASS check4 the first aggregate at factor 1/5 has 1/5 of the norm, mnist trimmed_mean ratio 0.200000
+PASS check4 the first aggregate at factor 1/5 has 1/5 of the norm, mnist fedavg ratio 0.200000
+PASS check2 the training log leaves the run unchanged, cifar10 [0.1, 0.1562] vs [0.1, 0.1562]
+PASS check3 the logged value is the global model's training accuracy, cifar10 0.1518 vs 0.1518; 10.1 s per round
+PASS check4 the first aggregate at factor 1/5 has 1/5 of the norm, cifar10 fltrust ratio 0.200000
+PASS check4 the first aggregate at factor 1/5 has 1/5 of the norm, cifar10 trimmed_mean ratio 0.200000
+PASS check4 the first aggregate at factor 1/5 has 1/5 of the norm, cifar10 fedavg ratio 0.200000
+PASS check5 confirmatory seeds are refused 
+CHECKS_PASS

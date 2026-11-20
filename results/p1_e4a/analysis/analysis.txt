@@ -1,0 +1,41 @@
+E4a analysis (results/p1_e4a/PLAN.md). Seeds [42, 43, 44, 45, 46, 47, 48, 49, 50, 51]. Constructed headroom, not confirmatory.
+
+## phase score A (primary)
+alpha 0.1, H_T against in-sample best fixed (fltrust): +1.65 p.p., CI95 (+0.82; +2.48), Wilcoxon p 0.0020, t p 0.0015, d_z 1.42
+alpha 0.1, H_T against cross-fitted fixed: +1.65 p.p., CI95 (+0.82; +2.48), Wilcoxon p 0.0020, t p 0.0015, d_z 1.42
+  arm means %: {'fltrust': 79.13, 'greedy': 80.77, 'krum': 20.31, 'median': 53.44, 'trimmed_mean': 57.97}
+alpha 0.5, H_T against in-sample best fixed (trimmed_mean): +0.75 p.p., CI95 (+0.73; +0.77), Wilcoxon p 0.0020, t p 0.0000, d_z 31.77
+alpha 0.5, H_T against cross-fitted fixed: +0.75 p.p., CI95 (+0.73; +0.77), Wilcoxon p 0.0020, t p 0.0000, d_z 31.77
+  arm means %: {'fltrust': 85.76, 'greedy': 89.29, 'krum': 87.99, 'median': 87.8, 'trimmed_mean': 88.53}
+
+## trailing, last 5 rounds
+alpha 0.1, H_T against in-sample best fixed (fltrust): -0.80 p.p., CI95 (-2.29; +0.68), Wilcoxon p 0.2324, t p 0.2527, d_z -0.39
+alpha 0.1, H_T against cross-fitted fixed: -0.80 p.p., CI95 (-2.29; +0.68), Wilcoxon p 0.2324, t p 0.2527, d_z -0.39
+  arm means %: {'fltrust': 81.46, 'greedy': 80.66, 'krum': 21.17, 'median': 52.81, 'trimmed_mean': 49.74}
+alpha 0.5, H_T against in-sample best fixed (trimmed_mean): +0.35 p.p., CI95 (+0.30; +0.39), Wilcoxon p 0.0020, t p 0.0000, d_z 5.56
+alpha 0.5, H_T against cross-fitted fixed: +0.35 p.p., CI95 (+0.30; +0.39), Wilcoxon p 0.0020, t p 0.0000, d_z 5.56
+  arm means %: {'fltrust': 86.67, 'greedy': 89.13, 'krum': 88.45, 'median': 88.3, 'trimmed_mean': 88.78}
+
+## final round
+alpha 0.1, H_T against in-sample best fixed (fltrust): +0.96 p.p., CI95 (-5.11; +7.04), Wilcoxon p 0.9023, t p 0.7280, d_z 0.11
+alpha 0.1, H_T against cross-fitted fixed: +0.96 p.p., CI95 (-5.11; +7.04), Wilcoxon p 0.9023, t p 0.7280, d_z 0.11
+  arm means %: {'fltrust': 79.01, 'greedy': 79.97, 'krum': 21.23, 'median': 52.55, 'trimmed_mean': 49.7}
+alpha 0.5, H_T against in-sample best fixed (krum): -0.42 p.p., CI95 (-1.20; +0.36), Wilcoxon p 0.0840, t p 0.2560, d_z -0.38
+alpha 0.5, H_T against cross-fitted fixed: -0.42 p.p., CI95 (-1.20; +0.36), Wilcoxon p 0.0840, t p 0.2560, d_z -0.38
+  arm means %: {'fltrust': 88.04, 'greedy': 89.15, 'krum': 89.57, 'median': 88.27, 'trimmed_mean': 88.79}
+
+## Per phase: last 5 rounds, arm means %, and whether G's rule still wins its phase among the fixed rules
+arm          greedy  fltrust  median  trimmed_mean   krum
+alpha phase                                              
+0.1   1       74.62    74.62   41.27         42.77  19.26
+      2       87.04    81.29   66.26         81.41  20.50
+      3       80.66    81.46   52.81         49.74  21.17
+0.5   1       88.15    85.00   85.35         86.81  88.15
+      2       90.58    85.62   89.74         90.01  87.39
+      3       89.13    86.67   88.30         88.78  88.45
+alpha 0.1, phase 1: G's rule fltrust; best fixed in this phase fltrust (same); G 74.62, fixed fltrust 74.62
+alpha 0.1, phase 2: G's rule trimmed_mean; best fixed in this phase trimmed_mean (same); G 87.04, fixed trimmed_mean 81.41
+alpha 0.1, phase 3: G's rule fltrust; best fixed in this phase fltrust (same); G 80.66, fixed fltrust 81.46
+alpha 0.5, phase 1: G's rule krum; best fixed in this phase krum (same); G 88.15, fixed krum 88.15
+alpha 0.5, phase 2: G's rule trimmed_mean; best fixed in this phase trimmed_mean (same); G 90.58, fixed trimmed_mean 90.01
+alpha 0.5, phase 3: G's rule trimmed_mean; best fixed in this phase trimmed_mean (same); G 89.13, fixed trimmed_mean 88.78

@@ -113,17 +113,21 @@ def _derive_oracle_map(experiences, actions: List[str]) -> Dict[int, str]:
     return {attack_idx: action for attack_idx, (action, _) in best.items()}
 
 
-def train_gradf_models(participants, attack_type, byzantine_fraction, n_classes, n_rounds=8, seed=0):
+def train_gradf_models(participants, attack_type, byzantine_fraction, n_classes, n_rounds=8, seed=0,
+                       model_kwargs=None):
     """Pretrains classifier and selector with real data generated from the
     SAME participants/attack used in the experiment — a freshly instantiated
-    classifier/selector has random weights."""
+    classifier/selector has random weights. `model_kwargs` (e.g. model_type,
+    input_shape, local_epochs) are passed to the pretraining learners, so the
+    detection data and the selector's rewards come from the same task model
+    as the experiment."""
     attack_labels = ["none", attack_type]
     label_to_idx = {label: i for i, label in enumerate(attack_labels)}
 
     X, _y_bin, y_attack = generate_detection_dataset(
         participants, n_rounds=n_rounds, attack_types=[attack_type],
         byzantine_fraction=byzantine_fraction, aggregation="fedavg",
-        n_classes=n_classes, seed=seed,
+        n_classes=n_classes, seed=seed, model_kwargs=model_kwargs,
     )
     y_idx = [label_to_idx[t] for t in y_attack]
     classifier = RLAttackClassifier(n_attacks=len(attack_labels))
@@ -133,7 +137,7 @@ def train_gradf_models(participants, attack_type, byzantine_fraction, n_classes,
     experiences = generate_selector_experiences(
         participants, selector.actions, attack_types=attack_labels,
         n_rounds=n_rounds, byzantine_fraction=byzantine_fraction,
-        n_classes=n_classes, seed=seed,
+        n_classes=n_classes, seed=seed, model_kwargs=model_kwargs,
     )
     selector.train_on_experiences(experiences, epochs=200, seed=seed, verbose=False)
     oracle_map = _derive_oracle_map(experiences, selector.actions)
