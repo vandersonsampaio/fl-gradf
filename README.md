@@ -97,6 +97,12 @@ Follow-up work toward a second paper: **does AdaAggRL's RL component (TD3) contr
 | D2 | P1's conclusion is robust to run-to-run variance; GRADF's DQN is strongly non-deterministic per cell |
 | B3.0, B3.1, B3.2 | On BloodMNIST (health data), TD3 ≈ fixed again (±3 p.p.) and the policy stays static, but both run in a degraded, periodic-reset regime |
 | B3.3 | On BloodMNIST under EB, no higher threshold (a₅ = 0.75 or 0.95) beats the center: resets become rarer, but accuracy stays at ~31% |
+| Front 1 step parity | With the server's root update fitted at the clients' step count (P1's fix), `cos_server` becomes the best per-client detector and beats S_R; `fltrust_aligned` was a small-norm clone in every audit run |
+| W1 rerun (confirmatory) | With the official test set kept out of the reward, the resets and the attacker's data, and the global model evaluated, TD3 does not beat the fixed action: on MNIST they are equivalent at the end and the fixed action is better over the run; on BloodMNIST the final equivalence is a joint collapse and the fixed action is again better over the run (the first W1 run had no valid verdict) |
+| W2 (confirmatory) | Under a backdoor, TD3 has a lower attack success rate than b = 0.25 only at α = 0.1, and is less accurate than b = 0.25 at α ≤ 0.1; at α = 0.5 no system stops the backdoor (equivalent, ASR ≈ 100%) |
+| W3 (confirmatory) | An adaptive attacker that targets the threshold gives TD3 no advantage: 6/6 contrasts inconclusive |
+
+**What came next.** The audit's constructive result, per-client inclusion decided by agreement between gradient signals without RL, continues as **TRIAGE** (the thesis' GRADF-v2) in a separate repository, created from tag `experiments-2.0.0`. This repository stays the reference for GRADF v1, the P1 paper and this audit.
 
 ---
 

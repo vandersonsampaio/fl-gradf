@@ -1,0 +1,4 @@
+variant,alpha,attack_type,seed,accuracy,seconds
+attack,0.05,fltrust_aligned,42,0.8053000000000001,58.12242841720581
+attack,0.1,fltrust_aligned,42,0.7861,59.15816593170166
+attack,0.5,fltrust_aligned,42,0.8926999999999999,58.053728103637695

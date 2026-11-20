@@ -98,9 +98,30 @@ _UPDATE_ATTACKS: frozenset = frozenset({
 # Attacks that operate on training data (before local training)
 _DATA_ATTACKS: frozenset = frozenset({
     'label_flipping',     # TARS: c → (c + 1) mod K
+    'pixel_backdoor',     # W2: square trigger + target label on a fraction of samples
 })
 
 ALL_ATTACKS: frozenset = _UPDATE_ATTACKS | _DATA_ATTACKS
+
+
+def apply_trigger(X: np.ndarray, trigger_size: int = 4) -> np.ndarray:
+    """Copy of `X` (flat square grayscale images in [0, 1], shape (N, side²))
+    with the bottom-right `trigger_size` × `trigger_size` pixels set to 1.0.
+    On MNIST this corner is non-zero in ~0.01% of (image, pixel) pairs."""
+    side = int(round(np.sqrt(X.shape[1])))
+    if side * side != X.shape[1]:
+        raise ValueError(f"apply_trigger expects flat square images, got {X.shape[1]} features")
+    out = X.copy().reshape(len(X), side, side)
+    out[:, side - trigger_size:, side - trigger_size:] = 1.0
+    return out.reshape(X.shape)
+
+
+def attack_success_rate(model, X: np.ndarray, y: np.ndarray, target_class: int = 0,
+                        trigger_size: int = 4) -> float:
+    """Fraction of the samples with true label != target_class that `model`
+    (anything with `.predict`) classifies as target_class once triggered."""
+    keep = y != target_class
+    return float(np.mean(model.predict(apply_trigger(X[keep], trigger_size)) == target_class))
 
 
 class AttackSimulator:
@@ -205,6 +226,7 @@ class AttackSimulator:
         attack_type: str,
         n_classes: int = 10,
         poison_fraction: float = 1.0,
+        **backdoor_kwargs,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Apply a data-level poisoning attack to training samples.
@@ -214,23 +236,28 @@ class AttackSimulator:
         X : ndarray (N, features)
         y : ndarray (N,) int labels
         attack_type : str
-            Currently only 'label_flipping'.
+            'label_flipping' or 'pixel_backdoor'.
         n_classes : int
             Total number of classes K (used for label cycling).
         poison_fraction : float
             Fraction of samples to corrupt (0–1).
+        **backdoor_kwargs
+            'pixel_backdoor' only: `target_class`, `trigger_size` (see
+            `apply_trigger`).
 
         Returns
         -------
         X_poisoned, y_poisoned (copies; original arrays are not modified)
         """
         name = attack_type.lower()
-        if name != 'label_flipping':
+        if name not in _DATA_ATTACKS:
             if name in _UPDATE_ATTACKS:
                 raise ValueError(
                     f"'{name}' is a gradient-level attack. Use poison_update() instead."
                 )
             raise ValueError(f"Unknown data attack: {name!r}")
+        if name == 'pixel_backdoor':
+            return self._pixel_backdoor(X, y, poison_fraction=poison_fraction, **backdoor_kwargs)
         return self._label_flipping(X, y, n_classes=n_classes, poison_fraction=poison_fraction)
 
     # ------------------------------------------------------------------
@@ -413,6 +440,28 @@ class AttackSimulator:
     # ------------------------------------------------------------------
     # Data-level attack implementation
     # ------------------------------------------------------------------
+
+    def _pixel_backdoor(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        poison_fraction: float = 0.5,
+        target_class: int = 0,
+        trigger_size: int = 4,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Trigger backdoor (W2, results/w2_backdoor_asr/PLANO.md §1): a random
+        `poison_fraction` of the samples gets the square trigger of
+        `apply_trigger` and the label `target_class`; the rest is untouched.
+        Replaces `_low_mag_backdoor` as the backdoor of record — that one only
+        shifts params[0] = W[pixel 0, class 0], and pixel 0 is always 0 on MNIST,
+        so it never changes a prediction.
+        """
+        X_out, y_out = X.copy(), y.copy()
+        n_poison = int(round(len(y) * poison_fraction))
+        idx = self._rng.choice(len(y), n_poison, replace=False)
+        X_out[idx] = apply_trigger(X[idx], trigger_size)
+        y_out[idx] = target_class
+        return X_out, y_out
 
     def _label_flipping(
         self,

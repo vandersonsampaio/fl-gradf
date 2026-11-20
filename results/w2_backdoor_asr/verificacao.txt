@@ -1,0 +1,4 @@
+regression td3_ref (label_flipping a0.05 seed42 H=15): new 0.719400 vs reference 0.719400 |Δ| = 0.00e+00 OK
+regression fixed_b025 (label_flipping a0.05 seed42 H=15): new 0.725400 vs reference 0.725400 |Δ| = 0.00e+00 OK
+ASR sanity trigger 4x4: all-triggered model ASR = 1.0000 OK; untrained model ASR = 1.0000 (base rate of predicting t)
+ASR sanity trigger 6x6: all-triggered model ASR = 1.0000 OK; untrained model ASR = 1.0000 (base rate of predicting t)

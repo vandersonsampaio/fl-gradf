@@ -1,0 +1,5 @@
+[1] MNIST: {'pool': 60000, 'train_rest': 50000, 'val': 10000, 'test': 10000}; val ∩ train_rest = ∅ and val ⊂ non-test pool: OK
+[3] MNIST: validation batches 156 vs test batches 156 OK
+[1] BloodMNIST: {'pool': 13671, 'train_rest': 10250, 'val': 3421, 'test': 3421}; val ∩ train_rest = ∅ and val ⊂ non-test pool: OK
+[3] BloodMNIST: validation batches 53 vs test batches 53 OK
+[2] MNIST EB fixed seed 160, 5 rounds on cpu: histories with vs without held-out evaluation identical: FAIL (held-out acc at the last step 0.3046)

@@ -1,0 +1,1 @@
+regression td3_ref (label_flipping a0.05 seed42 H=15): new 0.719400 vs reference 0.719400 |Δ| = 0.00e+00 OK

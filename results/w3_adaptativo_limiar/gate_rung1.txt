@@ -1,0 +1,5 @@
+W3 gate, rung 1 {'c': 2.0, 'step': 0.1}: 60/60 runs
+  alpha 0.05: fixed_center acc ipm2 − adaptive = +4.10 p.p. (≥ 2.0); acceptance 53.40% (≥ 30%) -> PASS | fedavg acc: adaptive 83.94, ipm2 83.54
+  alpha 0.1: fixed_center acc ipm2 − adaptive = +32.56 p.p. (≥ 2.0); acceptance 63.47% (≥ 30%) -> PASS | fedavg acc: adaptive 74.48, ipm2 74.30
+  alpha 0.5: fixed_center acc ipm2 − adaptive = -0.01 p.p. (≥ 2.0); acceptance 66.40% (≥ 30%) -> FAIL | fedavg acc: adaptive 90.83, ipm2 90.81
+VERDICT rung 1: 2/3 cells -> VALID (use this rung)

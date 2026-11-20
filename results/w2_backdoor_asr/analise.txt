@@ -1,0 +1,54 @@
+W2 confirmatory analysis, rung 1 {'trigger_size': 4, 'poison_fraction': 0.5}: 180/180 runs
+
+H1 (primary, ASR, margin ±5 p.p.), H = 150, D = td3_ref − constant (p.p.), Holm over 6:
+  fixed_center a0.05: D = -15.14 CI95 (-37.96; +7.68) CI90 (-33.63; +3.35) p_diff_holm 0.5372 p_tost_holm 1.0000 -> inconclusive
+  fixed_center a0.1: D = +18.68 CI95 (-26.29; +63.65) CI90 (-17.76; +55.12) p_diff_holm 0.5372 p_tost_holm 1.0000 -> inconclusive
+  fixed_center a0.5: D = -0.06 CI95 (-0.17; +0.05) CI90 (-0.15; +0.03) p_diff_holm 0.5372 p_tost_holm 0.0000 -> equivalence
+  fixed_b025   a0.05: D = -18.05 CI95 (-40.88; +4.79) CI90 (-36.55; +0.46) p_diff_holm 0.5372 p_tost_holm 1.0000 -> inconclusive
+  fixed_b025   a0.1: D = -59.86 CI95 (-96.41; -23.31) CI90 (-89.47; -30.24) p_diff_holm 0.0293 p_tost_holm 1.0000 -> TD3 more secure
+  fixed_b025   a0.5: D = -0.08 CI95 (-0.19; +0.03) CI90 (-0.17; +0.01) p_diff_holm 0.5372 p_tost_holm 0.0000 -> equivalence
+
+H2 (clean accuracy, margin ±1 p.p.), H = 150, D = td3_ref − constant (p.p.), Holm over 6:
+  fixed_center a0.05: D = -2.04 CI95 (-5.16; +1.09) CI90 (-4.57; +0.49) p_diff_holm 0.4939 p_tost_holm 1.0000 -> inconclusive
+  fixed_center a0.1: D = -1.83 CI95 (-4.56; +0.90) CI90 (-4.04; +0.39) p_diff_holm 0.4939 p_tost_holm 1.0000 -> inconclusive
+  fixed_center a0.5: D = -0.22 CI95 (-0.74; +0.31) CI90 (-0.64; +0.21) p_diff_holm 0.4939 p_tost_holm 0.0210 -> equivalence
+  fixed_b025   a0.05: D = -5.73 CI95 (-9.10; -2.36) CI90 (-8.46; -3.00) p_diff_holm 0.0195 p_tost_holm 1.0000 -> TD3 less accurate
+  fixed_b025   a0.1: D = -4.26 CI95 (-6.60; -1.92) CI90 (-6.16; -2.36) p_diff_holm 0.0157 p_tost_holm 1.0000 -> TD3 less accurate
+  fixed_b025   a0.5: D = -0.36 CI95 (-0.77; +0.06) CI90 (-0.69; -0.02) p_diff_holm 0.3388 p_tost_holm 0.0200 -> equivalence
+
+Joint reading (accuracy equivalent but ASR not equivalent):
+  fixed_center a0.05: acc inconclusive, ASR inconclusive
+  fixed_center a0.1: acc inconclusive, ASR inconclusive
+  fixed_center a0.5: acc equivalence, ASR equivalence
+  fixed_b025   a0.05: acc inferiority, ASR inconclusive
+  fixed_b025   a0.1: acc inferiority, ASR inferiority
+  fixed_b025   a0.5: acc equivalence, ASR equivalence
+
+Descriptive, H = 150, mean over seeds (%):
+                      accuracy     asr  att_mass
+alpha system                                    
+0.05  cosserver_only    85.596  98.633     0.131
+      fedavg            89.373  98.548     0.156
+      fedavg_clean      89.491   0.541       NaN
+      fixed_b025        89.617  96.392     0.090
+      fixed_center      85.922  93.487     0.019
+      td3_ref           83.886  78.347     0.019
+0.10  cosserver_only    87.314  99.692     0.093
+      fedavg            89.217  99.611     0.190
+      fedavg_clean      89.421   0.680       NaN
+      fixed_b025        89.445  99.943     0.301
+      fixed_center      87.012  21.402     0.063
+      td3_ref           85.186  40.084     0.144
+0.50  cosserver_only    91.451  99.754     0.222
+      fedavg            92.038  99.949     0.230
+      fedavg_clean      91.927   0.508       NaN
+      fixed_b025        91.749  99.967     0.212
+      fixed_center      91.610  99.943     0.176
+      td3_ref           91.393  99.885     0.142
+
+Descriptive: mean ASR over rounds 1-150 (%):
+system  cosserver_only  fedavg  fedavg_clean  fixed_b025  fixed_center  td3_ref
+alpha                                                                          
+0.05             92.71   90.86          0.56       84.29         81.03    66.11
+0.10             95.59   94.45          0.76       93.78         18.98    31.65
+0.50             93.36   98.01          0.53       91.18         85.79    80.78
