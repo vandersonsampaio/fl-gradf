@@ -1,0 +1,7 @@
+X5 dry run, seed 0, R = 2, 2026-11-14, this PC (checks/x5_dry/).
+x5_fixed fedavg_r100 rc=0
+x5_fixed fedprox_r100 rc=0
+x5_fixed clustering_r100 rc=0
+x5_replay x1_systems (source: checks/x1_dry, fedstrategist a0.05 sign_flipping s0) rc=0
+Every run recorded global_lr = 1.0 and server_steps = median; code_sha256 53e4cebc..., campaign_code_sha256 d5ed26d6...
+The replay reproduced the stored run exactly: identical final-parameter hash and accuracy curve; choices recorded for both rounds.

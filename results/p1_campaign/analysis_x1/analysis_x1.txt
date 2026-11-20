@@ -1,0 +1,172 @@
+checks {'n_results_x1': 1500, 'x1_code_hash_ok': True, 'campaign_code_hash_ok': True, 'factor_one_ok': True, 'machines_x1': Counter({'notebook-Dell-G15-5530': 640, 'experimentos-vm3': 440, 'experimentos-vm2': 420}), 'x1_fixed': {'expected': 420, 'found': 420, 'missing': 0, 'extra': 0}, 'x1_systems': {'expected': 600, 'found': 600, 'missing': 0, 'extra': 0}, 'x1_hardened': {'expected': 480, 'found': 480, 'missing': 0, 'extra': 0}, 'e1_sens_factor': {'expected': 660, 'found': 660, 'missing': 0, 'extra': 0}, 'infra_requeued': 0, 'infra_dropped': 0, 'fail': 0}
+E2 factor 1 all_21 {'n_cells': 21, 'n_seeds': 10, 'H_insample': np.float64(0.0101), 'H_insample_ci95': [0.009236185714285727, 0.01157238333333334], 'H_loso': np.float64(0.0095), 'H_loso_ci95': [0.008294473809523811, 0.011144816666666665], 'category': 'positive', 'dstar_insample': 'trimmed_mean', 'dstar_agreement': 1.0, 'cell_winner_agreement': 0.9857}
+E2 factor 1 no_fltrust_aligned_18 {'n_cells': 18, 'n_seeds': 10, 'H_insample': np.float64(0.0118), 'H_insample_ci95': [0.010775550000000016, 0.013501113888888899], 'H_loso': np.float64(0.0111), 'H_loso_ci95': [0.009676886111111116, 0.01300228611111111], 'category': 'positive', 'dstar_insample': 'trimmed_mean', 'dstar_agreement': 1.0, 'cell_winner_agreement': 0.9833}
+E2 rule means (21) {'fltrust': 0.3391, 'median': 0.3926, 'trimmed_mean': 0.4228, 'krum': 0.2388} cell winners {'trimmed_mean': 15, 'fltrust': 4, 'median': 2}
+
+E3 factor 1
+    family        system reference    mean  ci95_lo  ci95_hi  p_wilcoxon  p_wilcoxon_holm    p_t  p_t_holm     d_z  p_tost    category
+vs Random  Attack-aware    Random -0.0001  -0.0146   0.0144      1.0000           1.0000 0.9847    0.9847 -0.0062  0.0790 no evidence
+vs Random         GRADF    Random -0.0040  -0.0165   0.0086      0.7695           1.0000 0.4914    0.9829 -0.2268  0.1532 no evidence
+vs Random FedStrategist    Random  0.0460   0.0348   0.0573      0.0020           0.0078 0.0000    0.0000  2.9274  1.0000 superiority
+vs Random      AdaAggRL    Random -0.1096  -0.1336  -0.0855      0.0020           0.0078 0.0000    0.0000 -3.2649  1.0000 inferiority
+  vs B_-s        Random  hardened -0.0184  -0.0309  -0.0059      0.0195           0.0391 0.0089    0.0177 -1.0519  0.9184 inferiority
+  vs B_-s  Attack-aware     plain  0.0177   0.0039   0.0315      0.0371           0.0391 0.0177    0.0177  0.9163  0.8801 superiority
+  vs B_-s         GRADF  hardened -0.0224  -0.0324  -0.0124      0.0020           0.0098 0.0007    0.0020 -1.5996  0.9896 inferiority
+  vs B_-s FedStrategist     plain  0.0638   0.0580   0.0697      0.0020           0.0098 0.0000    0.0000  7.7688  1.0000 superiority
+  vs B_-s      AdaAggRL     plain -0.0917  -0.1099  -0.0736      0.0020           0.0098 0.0000    0.0000 -3.6235  1.0000 inferiority
+
+E3 factor 1 descriptive
+                         family        system reference    mean  ci95_lo  ci95_hi  p_wilcoxon  p_wilcoxon_holm    p_t  p_t_holm     d_z  p_tost    category
+   vs B_-s plain (descriptive)        Random     plain  0.0178   0.0040   0.0316      0.0273           0.0547 0.0171    0.0341  0.9229  0.8836 superiority
+   vs B_-s plain (descriptive)         GRADF     plain  0.0138  -0.0042   0.0318      0.1055           0.1055 0.1166    0.1166  0.5490  0.6787 no evidence
+vs B_-s hardened (descriptive)  Attack-aware  hardened -0.0185  -0.0385   0.0014      0.0645           0.0645 0.0649    0.0649 -0.6649  0.8207 no evidence
+   hardened B_-s vs plain B_-s hardened B_-s     plain  0.0362   0.0218   0.0506      0.0020           0.0020 0.0003    0.0003  1.7939  0.9987 superiority
+
+E3 side by side
+    family        system reference  mean_f1_3  ci95_lo_f1_3  ci95_hi_f1_3  p_wilcoxon_holm_f1_3 category_f1_3  mean_f1  ci95_lo_f1  ci95_hi_f1  p_wilcoxon_holm_f1 category_f1
+  vs B_-s      AdaAggRL     plain    -0.1530       -0.1691       -0.1368                0.0098   inferiority  -0.0917     -0.1099     -0.0736              0.0098 inferiority
+  vs B_-s  Attack-aware     plain    -0.0289       -0.0490       -0.0089                0.0234   inferiority   0.0177      0.0039      0.0315              0.0391 superiority
+  vs B_-s FedStrategist     plain    -0.0083       -0.0204        0.0039                0.2324   no evidence   0.0638      0.0580      0.0697              0.0098 superiority
+  vs B_-s         GRADF  hardened    -0.0212       -0.0438        0.0014                0.1289   no evidence  -0.0224     -0.0324     -0.0124              0.0098 inferiority
+  vs B_-s        Random  hardened    -0.0425       -0.0639       -0.0210                0.0293   inferiority  -0.0184     -0.0309     -0.0059              0.0391 inferiority
+vs Random      AdaAggRL    Random    -0.1035       -0.1211       -0.0859                0.0078   inferiority  -0.1096     -0.1336     -0.0855              0.0078 inferiority
+vs Random  Attack-aware    Random     0.0205        0.0060        0.0350                0.0195   superiority  -0.0001     -0.0146      0.0144              1.0000 no evidence
+vs Random FedStrategist    Random     0.0412        0.0322        0.0501                0.0078   superiority   0.0460      0.0348      0.0573              0.0078 superiority
+vs Random         GRADF    Random     0.0212        0.0014        0.0410                0.0371   superiority  -0.0040     -0.0165      0.0086              1.0000 no evidence
+
+ {
+ "E2": {
+  "all_21": {
+   "factor_1_3": {
+    "dstar_insample": "fltrust",
+    "dstar_agreement": 1.0,
+    "H_loso": 0.03855961904761905,
+    "H_loso_ci95": [
+     0.0349440642857143,
+     0.041735016666666666
+    ],
+    "H_insample": 0.0393327619047619,
+    "category": "positive"
+   },
+   "factor_1": {
+    "dstar_insample": "trimmed_mean",
+    "dstar_agreement": 1.0,
+    "H_loso": 0.009499523809523812,
+    "H_loso_ci95": [
+     0.008294473809523811,
+     0.011144816666666665
+    ],
+    "H_insample": 0.010074857142857142,
+    "category": "positive"
+   }
+  },
+  "no_fltrust_aligned_18": {
+   "factor_1_3": {
+    "dstar_insample": "fltrust",
+    "dstar_agreement": 1.0,
+    "H_loso": 0.013605777777777783,
+    "H_loso_ci95": [
+     0.010329869444444448,
+     0.016609230555555556
+    ],
+    "H_insample": 0.014507777777777783,
+    "category": "positive"
+   },
+   "factor_1": {
+    "dstar_insample": "trimmed_mean",
+    "dstar_agreement": 1.0,
+    "H_loso": 0.011082777777777778,
+    "H_loso_ci95": [
+     0.009676886111111116,
+     0.01300228611111111
+    ],
+    "H_insample": 0.011753999999999999,
+    "category": "positive"
+   }
+  }
+ },
+ "E3_dstar": {
+  "factor_1_3": {
+   "dstar_plain": "fltrust",
+   "dstar_hardened": "fltrust",
+   "cells_with_crossfit_headroom_plain": 3,
+   "cells_with_crossfit_headroom_hardened": 0
+  },
+  "factor_1": {
+   "dstar_plain": "trimmed_mean",
+   "dstar_hardened": "fltrust",
+   "cells_with_crossfit_headroom_plain": 6,
+   "cells_with_crossfit_headroom_hardened": 4
+  }
+ }
+}
+
+ {
+ "cells_with_crossfit_headroom_plain": 6,
+ "cells_with_crossfit_headroom_hardened": 4,
+ "dstar_plain": "trimmed_mean",
+ "dstar_hardened": "fltrust",
+ "plain_rule_means": {
+  "fltrust": 0.3550238333333333,
+  "median": 0.35112499999999996,
+  "trimmed_mean": 0.37923433333333334,
+  "krum": 0.23480616666666665
+ },
+ "hardened_rule_means": {
+  "fltrust": 0.41543616666666666,
+  "median": 0.34499816666666666,
+  "trimmed_mean": 0.3392981666666667,
+  "krum": 0.2600091666666667
+ },
+ "system_means": {
+  "AdaAggRL": 0.2874875000000002,
+  "Attack-aware": 0.3969130000000002,
+  "FedStrategist": 0.4430704999999999,
+  "GRADF": 0.393058,
+  "Random": 0.3970394999999997
+ },
+ "capture": {
+  "AdaAggRL": {
+   "cells_beating_B": 3,
+   "captured_in_headroom_cells": 3
+  },
+  "Attack-aware": {
+   "cells_beating_B": 6,
+   "captured_in_headroom_cells": 4
+  },
+  "FedStrategist": {
+   "cells_beating_B": 10,
+   "captured_in_headroom_cells": 6
+  },
+  "GRADF": {
+   "cells_beating_B": 4,
+   "captured_in_headroom_cells": 4
+  },
+  "Random": {
+   "cells_beating_B": 7,
+   "captured_in_headroom_cells": 4
+  }
+ },
+ "layer4_reject_rate": {
+  "Attack-aware": 0.5195454545454545,
+  "GRADF": 0.5958333333333333,
+  "Random": 0.5971969696969697
+ },
+ "layer1_reject_rate": {
+  "Attack-aware": 0.17174242424242425,
+  "GRADF": 0.03568181818181818,
+  "Random": 0.08795454545454545
+ },
+ "hardened_layer4_reject_rate": {
+  "fltrust_hardened": 0.5938636363636364,
+  "krum_hardened": 0.6862878787878788,
+  "median_hardened": 0.4350757575757576,
+  "trimmed_mean_hardened": 0.42136363636363633
+ },
+ "hardened_layer1_reject_rate": {
+  "fltrust_hardened": 0.013409090909090909,
+  "krum_hardened": 0.08924242424242425,
+  "median_hardened": 0.2525,
+  "trimmed_mean_hardened": 0.2156818181818182
+ }
+}

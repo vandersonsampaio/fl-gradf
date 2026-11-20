@@ -102,7 +102,7 @@ class GRADFFederatedLearner(AttackedFederatedLearner):
 
         def evaluate_fn(delta: np.ndarray) -> float:
             model = self._make_model(participants[0].n_features)
-            model.set_params(self._global_params + delta)  # type: ignore[operator]
+            model.set_params(self._global_params + self.global_lr * delta)  # type: ignore[operator]
             return model.accuracy(eval_data["X"], eval_data["y"])
 
         hospital_ids = [p.id for p in participants]
@@ -121,7 +121,7 @@ class GRADFFederatedLearner(AttackedFederatedLearner):
         )
 
         if hardening_results.get("round_accepted") and agg_delta is not None:
-            self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+            self._global_params = self._global_step(agg_delta)
 
         self._log_explanations(hospital_ids, modality_scores, per_hospital_eval, hardening_results)
 

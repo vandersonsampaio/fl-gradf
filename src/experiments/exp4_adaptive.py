@@ -138,7 +138,7 @@ class TARSLearner(AttackedFederatedLearner):
 
         strategy = _STRATEGIES[strategy_name]()
         agg_delta, _ = strategy.aggregate(param_updates, sample_sizes=sample_sizes, server_update=server_update)
-        self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+        self._global_params = self._global_step(agg_delta)
 
         new_model = self._make_model(participants[0].n_features)
         new_model.set_params(self._global_params)
@@ -186,7 +186,7 @@ class AdaBFLLearner(AttackedFederatedLearner):
         agg_delta, metadata = self.adabfl.aggregate(
             self._global_params, param_updates, round_num, sample_sizes=sample_sizes,
         )
-        self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+        self._global_params = self._global_step(agg_delta)
 
         per_acc = {p.id: self._make_model(p.n_features).accuracy(p.X_test, p.y_test) for p in participants}
         global_acc = float(np.mean(list(per_acc.values())))
@@ -239,7 +239,7 @@ class FedStrategistLearner(AttackedFederatedLearner):
             strategy = _STRATEGIES[strategy_name]()
         sample_sizes = [p.n_train for p in participants]
         agg_delta, _ = strategy.aggregate(param_updates, sample_sizes=sample_sizes)
-        self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+        self._global_params = self._global_step(agg_delta)
 
         new_model = self._make_model(participants[0].n_features)
         new_model.set_params(self._global_params)

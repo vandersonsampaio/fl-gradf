@@ -1,0 +1,10 @@
+PASS check5 wrong factor: ['refused: global_lr=1.0 but block e1_main assigns 0.3333333333333333']
+PASS check5 wrong steps: ['refused: server_steps=native but block e1_main assigns median']
+PASS check5 wrong root: ['refused: root=2500 but block e1_main assigns 100']
+PASS check5 wrong rounds: ['refused: R=50 on a confirmatory seed; the block assigns 110']
+PASS check5 wrong out: ["refused: confirmatory jobs write only to the campaign's directory"]
+PASS check5 arm not in block: ["refused: arm 'fedavg_r100' is not in block e3_hardened"]
+PASS check5 cell not in block: ["refused: cell (0.05, 'gaussian_noise') is not in block e3_main"]
+PASS check5 job not in the block's list: ["refused: this job is not in the block's list"]
+PASS check5 not frozen or wrong hash or environment: ['refused: the preregistration is not frozen']
+CHECKS_PASS

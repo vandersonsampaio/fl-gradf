@@ -102,7 +102,7 @@ Follow-up work toward a second paper: **does AdaAggRL's RL component (TD3) contr
 
 ## After p1.0.0: P1 second submission
 
-Work toward the resubmission of the p1.0.0 paper. It lives on two branches: `p1/segunda-submissao` (MNIST, step parity, E4a) and `p1/global-lr` (the CIFAR-10 confirmatory campaign and its exploratory follow-ups). The server's root update is fitted with the clients' median step count (`server_steps="median"`, commit `c8cc2e8`; P1 branches only). Every run is pre-registered (plan or addendum plus hashes frozen first), and the inference code is `scripts/p1/inference.py`.
+Work toward the resubmission of the p1.0.0 paper, developed on branches `p1/segunda-submissao` (MNIST, step parity, E4a) and `p1/global-lr` (the CIFAR-10 confirmatory campaign and its exploratory follow-ups), both merged into `main`. The server's root update is fitted with the clients' median step count (`server_steps="median"`, introduced in commit `c8cc2e8`). Every run is pre-registered (plan or addendum plus hashes frozen first), and the inference code is `scripts/p1/inference.py`.
 
 | Document | Status | Result in one line |
 |---|---|---|
@@ -110,5 +110,9 @@ Work toward the resubmission of the p1.0.0 paper. It lives on two branches: `p1/
 | [`results/p1_parity/mnist_trailing/RESULTS.md`](results/p1_parity/mnist_trailing/RESULTS.md) | re-analysis | MNIST rerun with parity, recording the trailing mean (rounds 11–15) |
 | [`results/p1_parity/mnist_trailing/RESULTS_ADDENDUM_3.md`](results/p1_parity/mnist_trailing/RESULTS_ADDENDUM_3.md) | descriptive | Against the hardened reference (hardened FLTrust), every system is inferior on MNIST too (GRADF −1.23 p.p.); d\* is FLTrust over both the 4-rule and the 7-rule set; the 7-rule headroom is about twice the D_R headroom |
 | [`results/p1_e4a/RESULT.md`](results/p1_e4a/RESULT.md) | metric check | The temporal-headroom metric detects a constructed headroom on MNIST (+1.65 p.p. at α = 0.1) |
+| [`results/p1_campaign/RESULTS.md`](results/p1_campaign/RESULTS.md) | **confirmatory** | CIFAR-10, factor 1/3: the root effect depends on the global rate; cross-fitted headroom is positive (3.9 p.p.); no system beats the best fixed rule (FLTrust) |
+| [`results/p1_campaign/X1_RESULTS.md`](results/p1_campaign/X1_RESULTS.md) | exploratory | At factor 1, d\* becomes the trimmed mean, so RQ3 depends on the factor; FedStrategist beats it by +6.4 p.p. |
+| [`results/p1_campaign/X5_RESULTS.md`](results/p1_campaign/X5_RESULTS.md) | descriptive | FedStrategist's factor-1 gain comes from its 7-rule action set (equivalent to the best of the 7 fixed rules, clustering); the headroom over the 7-rule set is larger than over D_R |
+| [`results/p1_campaign/GATE_P2.md`](results/p1_campaign/GATE_P2.md) | decision | E4b is not run (future work); the gate's four questions are answered by the campaign, X1, X5 and E4a |
 
-The CIFAR-10 confirmatory campaign (`results/p1_campaign/`), X1, X5 and gate P-2 are on branch `p1/global-lr`.
+The code that produced these results is tagged: `p1.2.0-mnist` (MNIST) and `p1.2.0-cifar10` (CIFAR-10; it reproduces the code hashes frozen in `results/p1_campaign/*CODE.sha256`).

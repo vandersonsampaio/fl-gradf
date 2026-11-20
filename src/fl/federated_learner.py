@@ -560,6 +560,7 @@ class FederatedLearner:
         model_type: str = "logistic",
         input_shape: Optional[Tuple[int, int, int]] = None,
         server_steps: Union[str, int] = "native",
+        global_lr: float = 1.0,
     ) -> None:
         if aggregation not in _STRATEGIES:
             raise ValueError(
@@ -574,6 +575,8 @@ class FederatedLearner:
             str(server_steps).isdigit() and int(server_steps) > 0
         ):
             raise ValueError(f"server_steps must be 'native', 'median' or a positive int, got {server_steps!r}")
+        if not 0.0 < float(global_lr) <= 1.0:
+            raise ValueError(f"global_lr must be in (0, 1], got {global_lr!r}")
 
         self.n_rounds = n_rounds
         self.aggregation = aggregation
@@ -585,6 +588,7 @@ class FederatedLearner:
         self.model_type = model_type
         self.input_shape = input_shape
         self.server_steps = server_steps
+        self.global_lr = float(global_lr)
         # CNN only: draw mini-batch order from NumPy instead of TensorFlow
         # (see `_CNNModel`); set by learners that need reproducible runs.
         self.numpy_shuffle = False
@@ -688,7 +692,7 @@ class FederatedLearner:
             agg_kwargs["sample_sizes"] = [p.n_train for p in participants]
 
         agg_delta, metadata = self._strategy.aggregate(param_updates, **agg_kwargs)
-        self._global_params = self._global_params + agg_delta  # type: ignore[operator]
+        self._global_params = self._global_step(agg_delta)
 
         per_participant_acc = {
             p.id: self._make_model(p.n_features).accuracy(p.X_test, p.y_test)
@@ -734,6 +738,10 @@ class FederatedLearner:
             n_epochs=self.local_epochs,
             batch_size=self.local_batch_size,
         )
+
+    def _global_step(self, agg_delta: np.ndarray) -> np.ndarray:
+        """Global params after the round: w + global_lr * g (FLTrust, Eq. 5)."""
+        return self._global_params + self.global_lr * agg_delta  # type: ignore[operator]
 
     def _server_step_count(self, participants: List[ParticipantData]) -> Optional[int]:
         """SGD steps of the server fit; None for the native (epoch-based) path."""
